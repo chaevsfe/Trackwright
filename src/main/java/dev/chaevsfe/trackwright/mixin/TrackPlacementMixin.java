@@ -31,6 +31,7 @@ public abstract class TrackPlacementMixin {
         boolean flat,
         @Local(name = "level") Level level,
         @Local(name = "info") TrackPlacement.PlacementInfo info,
+        @Local(argsOnly = true) BlockState state2,
         @Local(name = "pos1") BlockPos pos1,
         @Local(name = "axis1") Vec3 axis1,
         @Local(name = "axis2") Vec3 axis2,
@@ -39,7 +40,7 @@ public abstract class TrackPlacementMixin {
         if (!flat || !skipCurve.get()) {
             return flat;
         }
-        PlacementRules.Straight straight = PlacementRules.decideStraight(level, pos1, axis1, axis2, info.end1Extent);
+        PlacementRules.Straight straight = PlacementRules.decideStraight(level, pos1, state2, axis1, axis2, info.end1Extent);
         PlacementInfoExtension extension = (PlacementInfoExtension) info;
         switch (straight.decision()) {
             case BRIDGE -> {

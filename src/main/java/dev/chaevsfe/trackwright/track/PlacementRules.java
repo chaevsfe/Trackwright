@@ -32,9 +32,9 @@ public final class PlacementRules {
         static final Straight KEEP = new Straight(StraightDecision.KEEP, List.of());
     }
 
-    public static Straight decideStraight(Level level, BlockPos pos1, Vec3 axis1, Vec3 axis2, int cells) {
+    public static Straight decideStraight(Level level, BlockPos pos1, BlockState end2, Vec3 axis1, Vec3 axis2, int cells) {
         TrackwrightSettings settings = Sides.forLevel(level);
-        if (settings == null || !settings.straightThroughBlocks() || cells < 3) {
+        if (settings == null || !settings.straightThroughBlocks() || cells < 3 || !end2.hasProperty(TrackBlock.HAS_BE)) {
             return Straight.KEEP;
         }
         StraightConnections.Line line = StraightConnections.line(pos1, axis1);
