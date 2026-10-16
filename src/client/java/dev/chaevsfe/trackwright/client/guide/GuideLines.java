@@ -73,6 +73,7 @@ public final class GuideLines {
                     "trackwright.guide.through_blocks",
                     Component.literal(Integer.toString(extension.trackwright$bridgedCells().size())).withStyle(ChatFormatting.WHITE)
                 ).withStyle(ChatFormatting.AQUA));
+                lines.add(Component.translatable("trackwright.guide.no_assembly").withStyle(ChatFormatting.GRAY));
             }
         }
         Component result = result(info);

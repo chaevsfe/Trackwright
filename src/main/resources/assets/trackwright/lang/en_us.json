@@ -14,5 +14,6 @@
   "trackwright.guide.grade": "Grade %s",
   "trackwright.guide.tracks": "Tracks used %s",
   "trackwright.guide.paving": "Paving used %s",
-  "trackwright.guide.through_blocks": "Runs straight through %s solid blocks"
+  "trackwright.guide.through_blocks": "Runs straight through %s blocks",
+  "trackwright.guide.no_assembly": "Trains cannot be assembled on this connection"
 }
