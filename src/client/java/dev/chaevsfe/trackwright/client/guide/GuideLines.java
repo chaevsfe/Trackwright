@@ -5,6 +5,8 @@ import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.zurrtum.create.infrastructure.component.ConnectingFrom;
 import com.zurrtum.create.infrastructure.config.AllConfigs;
 import com.zurrtum.create.infrastructure.config.CServer;
+import dev.chaevsfe.trackwright.config.RemoteSettings;
+import dev.chaevsfe.trackwright.track.ConnectionLength;
 import dev.chaevsfe.trackwright.track.Messages;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import dev.chaevsfe.trackwright.track.PlanGeometry;
@@ -124,7 +126,7 @@ public final class GuideLines {
         if (server == null) {
             return null;
         }
-        return server.trains.maxTrackPlacementLength.get();
+        return ConnectionLength.limit(server.trains.maxTrackPlacementLength.get(), RemoteSettings.get());
     }
 
     private static Component title() {

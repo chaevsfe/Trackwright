@@ -1,7 +1,6 @@
 package dev.chaevsfe.trackwright;
 
 import dev.chaevsfe.trackwright.config.ServerConfig;
-import dev.chaevsfe.trackwright.config.Sides;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -15,11 +14,7 @@ public final class Trackwright implements ModInitializer {
     @Override
     public void onInitialize() {
         TrackwrightNetwork.register();
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
-            Sides.serverStarting(server);
-            ServerConfig.reload();
-        });
-        ServerLifecycleEvents.SERVER_STOPPED.register(Sides::serverStopped);
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerConfig.reload());
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
             ServerConfig.reload();
             TrackwrightNetwork.sendToAll(server);

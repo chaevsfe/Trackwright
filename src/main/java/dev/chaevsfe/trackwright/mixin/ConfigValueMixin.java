@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(targets = "com.zurrtum.create.catnip.config.ConfigBase$CValue")
 public abstract class ConfigValueMixin {
     @ModifyReturnValue(method = "get", at = @At("RETURN"))
-    private Object trackwright$raiseConnectionLength(Object value) {
-        return ConnectionLength.raise(this, value);
+    private Object trackwright$reachAlongLongCurve(Object value) {
+        return ConnectionLength.duringCurveReach(this, value);
     }
 }

@@ -6,6 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
+import dev.chaevsfe.trackwright.track.ConnectionLength;
 import dev.chaevsfe.trackwright.track.Messages;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import dev.chaevsfe.trackwright.track.PlacementRules;
@@ -23,6 +24,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(TrackPlacement.class)
 public abstract class TrackPlacementMixin {
+    @ModifyExpressionValue(
+        method = "tryConnect",
+        at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/catnip/config/ConfigBase$ConfigInt;get()Ljava/lang/Object;")
+    )
+    private static Object trackwright$longerConnections(Object value, @Local(argsOnly = true) Level level) {
+        return ConnectionLength.forPlacement(value, level);
+    }
+
     @ModifyExpressionValue(
         method = "tryConnect",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;equal(DD)Z", ordinal = 4)

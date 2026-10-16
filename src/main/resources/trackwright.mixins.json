@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_25",
   "minVersion": "0.8.3",
   "mixins": [
+    "AllHandleMixin",
     "CarriageContraptionEntityMixin",
     "ConfigValueMixin",
     "LivingEntityMixin",
@@ -12,7 +13,8 @@
     "TrackBlockEntityMixin",
     "TrackBlockItemMixin",
     "TrackBlockMixin",
-    "TrackPlacementMixin"
+    "TrackPlacementMixin",
+    "TrackTargetingBlockItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1
