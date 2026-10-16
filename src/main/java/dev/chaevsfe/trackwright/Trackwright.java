@@ -2,8 +2,10 @@ package dev.chaevsfe.trackwright;
 
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
+import dev.chaevsfe.trackwright.track.PassengerResync;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +18,7 @@ public final class Trackwright implements ModInitializer {
         loadHookedClasses(
             "com.zurrtum.create.AllHandle",
             "com.zurrtum.create.catnip.config.ConfigBase$CValue",
+            "com.zurrtum.create.content.contraptions.actors.seat.SeatMovementBehaviour",
             "com.zurrtum.create.content.trains.entity.CarriageContraptionEntity",
             "com.zurrtum.create.content.trains.entity.Navigation",
             "com.zurrtum.create.content.trains.track.TrackBlock",
@@ -28,6 +31,8 @@ public final class Trackwright implements ModInitializer {
         );
         TrackwrightNetwork.register();
         ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerConfig.reload());
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> PassengerResync.clear());
+        ServerTickEvents.END_SERVER_TICK.register(PassengerResync::tick);
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
             ServerConfig.reload();
             TrackwrightNetwork.sendToAll(server);

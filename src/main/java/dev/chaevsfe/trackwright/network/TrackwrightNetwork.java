@@ -16,8 +16,12 @@ public final class TrackwrightNetwork {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sendTo(handler.player));
     }
 
+    public static boolean hasTrackwright(ServerPlayer player) {
+        return ServerPlayNetworking.canSend(player, SettingsPayload.TYPE);
+    }
+
     public static void sendTo(ServerPlayer player) {
-        if (ServerPlayNetworking.canSend(player, SettingsPayload.TYPE)) {
+        if (hasTrackwright(player)) {
             ServerPlayNetworking.send(player, SettingsPayload.of(ServerConfig.get()));
         }
     }

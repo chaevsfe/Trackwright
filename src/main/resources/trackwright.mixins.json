@@ -10,6 +10,7 @@
     "LivingEntityMixin",
     "NavigationMixin",
     "PlacementInfoMixin",
+    "SeatMovementBehaviourMixin",
     "TrackBlockEntityMixin",
     "TrackBlockItemMixin",
     "TrackBlockMixin",
