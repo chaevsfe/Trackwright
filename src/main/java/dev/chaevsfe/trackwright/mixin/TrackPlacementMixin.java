@@ -84,6 +84,21 @@ public abstract class TrackPlacementMixin {
         return state;
     }
 
+    @WrapOperation(
+        method = "placeTracks",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;", ordinal = 0)
+    )
+    private static BlockState trackwright$countUnloadedStartAsTrack(
+        Level level,
+        BlockPos pos,
+        Operation<BlockState> original,
+        @Local(name = "first") boolean firstEnd,
+        @Local(name = "pos") BlockPos start,
+        @Local(argsOnly = true, ordinal = 0) BlockState startState
+    ) {
+        return UnloadedStart.extentState(level, pos, original.call(level, pos), firstEnd, start, startState);
+    }
+
     @Inject(
         method = "tryConnect",
         at = @At(
