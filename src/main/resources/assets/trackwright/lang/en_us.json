@@ -1,4 +1,19 @@
 {
   "create.track.trackwright.line_occupied": "Another track is in the way of this straight connection",
-  "create.track.trackwright.overlaps_straight": "This would overlap a straight track connection"
+  "create.track.trackwright.overlaps_straight": "This would overlap a straight track connection",
+  "trackwright.guide.title": "Track Guide",
+  "trackwright.guide.start": "From %s",
+  "trackwright.guide.aim": "Aim where the track should end",
+  "trackwright.guide.offset": "Offset x %s  y %s  z %s",
+  "trackwright.guide.length": "Length %s blocks",
+  "trackwright.guide.reach": "Reach %s of %s blocks",
+  "trackwright.guide.turn_none": "Heading stays the same",
+  "trackwright.guide.turn_left": "Bends %s° to the left",
+  "trackwright.guide.turn_right": "Bends %s° to the right",
+  "trackwright.guide.shift": "Steps %s blocks sideways",
+  "trackwright.guide.radius": "Tightest radius %s blocks",
+  "trackwright.guide.grade": "Grade %s",
+  "trackwright.guide.tracks": "Tracks used %s",
+  "trackwright.guide.paving": "Paving used %s",
+  "trackwright.guide.through_blocks": "Runs straight through %s solid blocks"
 }

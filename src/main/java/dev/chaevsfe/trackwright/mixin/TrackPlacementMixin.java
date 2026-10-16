@@ -39,14 +39,19 @@ public abstract class TrackPlacementMixin {
         if (!flat || !skipCurve.get()) {
             return flat;
         }
-        switch (PlacementRules.decideStraight(level, pos1, axis1, axis2, info.end1Extent)) {
+        PlacementRules.Straight straight = PlacementRules.decideStraight(level, pos1, axis1, axis2, info.end1Extent);
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        switch (straight.decision()) {
             case BRIDGE -> {
                 info.end1Extent = 0;
                 info.end2Extent = 0;
                 skipCurve.set(false);
-                ((PlacementInfoExtension) info).trackwright$setBridged(true);
+                extension.trackwright$setBridged(true);
+                if (level.isClientSide()) {
+                    extension.trackwright$setBridgedCells(straight.blocked());
+                }
             }
-            case OCCUPIED -> ((PlacementInfoExtension) info).trackwright$setRefusal(Messages.LINE_OCCUPIED);
+            case OCCUPIED -> extension.trackwright$setRefusal(Messages.LINE_OCCUPIED);
             case KEEP -> {
             }
         }

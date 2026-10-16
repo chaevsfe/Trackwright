@@ -3,7 +3,7 @@
   "id": "trackwright",
   "version": "${version}",
   "name": "Create Fly: Trackwright",
-  "description": "Track laying helpers for Create Fly: straight track through solid blocks, connections up to 128 blocks, full speed on straight connections and seated train passengers safe inside walls.",
+  "description": "Track laying helpers for Create Fly: a placement guide, straight track through solid blocks, connections up to 128 blocks, full speed on straight connections and seated train passengers safe inside walls.",
   "authors": [
     "chaevsfe"
   ],
@@ -25,7 +25,11 @@
     ]
   },
   "mixins": [
-    "trackwright.mixins.json"
+    "trackwright.mixins.json",
+    {
+      "config": "trackwright.client.mixins.json",
+      "environment": "client"
+    }
   ],
   "depends": {
     "minecraft": "${minecraft_dependency_version}",

@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class PlacementRules {
@@ -27,29 +28,34 @@ public final class PlacementRules {
         OCCUPIED
     }
 
-    public static StraightDecision decideStraight(Level level, BlockPos pos1, Vec3 axis1, Vec3 axis2, int cells) {
+    public record Straight(StraightDecision decision, List<BlockPos> blocked) {
+        static final Straight KEEP = new Straight(StraightDecision.KEEP, List.of());
+    }
+
+    public static Straight decideStraight(Level level, BlockPos pos1, Vec3 axis1, Vec3 axis2, int cells) {
         TrackwrightSettings settings = Sides.forLevel(level);
         if (settings == null || !settings.straightThroughBlocks() || cells < 3) {
-            return StraightDecision.KEEP;
+            return Straight.KEEP;
         }
         StraightConnections.Line line = StraightConnections.line(pos1, axis1);
         if (line == null || StraightConnections.line(pos1, axis2) == null) {
-            return StraightDecision.KEEP;
+            return Straight.KEEP;
         }
-        boolean blocked = false;
+        List<BlockPos> blocked = new ArrayList<>();
         boolean trackInside = false;
         for (int i = 1; i < cells - 1; i++) {
-            BlockState state = level.getBlockState(line.at(i));
+            BlockPos pos = line.at(i);
+            BlockState state = level.getBlockState(pos);
             if (state.getBlock() instanceof ITrackBlock) {
                 trackInside = true;
             } else if (!state.canBeReplaced() && !state.is(BlockTags.FLOWERS)) {
-                blocked = true;
+                blocked.add(pos);
             }
         }
-        if (!blocked) {
-            return StraightDecision.KEEP;
+        if (blocked.isEmpty()) {
+            return Straight.KEEP;
         }
-        return trackInside ? StraightDecision.OCCUPIED : StraightDecision.BRIDGE;
+        return new Straight(trackInside ? StraightDecision.OCCUPIED : StraightDecision.BRIDGE, blocked);
     }
 
     public static @Nullable String refusal(Level level, PlacementInfo info, BlockPos pos1, BlockPos pos2, Vec3 axis1, Vec3 axis2) {
