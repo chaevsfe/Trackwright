@@ -6,6 +6,7 @@
   "mixins": [
     "CarriageContraptionEntityMixin",
     "ConfigValueMixin",
+    "LivingEntityMixin",
     "NavigationMixin",
     "PlacementInfoMixin",
     "TrackBlockEntityMixin",
