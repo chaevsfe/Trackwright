@@ -15,6 +15,10 @@ import net.minecraft.resources.Identifier;
 public final class TrackwrightClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        Trackwright.loadHookedClasses(
+            "com.zurrtum.create.client.content.trains.track.TrackPlacementClient",
+            "net.minecraft.client.renderer.ScreenEffectRenderer"
+        );
         ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> RemoteSettings.set(payload.settings()));
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
             RemoteSettings.clear();

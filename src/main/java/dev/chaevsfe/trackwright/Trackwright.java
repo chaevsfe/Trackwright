@@ -13,11 +13,35 @@ public final class Trackwright implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        loadHookedClasses(
+            "com.zurrtum.create.AllHandle",
+            "com.zurrtum.create.catnip.config.ConfigBase$CValue",
+            "com.zurrtum.create.content.trains.entity.CarriageContraptionEntity",
+            "com.zurrtum.create.content.trains.entity.Navigation",
+            "com.zurrtum.create.content.trains.track.TrackBlock",
+            "com.zurrtum.create.content.trains.track.TrackBlockEntity",
+            "com.zurrtum.create.content.trains.track.TrackBlockItem",
+            "com.zurrtum.create.content.trains.track.TrackPlacement",
+            "com.zurrtum.create.content.trains.track.TrackPlacement$PlacementInfo",
+            "com.zurrtum.create.content.trains.track.TrackTargetingBlockItem",
+            "net.minecraft.world.entity.LivingEntity"
+        );
         TrackwrightNetwork.register();
         ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerConfig.reload());
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
             ServerConfig.reload();
             TrackwrightNetwork.sendToAll(server);
         });
+    }
+
+    public static void loadHookedClasses(String... names) {
+        ClassLoader loader = Trackwright.class.getClassLoader();
+        for (String name : names) {
+            try {
+                Class.forName(name, false, loader);
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException("Trackwright cannot find " + name + " in this Create Fly build", e);
+            }
+        }
     }
 }
