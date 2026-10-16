@@ -5,8 +5,10 @@
   "minVersion": "0.8.3",
   "mixins": [
     "CarriageContraptionEntityMixin",
+    "ConfigValueMixin",
     "NavigationMixin",
     "PlacementInfoMixin",
+    "TrackBlockEntityMixin",
     "TrackBlockItemMixin",
     "TrackBlockMixin",
     "TrackPlacementMixin"
