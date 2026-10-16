@@ -1,5 +1,4 @@
 {
-  "create.track.trackwright.line_occupied": "Another track is in the way of this straight connection",
   "create.track.trackwright.overlaps_straight": "This would overlap a straight track connection",
   "trackwright.guide.title": "Track Guide",
   "trackwright.guide.start": "From %s",

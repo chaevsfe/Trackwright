@@ -7,7 +7,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.track.ConnectionLength;
-import dev.chaevsfe.trackwright.track.Messages;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import dev.chaevsfe.trackwright.track.PlacementRules;
 import dev.chaevsfe.trackwright.track.UnloadedStart;
@@ -50,19 +49,14 @@ public abstract class TrackPlacementMixin {
             return flat;
         }
         PlacementRules.Straight straight = PlacementRules.decideStraight(level, pos1, state2, axis1, axis2, info.end1Extent);
-        PlacementInfoExtension extension = (PlacementInfoExtension) info;
-        switch (straight.decision()) {
-            case BRIDGE -> {
-                info.end1Extent = 0;
-                info.end2Extent = 0;
-                skipCurve.set(false);
-                extension.trackwright$setBridged(true);
-                if (level.isClientSide()) {
-                    extension.trackwright$setBridgedCells(straight.blocked());
-                }
-            }
-            case OCCUPIED -> extension.trackwright$setRefusal(Messages.LINE_OCCUPIED);
-            case KEEP -> {
+        if (straight.bridge()) {
+            PlacementInfoExtension extension = (PlacementInfoExtension) info;
+            info.end1Extent = 0;
+            info.end2Extent = 0;
+            skipCurve.set(false);
+            extension.trackwright$setBridged(true);
+            if (level.isClientSide()) {
+                extension.trackwright$setBridgedCells(straight.blocked());
             }
         }
         return flat;

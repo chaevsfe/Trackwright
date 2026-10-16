@@ -22,14 +22,8 @@ public final class PlacementRules {
     private PlacementRules() {
     }
 
-    public enum StraightDecision {
-        KEEP,
-        BRIDGE,
-        OCCUPIED
-    }
-
-    public record Straight(StraightDecision decision, List<BlockPos> blocked) {
-        static final Straight KEEP = new Straight(StraightDecision.KEEP, List.of());
+    public record Straight(boolean bridge, List<BlockPos> blocked) {
+        static final Straight KEEP = new Straight(false, List.of());
     }
 
     public static Straight decideStraight(Level level, BlockPos pos1, BlockState end2, Vec3 axis1, Vec3 axis2, int cells) {
@@ -42,28 +36,24 @@ public final class PlacementRules {
             return Straight.KEEP;
         }
         List<BlockPos> blocked = new ArrayList<>();
-        boolean trackInside = false;
         for (int i = 1; i < cells - 1; i++) {
             BlockPos pos = line.at(i);
             BlockState state = level.getBlockState(pos);
             if (state.getBlock() instanceof ITrackBlock) {
-                trackInside = true;
-            } else if (!state.canBeReplaced() && !state.is(BlockTags.FLOWERS)) {
+                return Straight.KEEP;
+            }
+            if (!state.canBeReplaced() && !state.is(BlockTags.FLOWERS)) {
                 blocked.add(pos);
             }
         }
         if (blocked.isEmpty()) {
             return Straight.KEEP;
         }
-        return new Straight(trackInside ? StraightDecision.OCCUPIED : StraightDecision.BRIDGE, blocked);
+        return new Straight(true, blocked);
     }
 
     public static @Nullable String refusal(Level level, PlacementInfo info, BlockPos pos1, BlockPos pos2, Vec3 axis1, Vec3 axis2) {
         PlacementInfoExtension extension = (PlacementInfoExtension) info;
-        String decided = extension.trackwright$refusal();
-        if (decided != null) {
-            return decided;
-        }
         if (Sides.forLevel(level) == null) {
             return null;
         }
