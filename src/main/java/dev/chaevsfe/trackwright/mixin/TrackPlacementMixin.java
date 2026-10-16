@@ -1,14 +1,19 @@
 package dev.chaevsfe.trackwright.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.track.Messages;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import dev.chaevsfe.trackwright.track.PlacementRules;
+import dev.chaevsfe.trackwright.track.UnloadedStart;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
@@ -46,6 +51,19 @@ public abstract class TrackPlacementMixin {
             }
         }
         return flat;
+    }
+
+    @WrapOperation(
+        method = "tryConnect",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;")
+    )
+    private static BlockState trackwright$previewFromUnloadedStart(
+        Level level,
+        BlockPos pos,
+        Operation<BlockState> original,
+        @Local(argsOnly = true) ItemStack stack
+    ) {
+        return UnloadedStart.startState(level, pos, original.call(level, pos), stack);
     }
 
     @Inject(
