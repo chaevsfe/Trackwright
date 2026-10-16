@@ -22,7 +22,7 @@ public final class TrackGuideHud {
     public static void extract(GuiGraphicsExtractor graphics, DeltaTracker delta) {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
-        if (player == null || mc.level == null || player.isSpectator() || mc.gui.hud.isHidden() || mc.getDebugOverlay().showDebugScreen()) {
+        if (player == null || mc.level == null || player.isSpectator() || mc.options.hideGui || mc.getDebugOverlay().showDebugScreen()) {
             return;
         }
         List<Component> lines = TrackGuide.linesFor(player);
