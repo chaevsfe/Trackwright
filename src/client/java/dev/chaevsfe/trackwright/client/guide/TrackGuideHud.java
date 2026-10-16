@@ -6,7 +6,9 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class TrackGuideHud {
@@ -15,6 +17,8 @@ public final class TrackGuideHud {
     private static final int EDGE = 6;
     private static final int PADDING = 3;
     private static final int LINE_HEIGHT = 10;
+    private static final int CROSSHAIR_CLEARANCE = 12;
+    private static final int MIN_WIDTH = 80;
 
     private TrackGuideHud() {
     }
@@ -30,16 +34,21 @@ public final class TrackGuideHud {
             return;
         }
         Font font = mc.font;
-        int width = 0;
-        for (Component line : lines) {
-            width = Math.max(width, font.width(line));
-        }
-        int height = lines.size() * LINE_HEIGHT;
         int x = EDGE + PADDING;
+        int maxWidth = Math.max(MIN_WIDTH, graphics.guiWidth() / 2 - CROSSHAIR_CLEARANCE - PADDING - x);
+        List<FormattedCharSequence> rows = new ArrayList<>();
+        for (Component line : lines) {
+            rows.addAll(font.split(line, maxWidth));
+        }
+        int width = 0;
+        for (FormattedCharSequence row : rows) {
+            width = Math.max(width, font.width(row));
+        }
+        int height = rows.size() * LINE_HEIGHT;
         int y = Math.max(EDGE + PADDING, (graphics.guiHeight() - height) / 2);
         graphics.fill(x - PADDING, y - PADDING, x + width + PADDING, y + height + PADDING - 2, BACKGROUND);
-        for (Component line : lines) {
-            graphics.text(font, line, x, y, TEXT, true);
+        for (FormattedCharSequence row : rows) {
+            graphics.text(font, row, x, y, TEXT, true);
             y += LINE_HEIGHT;
         }
     }
