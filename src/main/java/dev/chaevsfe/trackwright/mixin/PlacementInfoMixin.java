@@ -14,6 +14,8 @@ public abstract class PlacementInfoMixin implements PlacementInfoExtension {
     private boolean trackwright$bridged;
     @Unique
     private List<BlockPos> trackwright$bridgedCells = List.of();
+    @Unique
+    private boolean trackwright$guessed;
 
     @Override
     public boolean trackwright$bridged() {
@@ -33,5 +35,15 @@ public abstract class PlacementInfoMixin implements PlacementInfoExtension {
     @Override
     public void trackwright$setBridgedCells(List<BlockPos> cells) {
         trackwright$bridgedCells = List.copyOf(cells);
+    }
+
+    @Override
+    public boolean trackwright$guessed() {
+        return trackwright$guessed;
+    }
+
+    @Override
+    public void trackwright$setGuessed(boolean guessed) {
+        trackwright$guessed = guessed;
     }
 }

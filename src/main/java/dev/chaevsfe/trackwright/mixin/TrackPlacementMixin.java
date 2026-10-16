@@ -49,8 +49,11 @@ public abstract class TrackPlacementMixin {
             return flat;
         }
         PlacementRules.Straight straight = PlacementRules.decideStraight(level, pos1, state2, axis1, axis2, info.end1Extent);
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        if (straight.unseen()) {
+            extension.trackwright$setGuessed(true);
+        }
         if (straight.bridge()) {
-            PlacementInfoExtension extension = (PlacementInfoExtension) info;
             info.end1Extent = 0;
             info.end2Extent = 0;
             skipCurve.set(false);
@@ -70,9 +73,15 @@ public abstract class TrackPlacementMixin {
         Level level,
         BlockPos pos,
         Operation<BlockState> original,
-        @Local(argsOnly = true) ItemStack stack
+        @Local(argsOnly = true) ItemStack stack,
+        @Local(name = "info") TrackPlacement.PlacementInfo info
     ) {
-        return UnloadedStart.startState(level, pos, original.call(level, pos), stack);
+        BlockState found = original.call(level, pos);
+        BlockState state = UnloadedStart.startState(level, pos, found, stack);
+        if (state != found) {
+            ((PlacementInfoExtension) info).trackwright$setGuessed(true);
+        }
+        return state;
     }
 
     @Inject(

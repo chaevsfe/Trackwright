@@ -15,5 +15,7 @@
   "trackwright.guide.tracks": "Tracks used %s",
   "trackwright.guide.paving": "Paving used %s",
   "trackwright.guide.through_blocks": "Runs straight through %s blocks",
-  "trackwright.guide.no_assembly": "Trains cannot be assembled on this connection"
+  "trackwright.guide.no_assembly": "Trains cannot be assembled on this connection",
+  "trackwright.guide.out_of_view": "Part of this is out of view, so these numbers are a guess",
+  "trackwright.guide.server_counts": "The server counts your items when you place it"
 }

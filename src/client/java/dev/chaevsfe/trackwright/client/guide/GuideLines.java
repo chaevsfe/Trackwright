@@ -75,6 +75,9 @@ public final class GuideLines {
                 ).withStyle(ChatFormatting.AQUA));
                 lines.add(Component.translatable("trackwright.guide.no_assembly").withStyle(ChatFormatting.GRAY));
             }
+            if (extension.trackwright$guessed()) {
+                lines.add(Component.translatable("trackwright.guide.out_of_view").withStyle(ChatFormatting.YELLOW));
+            }
         }
         Component result = result(info);
         if (result != null) {
@@ -115,6 +118,9 @@ public final class GuideLines {
         }
         if (info.message == null) {
             return null;
+        }
+        if (COST_KNOWN.contains(info.message) && ((PlacementInfoExtension) info).trackwright$guessed()) {
+            return Component.translatable("trackwright.guide.server_counts").withStyle(ChatFormatting.GRAY);
         }
         String key = "create." + info.message;
         String fallback = Messages.fallback(key);

@@ -12,4 +12,8 @@ public interface PlacementInfoExtension {
     List<BlockPos> trackwright$bridgedCells();
 
     void trackwright$setBridgedCells(List<BlockPos> cells);
+
+    boolean trackwright$guessed();
+
+    void trackwright$setGuessed(boolean guessed);
 }

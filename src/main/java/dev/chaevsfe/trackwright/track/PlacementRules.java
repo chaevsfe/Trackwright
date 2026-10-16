@@ -7,6 +7,7 @@ import com.zurrtum.create.content.trains.track.TrackShape;
 import dev.chaevsfe.trackwright.config.Sides;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -22,8 +23,8 @@ public final class PlacementRules {
     private PlacementRules() {
     }
 
-    public record Straight(boolean bridge, List<BlockPos> blocked) {
-        static final Straight KEEP = new Straight(false, List.of());
+    public record Straight(boolean bridge, boolean unseen, List<BlockPos> blocked) {
+        static final Straight KEEP = new Straight(false, false, List.of());
     }
 
     public static Straight decideStraight(Level level, BlockPos pos1, BlockState end2, Vec3 axis1, Vec3 axis2, int cells) {
@@ -36,20 +37,25 @@ public final class PlacementRules {
             return Straight.KEEP;
         }
         List<BlockPos> blocked = new ArrayList<>();
+        boolean trackInside = false;
+        boolean unseen = false;
         for (int i = 1; i < cells - 1; i++) {
             BlockPos pos = line.at(i);
+            if (level.isClientSide() && !level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))) {
+                unseen = true;
+                continue;
+            }
             BlockState state = level.getBlockState(pos);
             if (state.getBlock() instanceof ITrackBlock) {
-                return Straight.KEEP;
-            }
-            if (!state.canBeReplaced() && !state.is(BlockTags.FLOWERS)) {
+                trackInside = true;
+            } else if (!state.canBeReplaced() && !state.is(BlockTags.FLOWERS)) {
                 blocked.add(pos);
             }
         }
-        if (blocked.isEmpty()) {
-            return Straight.KEEP;
+        if (trackInside || blocked.isEmpty()) {
+            return new Straight(false, unseen, List.of());
         }
-        return new Straight(true, blocked);
+        return new Straight(true, unseen, blocked);
     }
 
     public static @Nullable String refusal(Level level, PlacementInfo info, BlockPos pos1, BlockPos pos2, Vec3 axis1, Vec3 axis2) {
