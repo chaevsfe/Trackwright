@@ -4,6 +4,8 @@
   "compatibilityLevel": "JAVA_25",
   "minVersion": "0.8.3",
   "mixins": [
+    "CarriageContraptionEntityMixin",
+    "NavigationMixin",
     "PlacementInfoMixin",
     "TrackBlockItemMixin",
     "TrackBlockMixin",
