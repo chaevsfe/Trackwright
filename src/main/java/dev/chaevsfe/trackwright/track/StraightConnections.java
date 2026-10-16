@@ -36,13 +36,17 @@ public final class StraightConnections {
         if (connection.normals.getFirst().distanceTo(connection.normals.getSecond()) > TOLERANCE) {
             return false;
         }
-        Vec3 direction = horizontalUnit(start2.subtract(start1));
         Vec3 heading1 = horizontalUnit(axis1);
         Vec3 heading2 = horizontalUnit(axis2);
-        if (direction == null || heading1 == null || heading2 == null) {
+        if (heading1 == null || heading2 == null || heading1.distanceTo(heading2.scale(-1)) > TOLERANCE) {
             return false;
         }
-        return heading1.distanceTo(direction) < TOLERANCE && heading2.distanceTo(direction.scale(-1)) < TOLERANCE;
+        double dx = start2.x - start1.x;
+        double dz = start2.z - start1.z;
+        if (dx * heading1.x + dz * heading1.z < TOLERANCE) {
+            return false;
+        }
+        return Math.abs(dx * heading1.z - dz * heading1.x) < TOLERANCE && Math.abs(dx * heading2.z - dz * heading2.x) < TOLERANCE;
     }
 
     private static @Nullable Vec3 horizontalUnit(Vec3 vector) {
