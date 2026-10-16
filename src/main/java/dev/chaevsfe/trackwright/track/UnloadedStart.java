@@ -33,6 +33,14 @@ public final class UnloadedStart {
         return madeUp != null ? madeUp : found;
     }
 
+    public static BlockState extentState(Level level, BlockPos pos, BlockState found, boolean firstEnd, BlockPos start, BlockState startState) {
+        if (!firstEnd || !level.isClientSide() || !pos.equals(start) || !startState.hasProperty(TrackBlock.HAS_BE)
+            || level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))) {
+            return found;
+        }
+        return startState;
+    }
+
     public static @Nullable BlockState stateFor(ItemStack stack, Vec3 axis, Vec3 normal) {
         if (!(stack.getItem() instanceof BlockItem item) || !(item.getBlock() instanceof TrackBlock block)) {
             return null;
