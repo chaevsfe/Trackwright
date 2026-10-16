@@ -7,6 +7,9 @@ import com.zurrtum.create.client.content.trains.track.TrackRenderer;
 import com.zurrtum.create.content.trains.track.BezierConnection;
 import com.zurrtum.create.content.trains.track.TrackBlockEntity;
 import dev.chaevsfe.trackwright.client.track.FarEnd;
+import dev.chaevsfe.trackwright.client.track.TrackLight;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,5 +28,13 @@ public abstract class TrackRendererMixin {
     ) {
         return original.call(connection)
             || FarEnd.firstEndHidden(track.getLevel(), connection, camera, ((TrackRenderer) (Object) this).getViewDistance());
+    }
+
+    @WrapOperation(
+        method = "extractRenderState(Lcom/zurrtum/create/content/trains/track/TrackBlockEntity;Lcom/zurrtum/create/client/content/trains/track/TrackRenderer$TrackRenderState;FLnet/minecraft/world/phys/Vec3;Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/util/LightCoordsUtil;getLightCoords(Lnet/minecraft/world/level/BlockAndLightGetter;Lnet/minecraft/core/BlockPos;)I")
+    )
+    private int trackwright$lightInsideSolidBlocks(BlockAndLightGetter level, BlockPos pos, Operation<Integer> original) {
+        return TrackLight.insideSolidBlock(level, pos, original.call(level, pos), neighbour -> original.call(level, neighbour));
     }
 }
