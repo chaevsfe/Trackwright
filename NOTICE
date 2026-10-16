@@ -1,0 +1,21 @@
+Create Fly: Trackwright
+Copyright (c) 2026 chaevsfe
+Licensed under the MIT License; see LICENSE.
+
+This is an add-on for Create Fly. It is not affiliated with or endorsed by
+ZurrTum or the Create team.
+
+Builds on
+---------
+- Create by simibubi and the Create team, MIT
+- Create Fly by ZurrTum, CC0-1.0
+
+Every class in this mod is this project's own. It changes Create's track
+placement and train behaviour at runtime through mixins and redistributes no
+Create Fly class, texture or translation. Create's own text is referenced by
+translation key only.
+
+Dependencies (not bundled)
+--------------------------
+- Create Fly, CC0-1.0
+- Fabric API, Apache-2.0

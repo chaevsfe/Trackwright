@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "trackwright",
+  "version": "${version}",
+  "name": "Create Fly: Trackwright",
+  "description": "Track laying helpers for Create Fly: straight track through solid blocks, connections up to 128 blocks, full speed on straight connections and seated train passengers safe inside walls.",
+  "authors": [
+    "chaevsfe"
+  ],
+  "contact": {
+    "homepage": "https://github.com/chaevsfe/Trackwright",
+    "sources": "https://github.com/chaevsfe/Trackwright",
+    "issues": "https://github.com/chaevsfe/Trackwright/issues"
+  },
+  "license": [
+    "MIT"
+  ],
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.chaevsfe.trackwright.Trackwright"
+    ],
+    "client": [
+      "dev.chaevsfe.trackwright.client.TrackwrightClient"
+    ]
+  },
+  "mixins": [
+    "trackwright.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "${minecraft_dependency_version}",
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": "${fabric_api_version_range}",
+    "create": "${create_fabric_version_range}",
+    "java": ">=25"
+  }
+}
