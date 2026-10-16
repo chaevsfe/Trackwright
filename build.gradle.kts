@@ -114,6 +114,46 @@ val checkJarContainment = tasks.register("checkJarContainment") {
     }
 }
 
+val checkTranslations = tasks.register("checkTranslations") {
+    description = "Fails if the sources use a translation key that no language file defines, or if one of our keys is never used."
+    group = "verification"
+    val sources = fileTree("src") { include("**/*.java") }
+    val ownLang = file("src/main/resources/assets/trackwright/lang/en_us.json")
+    val compileClasspath = configurations.named("compileClasspath")
+    inputs.files(sources)
+    inputs.file(ownLang)
+    doLast {
+        val slurper = groovy.json.JsonSlurper()
+        @Suppress("UNCHECKED_CAST")
+        val own = (slurper.parse(ownLang) as Map<String, Any>).keys
+        val createJar = compileClasspath.get().files.firstOrNull { it.name.startsWith("create-fly-") && it.name.endsWith(".jar") }
+            ?: throw GradleException("Create Fly is not on the compile classpath")
+        val createKeys = ZipFile(createJar).use { zip ->
+            val entry = zip.getEntry("assets/create/lang/en_us.json")
+                ?: throw GradleException("Create Fly ships no assets/create/lang/en_us.json")
+            @Suppress("UNCHECKED_CAST")
+            (zip.getInputStream(entry).use { slurper.parse(it) } as Map<String, Any>).keys
+        }
+        val createPrefix = "create.track."
+        val literal = Regex("\"((?:create|trackwright)(?:\\.[a-z0-9_]+)+)\"")
+        val used = sources.files.flatMap { source -> literal.findAll(source.readText()).map { it.groupValues[1] }.toList() }.toSortedSet()
+        val missing = used.filter { key ->
+            if (key.startsWith("trackwright.")) key !in own && (createPrefix + key) !in own
+            else key !in own && key !in createKeys
+        }
+        val unused = own.filter { key -> key !in used && !(key.startsWith(createPrefix) && key.removePrefix(createPrefix) in used) }
+        if (missing.isNotEmpty() || unused.isNotEmpty()) {
+            throw GradleException(
+                "Translation check failed:\n" +
+                    missing.joinToString("") { "  missing: $it\n" } +
+                    unused.joinToString("") { "  unused: $it\n" }
+            )
+        }
+        logger.lifecycle("checkTranslations: ${used.size} keys used, ${own.size} own keys, all defined and used")
+    }
+}
+
 tasks.named("check") {
     dependsOn(checkJarContainment)
+    dependsOn(checkTranslations)
 }
