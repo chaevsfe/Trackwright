@@ -53,7 +53,7 @@ public final class GuideLines {
             int dz = target.getZ() - start.getZ();
             lines.add(line("trackwright.guide.offset", signed(dx), signed(dy), signed(dz)));
             double horizontal = Math.sqrt((double) dx * dx + (double) dz * dz);
-            lines.add(line("trackwright.guide.length", number(horizontal)));
+            lines.add(counted("trackwright.guide.length", "trackwright.guide.length_one", number(horizontal)));
             Integer limit = connectionLimit();
             if (limit != null) {
                 lines.add(line("trackwright.guide.reach", number(Math.sqrt(start.distSqr(target))), Integer.toString(limit)));
@@ -69,9 +69,10 @@ public final class GuideLines {
             }
             PlacementInfoExtension extension = (PlacementInfoExtension) info;
             if (info.valid && extension.trackwright$bridged()) {
+                int through = extension.trackwright$bridgedCells().size();
                 lines.add(Component.translatable(
-                    "trackwright.guide.through_blocks",
-                    Component.literal(Integer.toString(extension.trackwright$bridgedCells().size())).withStyle(ChatFormatting.WHITE)
+                    through == 1 ? "trackwright.guide.through_blocks_one" : "trackwright.guide.through_blocks",
+                    Component.literal(Integer.toString(through)).withStyle(ChatFormatting.WHITE)
                 ).withStyle(ChatFormatting.AQUA));
                 lines.add(Component.translatable("trackwright.guide.no_assembly").withStyle(ChatFormatting.GRAY));
             }
@@ -94,7 +95,7 @@ public final class GuideLines {
                 if (Double.isNaN(sideways) || Math.abs(sideways) < 0.05) {
                     lines.add(Component.translatable("trackwright.guide.turn_none").withStyle(ChatFormatting.GRAY));
                 } else {
-                    lines.add(line("trackwright.guide.shift", number(Math.abs(sideways))));
+                    lines.add(counted("trackwright.guide.shift", "trackwright.guide.shift_one", number(Math.abs(sideways))));
                 }
             } else {
                 lines.add(line(change > 0 ? "trackwright.guide.turn_right" : "trackwright.guide.turn_left", number(Math.abs(change))));
@@ -104,7 +105,7 @@ public final class GuideLines {
         if (curve != null) {
             double radius = PlanGeometry.tightestRadius(curve);
             if (radius < STRAIGHT_RADIUS) {
-                lines.add(line("trackwright.guide.radius", number(radius)));
+                lines.add(counted("trackwright.guide.radius", "trackwright.guide.radius_one", number(radius)));
             }
         }
         if (horizontal > 0) {
@@ -138,6 +139,10 @@ public final class GuideLines {
 
     private static Component title() {
         return Component.translatable("trackwright.guide.title").withStyle(ChatFormatting.GOLD);
+    }
+
+    private static Component counted(String key, String oneKey, String value) {
+        return line("1".equals(value) ? oneKey : key, value);
     }
 
     private static Component line(String key, String... values) {
