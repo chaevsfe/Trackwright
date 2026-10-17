@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public record HeightColumn(BlockPos aimed, List<Entry> entries, @Nullable Integer nearest) {
+public record HeightColumn(BlockPos aimed, List<Entry> entries, @Nullable Integer nearest, int lowest, int highest) {
     public static final int SPAN = 6;
 
     private static final String OUTLINE = "trackwright_height_";
@@ -59,14 +59,16 @@ public record HeightColumn(BlockPos aimed, List<Entry> entries, @Nullable Intege
             return null;
         }
         InteractionHand hand = player.getMainHandItem() == stack ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+        int lowest = Math.max(target.getY() - SPAN, level.getMinY());
+        int highest = Math.min(target.getY() + SPAN, level.getMaxY());
         List<Entry> entries = new ArrayList<>();
         PlacementCache saved = PlacementCache.save();
         try {
-            for (int dy = -SPAN; dy <= SPAN; dy++) {
-                if (dy == 0) {
+            for (int y = lowest; y <= highest; y++) {
+                if (y == target.getY()) {
                     continue;
                 }
-                BlockPos cell = target.above(dy);
+                BlockPos cell = target.atY(y);
                 if (!level.isLoaded(cell)) {
                     continue;
                 }
@@ -98,7 +100,7 @@ public record HeightColumn(BlockPos aimed, List<Entry> entries, @Nullable Intege
                 nearest = entry.pos().getY();
             }
         }
-        return new HeightColumn(target.immutable(), List.copyOf(entries), nearest);
+        return new HeightColumn(target.immutable(), List.copyOf(entries), nearest, lowest, highest);
     }
 
     public void show() {
