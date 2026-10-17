@@ -3,6 +3,7 @@ package dev.chaevsfe.trackwright.client;
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
+import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
 import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.network.SettingsPayload;
@@ -20,10 +21,12 @@ public final class TrackwrightClient implements ClientModInitializer {
     public void onInitializeClient() {
         Trackwright.loadHookedClasses(
             "com.zurrtum.create.client.content.trains.track.TrackPlacementClient",
+            "com.zurrtum.create.client.content.trains.track.TrackPlacementOverlay",
             "com.zurrtum.create.client.content.trains.track.TrackRenderer",
             "com.zurrtum.create.client.content.trains.track.TrackVisual",
             "net.minecraft.client.renderer.ScreenEffectRenderer"
         );
+        WidestTurnLock.register();
         ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> receiveSettings(payload));
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
             RemoteSettings.clear();
@@ -38,6 +41,7 @@ public final class TrackwrightClient implements ClientModInitializer {
         ClientBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> FarEnd.endChanged(blockEntity));
         ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) -> FarEnd.endChanged(blockEntity));
         ClientTickEvents.END_CLIENT_TICK.register(FarEnd::refresh);
+        ClientTickEvents.END_CLIENT_TICK.register(WidestTurnLock::tick);
         HudElementRegistry.attachElementBefore(
             VanillaHudElements.CHAT,
             Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "track_guide"),

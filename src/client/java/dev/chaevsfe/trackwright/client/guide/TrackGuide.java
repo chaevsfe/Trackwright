@@ -11,6 +11,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -25,7 +27,7 @@ public final class TrackGuide {
     private TrackGuide() {
     }
 
-    private record Planned(PlacementInfo info, ConnectingFrom from, BlockPos target, ItemStack stack, List<Component> lines) {
+    private record Planned(PlacementInfo info, ConnectingFrom from, BlockPos target, ItemStack stack, PlanExtras extras, List<Component> lines) {
     }
 
     public static void forget() {
@@ -35,19 +37,21 @@ public final class TrackGuide {
     public static void reset() {
         planned = null;
         lastPlanned = null;
+        PlanExtras.reset();
     }
 
-    public static void capture(BlockPos target, ItemStack stack, PlacementInfo info) {
+    public static void capture(Level level, Player player, BlockPos target, BlockState state, ItemStack stack, boolean maximise, PlacementInfo info) {
         ConnectingFrom from = stack.get(AllDataComponents.TRACK_CONNECTING_FROM);
         if (from == null) {
             planned = null;
             return;
         }
+        PlanExtras extras = PlanExtras.of(level, player, target, state, stack, maximise, info);
         Planned previous = lastPlanned;
-        if (previous != null && previous.info == info && previous.from.equals(from) && previous.target.equals(target)) {
-            planned = new Planned(info, from, previous.target, stack, previous.lines);
+        if (previous != null && previous.info == info && previous.extras == extras && previous.from.equals(from) && previous.target.equals(target)) {
+            planned = new Planned(info, from, previous.target, stack, extras, previous.lines);
         } else {
-            planned = new Planned(info, from, target.immutable(), stack, GuideLines.planned(from, target, info));
+            planned = new Planned(info, from, target.immutable(), stack, extras, GuideLines.planned(from, target, info, extras));
         }
         lastPlanned = planned;
         showThroughBlocks(info);

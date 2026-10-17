@@ -42,7 +42,11 @@ public final class GuideLines {
         return lines;
     }
 
-    public static List<Component> planned(ConnectingFrom from, BlockPos target, PlacementInfo info) {
+    public static boolean geometryFinal(PlacementInfo info) {
+        return info.valid || info.message != null && COST_KNOWN.contains(info.message);
+    }
+
+    public static List<Component> planned(ConnectingFrom from, BlockPos target, PlacementInfo info, PlanExtras extras) {
         List<Component> lines = new ArrayList<>();
         lines.add(title());
         BlockPos start = from.pos();
@@ -60,6 +64,9 @@ public final class GuideLines {
             }
             if (info.valid || info.message != null && !BEFORE_GEOMETRY.contains(info.message)) {
                 addGeometry(lines, info, dx, dy, dz, horizontal);
+            }
+            if (geometryFinal(info)) {
+                addShape(lines, info, extras);
             }
             if (info.valid || info.message != null && COST_KNOWN.contains(info.message)) {
                 lines.add(line("trackwright.guide.tracks", Integer.toString(info.requiredTracks)));
@@ -111,6 +118,35 @@ public final class GuideLines {
         if (horizontal > 0) {
             lines.add(line("trackwright.guide.grade", String.format(Locale.ROOT, "%+.1f%%", dy / horizontal * 100)));
         }
+    }
+
+    private static void addShape(List<Component> lines, PlacementInfo info, PlanExtras extras) {
+        if (info.curve == null) {
+            return;
+        }
+        boolean depends = extras.shapeDependsOnWidest(info);
+        if (extras.maximised()) {
+            if (extras.locked()) {
+                lines.add(Component.translatable("trackwright.guide.widest_turn_locked").withStyle(ChatFormatting.GRAY));
+            } else if (depends) {
+                lines.add(Component.translatable("trackwright.guide.widest_turn").withStyle(ChatFormatting.GRAY));
+            }
+            return;
+        }
+        if (!depends) {
+            return;
+        }
+        lines.add(line("trackwright.guide.tightest_turn", Integer.toString(info.end1Extent), Integer.toString(info.end2Extent)));
+        lines.add(hold("trackwright.guide.hold_widest", "trackwright.guide.hold_widest_lock"));
+    }
+
+    private static Component hold(String key, String lockKey) {
+        Component sprint = Component.keybind("key.sprint").withStyle(ChatFormatting.WHITE);
+        if (WidestTurnLock.bound()) {
+            return Component.translatable(lockKey, sprint, Component.keybind(WidestTurnLock.KEY_NAME).withStyle(ChatFormatting.WHITE))
+                .withStyle(ChatFormatting.GRAY);
+        }
+        return Component.translatable(key, sprint).withStyle(ChatFormatting.GRAY);
     }
 
     private static @Nullable Component result(PlacementInfo info) {
