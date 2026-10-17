@@ -1,6 +1,7 @@
 package dev.chaevsfe.trackwright.network;
 
 import dev.chaevsfe.trackwright.Trackwright;
+import dev.chaevsfe.trackwright.config.BoreMode;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import io.netty.buffer.ByteBuf;
@@ -24,6 +25,10 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
         fields.putBoolean(ServerConfig.STRAIGHT_THROUGH_BLOCKS, settings.straightThroughBlocks());
         fields.putInt(ServerConfig.MAX_CONNECTION_LENGTH, settings.maxConnectionLength());
         fields.putBoolean(ServerConfig.PROTECT_TRAIN_PASSENGERS, settings.protectTrainPassengers());
+        fields.putString(ServerConfig.BORE_THROUGH_BLOCKS, settings.boreThroughBlocks().id());
+        fields.putInt(ServerConfig.BORE_HEADROOM, settings.boreHeadroom());
+        fields.putBoolean(ServerConfig.BORE_LAVA_CHECK, settings.boreLavaCheck());
+        fields.putDouble(ServerConfig.BORE_MAX_HARDNESS, settings.boreMaxHardness());
         return new SettingsPayload(VERSION, fields);
     }
 
@@ -31,7 +36,11 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
         return new TrackwrightSettings(
             fields.getBooleanOr(ServerConfig.STRAIGHT_THROUGH_BLOCKS, false),
             fields.getIntOr(ServerConfig.MAX_CONNECTION_LENGTH, TrackwrightSettings.MIN_CONNECTION_LENGTH),
-            fields.getBooleanOr(ServerConfig.PROTECT_TRAIN_PASSENGERS, false)
+            fields.getBooleanOr(ServerConfig.PROTECT_TRAIN_PASSENGERS, false),
+            BoreMode.byId(fields.getStringOr(ServerConfig.BORE_THROUGH_BLOCKS, BoreMode.OFF.id())),
+            fields.getIntOr(ServerConfig.BORE_HEADROOM, 0),
+            fields.getBooleanOr(ServerConfig.BORE_LAVA_CHECK, false),
+            fields.getDoubleOr(ServerConfig.BORE_MAX_HARDNESS, 0)
         );
     }
 

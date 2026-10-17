@@ -4,15 +4,20 @@ import com.zurrtum.create.AllDataComponents;
 import com.zurrtum.create.AllItemTags;
 import com.zurrtum.create.client.AllSpecialTextures;
 import com.zurrtum.create.client.catnip.outliner.Outliner;
+import com.zurrtum.create.content.trains.track.TrackPlacement;
 import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.zurrtum.create.infrastructure.component.ConnectingFrom;
+import dev.chaevsfe.trackwright.mining.BlockMiner;
+import dev.chaevsfe.trackwright.track.BorePlan;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -21,9 +26,16 @@ import java.util.List;
 public final class TrackGuide {
     private static final String THROUGH_BLOCKS_OUTLINE = "trackwright_through_blocks";
     private static final int THROUGH_BLOCKS_COLOR = 0x5AC8FA;
+    private static final String BORE_OUTLINE = "trackwright_bore";
+    private static final String BORE_HEADROOM_OUTLINE = "trackwright_bore_headroom";
+    private static final String BORE_PROBLEM_OUTLINE = "trackwright_bore_problem";
+    private static final int BORE_COLOR = 0xF0A030;
+    private static final int BORE_HEADROOM_COLOR = 0xF6D28C;
+    private static final int BORE_PROBLEM_COLOR = 0xEA5C2B;
 
     private static @Nullable Planned planned;
     private static @Nullable Planned lastPlanned;
+    private static ItemStack lastOffhand = ItemStack.EMPTY;
 
     private TrackGuide() {
     }
@@ -31,13 +43,19 @@ public final class TrackGuide {
     private record Planned(PlacementInfo info, ConnectingFrom from, BlockPos target, ItemStack stack, PlanExtras extras, List<Component> lines) {
     }
 
-    public static void forget() {
+    public static void beginTick(Minecraft mc) {
         planned = null;
+        ItemStack offhand = mc.player == null ? ItemStack.EMPTY : mc.player.getOffhandItem();
+        if (!ItemStack.matches(offhand, lastOffhand)) {
+            lastOffhand = offhand.copy();
+            TrackPlacement.cached = null;
+        }
     }
 
     public static void reset() {
         planned = null;
         lastPlanned = null;
+        lastOffhand = ItemStack.EMPTY;
         PlanExtras.reset();
         AimHelp.reset();
     }
@@ -53,10 +71,11 @@ public final class TrackGuide {
         if (previous != null && previous.info == info && previous.extras == extras && previous.from.equals(from) && previous.target.equals(target)) {
             planned = new Planned(info, from, previous.target, stack, extras, previous.lines);
         } else {
-            planned = new Planned(info, from, target.immutable(), stack, extras, GuideLines.planned(from, target, info, extras));
+            planned = new Planned(info, from, target.immutable(), stack, extras, GuideLines.planned(from, target, info, extras, player.getOffhandItem()));
         }
         lastPlanned = planned;
         showThroughBlocks(info);
+        showBore(info);
         HeightColumn column = extras.column();
         if (column != null) {
             column.show();
@@ -76,6 +95,35 @@ public final class TrackGuide {
             .disableLineNormals()
             .lineWidth(1 / 32f)
             .withFaceTexture(AllSpecialTextures.CHECKERED);
+    }
+
+    private static void showBore(PlacementInfo info) {
+        BorePlan bore = ((PlacementInfoExtension) info).trackwright$bore();
+        if (bore == null) {
+            return;
+        }
+        BlockMiner.Problem problem = bore.problem();
+        if (problem != null && problem.refusal() != BlockMiner.Refusal.NOT_LOADED) {
+            Outliner.getInstance().showAABB(BORE_PROBLEM_OUTLINE, new AABB(problem.pos()).inflate(1 / 64.0))
+                .colored(BORE_PROBLEM_COLOR)
+                .disableLineNormals()
+                .lineWidth(1 / 16f)
+                .withFaceTexture(AllSpecialTextures.CHECKERED);
+        }
+        if (!bore.trackCells().isEmpty()) {
+            Outliner.getInstance().showCluster(BORE_OUTLINE, bore.trackCells())
+                .colored(BORE_COLOR)
+                .disableLineNormals()
+                .lineWidth(1 / 32f)
+                .withFaceTexture(AllSpecialTextures.CHECKERED);
+        }
+        if (!bore.headroomCells().isEmpty()) {
+            Outliner.getInstance().showCluster(BORE_HEADROOM_OUTLINE, bore.headroomCells())
+                .colored(BORE_HEADROOM_COLOR)
+                .disableLineNormals()
+                .lineWidth(1 / 64f)
+                .withFaceTexture(AllSpecialTextures.THIN_CHECKERED);
+        }
     }
 
     public static List<Component> linesFor(Player player) {

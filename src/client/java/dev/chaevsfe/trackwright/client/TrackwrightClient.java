@@ -1,5 +1,6 @@
 package dev.chaevsfe.trackwright.client;
 
+import com.zurrtum.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
@@ -57,5 +58,6 @@ public final class TrackwrightClient implements ClientModInitializer {
                 payload.version(), SettingsPayload.VERSION);
         }
         RemoteSettings.set(payload.settings());
+        TrackPlacement.cached = null;
     }
 }

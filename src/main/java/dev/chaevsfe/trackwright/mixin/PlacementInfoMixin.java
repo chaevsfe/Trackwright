@@ -1,8 +1,11 @@
 package dev.chaevsfe.trackwright.mixin;
 
 import com.zurrtum.create.content.trains.track.TrackPlacement;
+import dev.chaevsfe.trackwright.track.BoreAccess;
+import dev.chaevsfe.trackwright.track.BorePlan;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import net.minecraft.core.BlockPos;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -16,6 +19,12 @@ public abstract class PlacementInfoMixin implements PlacementInfoExtension {
     private List<BlockPos> trackwright$bridgedCells = List.of();
     @Unique
     private boolean trackwright$guessed;
+    @Unique
+    private @Nullable BorePlan trackwright$bore;
+    @Unique
+    private BoreAccess trackwright$boreAccess = BoreAccess.NONE;
+    @Unique
+    private boolean trackwright$converts;
 
     @Override
     public boolean trackwright$bridged() {
@@ -45,5 +54,35 @@ public abstract class PlacementInfoMixin implements PlacementInfoExtension {
     @Override
     public void trackwright$setGuessed(boolean guessed) {
         trackwright$guessed = guessed;
+    }
+
+    @Override
+    public @Nullable BorePlan trackwright$bore() {
+        return trackwright$bore;
+    }
+
+    @Override
+    public void trackwright$setBore(@Nullable BorePlan bore) {
+        trackwright$bore = bore;
+    }
+
+    @Override
+    public BoreAccess trackwright$boreAccess() {
+        return trackwright$boreAccess;
+    }
+
+    @Override
+    public void trackwright$setBoreAccess(BoreAccess access) {
+        trackwright$boreAccess = access;
+    }
+
+    @Override
+    public boolean trackwright$converts() {
+        return trackwright$converts;
+    }
+
+    @Override
+    public void trackwright$setConverts(boolean converts) {
+        trackwright$converts = converts;
     }
 }
