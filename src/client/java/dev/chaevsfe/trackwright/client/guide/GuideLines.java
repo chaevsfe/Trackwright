@@ -74,7 +74,7 @@ public final class GuideLines {
                     through == 1 ? "trackwright.guide.through_blocks_one" : "trackwright.guide.through_blocks",
                     Component.literal(Integer.toString(through)).withStyle(ChatFormatting.WHITE)
                 ).withStyle(ChatFormatting.AQUA));
-                lines.add(Component.translatable("trackwright.guide.no_assembly").withStyle(ChatFormatting.GRAY));
+                lines.add(Component.translatable("trackwright.guide.bridge_limits").withStyle(ChatFormatting.GRAY));
             }
             if (extension.trackwright$guessed()) {
                 lines.add(Component.translatable("trackwright.guide.out_of_view").withStyle(ChatFormatting.YELLOW));
