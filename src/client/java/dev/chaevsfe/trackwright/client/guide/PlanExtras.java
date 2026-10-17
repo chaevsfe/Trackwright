@@ -12,7 +12,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
-public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementInfo other) {
+public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementInfo other, @Nullable HeightColumn column) {
     private static @Nullable Key lastKey;
     private static @Nullable PlanExtras last;
 
@@ -65,7 +65,10 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
         if (previous != null && key.equals(lastKey)) {
             return previous;
         }
-        PlanExtras extras = new PlanExtras(maximise, locked, deep ? otherShape(level, player, target, state, stack, maximise, info) : null);
+        PlanExtras extras = deep
+            ? new PlanExtras(maximise, locked, otherShape(level, player, target, state, stack, maximise, info),
+                HeightColumn.compute(level, player, target, stack, maximise, info))
+            : new PlanExtras(maximise, locked, null, null);
         lastKey = key;
         last = extras;
         return extras;

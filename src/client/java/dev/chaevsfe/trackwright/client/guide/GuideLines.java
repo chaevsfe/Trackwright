@@ -54,6 +54,10 @@ public final class GuideLines {
         ).withStyle(ChatFormatting.YELLOW);
     }
 
+    public static boolean beforeGeometry(String message) {
+        return BEFORE_GEOMETRY.contains(message);
+    }
+
     public static boolean geometryFinal(PlacementInfo info) {
         return info.valid || info.message != null && COST_KNOWN.contains(info.message);
     }
@@ -102,6 +106,10 @@ public final class GuideLines {
             }
             if (extension.trackwright$guessed()) {
                 lines.add(Component.translatable("trackwright.guide.out_of_view").withStyle(ChatFormatting.YELLOW));
+            }
+            HeightColumn column = extras.column();
+            if (column != null && !geometryFinal(info)) {
+                lines.add(heights(column, target));
             }
         }
         Component result = result(info);
@@ -176,6 +184,19 @@ public final class GuideLines {
         }
         lines.add(line("trackwright.guide.tightest_turn", Integer.toString(info.end1Extent), Integer.toString(info.end2Extent)));
         lines.add(hold("trackwright.guide.hold_widest", "trackwright.guide.hold_widest_lock"));
+    }
+
+    private static Component heights(HeightColumn column, BlockPos target) {
+        Integer nearest = column.nearest();
+        if (nearest == null) {
+            return line("trackwright.guide.no_height", Integer.toString(target.getY() - HeightColumn.SPAN), Integer.toString(target.getY() + HeightColumn.SPAN));
+        }
+        int change = nearest - target.getY();
+        String blocks = Integer.toString(Math.abs(change));
+        String key = change > 0
+            ? change == 1 ? "trackwright.guide.connects_higher_one" : "trackwright.guide.connects_higher"
+            : change == -1 ? "trackwright.guide.connects_lower_one" : "trackwright.guide.connects_lower";
+        return line(key, blocks, Integer.toString(nearest));
     }
 
     private static Component hold(String key, String lockKey) {
