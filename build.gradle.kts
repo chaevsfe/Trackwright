@@ -136,9 +136,15 @@ val checkTranslations = tasks.register("checkTranslations") {
         }
         val createPrefix = "create.track."
         val literal = Regex("\"((?:create|trackwright)(?:\\.[a-z0-9_]+)+)\"")
-        val used = sources.files.flatMap { source -> literal.findAll(source.readText()).map { it.groupValues[1] }.toList() }.toSortedSet()
+        val category = Regex("Category\\.register\\(Identifier\\.fromNamespaceAndPath\\(Trackwright\\.MOD_ID, \"([a-z0-9_]+)\"\\)\\)")
+        val used = sources.files.flatMap { source ->
+            val text = source.readText()
+            literal.findAll(text).map { it.groupValues[1] }.toList() +
+                category.findAll(text).map { "key.category.trackwright." + it.groupValues[1] }.toList()
+        }.toSortedSet()
         val missing = used.filter { key ->
             if (key.startsWith("trackwright.")) key !in own && (createPrefix + key) !in own
+            else if (key.startsWith("key.")) key !in own
             else key !in own && key !in createKeys
         }
         val unused = own.filter { key -> key !in used && !(key.startsWith(createPrefix) && key.removePrefix(createPrefix) in used) }

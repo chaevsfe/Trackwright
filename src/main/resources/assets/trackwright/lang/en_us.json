@@ -15,11 +15,20 @@
   "trackwright.guide.radius": "Tightest radius %s blocks",
   "trackwright.guide.radius_one": "Tightest radius %s block",
   "trackwright.guide.grade": "Grade %s",
+  "trackwright.guide.widest_turn": "Widest turn",
+  "trackwright.guide.widest_turn_locked": "Widest turn (locked)",
+  "trackwright.guide.tightest_turn": "Tightest turn, with %s + %s straight blocks",
+  "trackwright.guide.hold_widest": "Hold %s for the widest turn",
+  "trackwright.guide.hold_widest_lock": "Hold %s for the widest turn, or press %s to lock it",
   "trackwright.guide.tracks": "Tracks used %s",
   "trackwright.guide.paving": "Paving used %s",
   "trackwright.guide.through_blocks": "Runs straight through %s blocks",
   "trackwright.guide.through_blocks_one": "Runs straight through %s block",
   "trackwright.guide.bridge_limits": "Stations on it cannot build or take apart trains. Branches and switches go only at its two ends",
   "trackwright.guide.out_of_view": "Part of this is out of view, so these numbers are a guess",
-  "trackwright.guide.server_counts": "The server counts your items when you place it"
+  "trackwright.guide.server_counts": "The server counts your items when you place it",
+  "trackwright.key.lock_widest_turn": "Lock the widest turn",
+  "key.category.trackwright.trackwright": "Create Fly: Trackwright",
+  "trackwright.lock.on": "Widest turn locked",
+  "trackwright.lock.off": "Widest turn unlocked"
 }

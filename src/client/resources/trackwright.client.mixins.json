@@ -5,7 +5,9 @@
   "minVersion": "0.8.3",
   "client": [
     "ScreenEffectRendererMixin",
+    "TrackPlacementAccessor",
     "TrackPlacementClientMixin",
+    "TrackPlacementOverlayMixin",
     "TrackRendererMixin",
     "TrackVisualMixin"
   ],
