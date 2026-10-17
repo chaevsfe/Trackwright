@@ -9,6 +9,7 @@
     "ScrollInputAccessor",
     "TrackBlockItemClientMixin",
     "TrackPlacementAccessor",
+    "TrackPlacementClientAccessor",
     "TrackPlacementClientMixin",
     "TrackPlacementOverlayMixin",
     "TrackRendererMixin",

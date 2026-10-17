@@ -7,6 +7,7 @@ import com.zurrtum.create.client.catnip.outliner.Outliner;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
 import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.zurrtum.create.infrastructure.component.ConnectingFrom;
+import dev.chaevsfe.trackwright.client.mixin.TrackPlacementClientAccessor;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.track.BorePlan;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
@@ -48,8 +49,14 @@ public final class TrackGuide {
         ItemStack offhand = mc.player == null ? ItemStack.EMPTY : mc.player.getOffhandItem();
         if (!ItemStack.matches(offhand, lastOffhand)) {
             lastOffhand = offhand.copy();
-            TrackPlacement.cached = null;
+            forgetPlan();
         }
+    }
+
+    public static void forgetPlan() {
+        TrackPlacement.cached = null;
+        PlanExtras.reset();
+        TrackPlacementClientAccessor.trackwright$setHintPos(null);
     }
 
     public static void reset() {
