@@ -35,6 +35,7 @@
   "trackwright.guide.descend_one": "Drops %s block over %s blocks, steepest %s",
   "trackwright.guide.widest_turn": "Widest turn",
   "trackwright.guide.widest_turn_locked": "Widest turn (locked)",
+  "trackwright.guide.lock_on": "Widest turn locked, press %s to unlock",
   "trackwright.guide.tightest_turn": "Tightest turn, with %s + %s straight blocks",
   "trackwright.guide.hold_widest": "Hold %s for the widest turn",
   "trackwright.guide.hold_widest_lock": "Hold %s for the widest turn, or press %s to lock it",

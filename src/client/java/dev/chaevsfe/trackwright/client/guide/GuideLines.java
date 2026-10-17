@@ -47,7 +47,15 @@ public final class GuideLines {
         } else {
             lines.add(Component.translatable("trackwright.guide.aim").withStyle(ChatFormatting.GRAY));
         }
+        if (WidestTurnLock.locked()) {
+            lines.add(lockLine());
+        }
         return lines;
+    }
+
+    private static Component lockLine() {
+        return Component.translatable("trackwright.guide.lock_on", Component.keybind(WidestTurnLock.KEY_NAME).withStyle(ChatFormatting.WHITE))
+            .withStyle(ChatFormatting.GRAY);
     }
 
     public static List<Component> undoHint() {
@@ -78,6 +86,7 @@ public final class GuideLines {
         lines.add(title());
         BlockPos start = from.pos();
         lines.add(line("trackwright.guide.start", position(start)));
+        boolean lockNamed = false;
         if (!start.equals(target)) {
             int dx = target.getX() - start.getX();
             int dy = target.getY() - start.getY();
@@ -98,7 +107,7 @@ public final class GuideLines {
                 if (climbs) {
                     addClimb(lines, climb);
                 }
-                addShape(lines, info, extras, climbs && inLine(info, dx, dz));
+                lockNamed = addShape(lines, info, extras, climbs && inLine(info, dx, dz));
             }
             if (info.valid || info.message != null && COST_KNOWN.contains(info.message)) {
                 lines.add(line("trackwright.guide.tracks", Integer.toString(info.requiredTracks)));
@@ -130,6 +139,9 @@ public final class GuideLines {
             if (column != null && !geometryFinal(info)) {
                 lines.add(heights(column, target));
             }
+        }
+        if (extras.locked() && !lockNamed) {
+            lines.add(lockLine());
         }
         Component result = result(info);
         if (result != null) {
@@ -179,30 +191,33 @@ public final class GuideLines {
         lines.add(line(key, rise, number(climb.run()), Math.round(climb.steepest() * 100) + "%"));
     }
 
-    private static void addShape(List<Component> lines, PlacementInfo info, PlanExtras extras, boolean climbOnly) {
+    private static boolean addShape(List<Component> lines, PlacementInfo info, PlanExtras extras, boolean climbOnly) {
         if (info.curve == null) {
-            return;
+            return false;
         }
         boolean depends = extras.shapeDependsOnWidest(info);
         if (extras.maximised()) {
             if (extras.locked()) {
                 lines.add(Component.translatable(climbOnly ? "trackwright.guide.climb_spread_locked" : "trackwright.guide.widest_turn_locked")
                     .withStyle(ChatFormatting.GRAY));
-            } else if (depends) {
+                return true;
+            }
+            if (depends) {
                 lines.add(Component.translatable(climbOnly ? "trackwright.guide.climb_spread" : "trackwright.guide.widest_turn")
                     .withStyle(ChatFormatting.GRAY));
             }
-            return;
+            return false;
         }
         if (!depends) {
-            return;
+            return false;
         }
         if (climbOnly) {
             lines.add(hold("trackwright.guide.hold_spread", "trackwright.guide.hold_spread_lock"));
-            return;
+            return false;
         }
         lines.add(line("trackwright.guide.tightest_turn", Integer.toString(info.end1Extent), Integer.toString(info.end2Extent)));
         lines.add(hold("trackwright.guide.hold_widest", "trackwright.guide.hold_widest_lock"));
+        return false;
     }
 
     private static void addBoreAccess(List<Component> lines, PlacementInfoExtension extension) {
