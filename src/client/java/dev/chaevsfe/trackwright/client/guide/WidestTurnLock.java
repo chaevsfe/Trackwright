@@ -35,6 +35,7 @@ public final class WidestTurnLock {
             LocalPlayer player = mc.player;
             if (player != null) {
                 player.sendOverlayMessage(Component.translatable(locked ? "trackwright.lock.on" : "trackwright.lock.off"));
+                ActionBarHold.start();
             }
         }
     }

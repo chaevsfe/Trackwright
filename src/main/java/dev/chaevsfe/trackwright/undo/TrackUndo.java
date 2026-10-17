@@ -41,6 +41,7 @@ public final class TrackUndo {
 
     public static Result undoAndTell(ServerPlayer player) {
         Result result = undo(player);
+        UndoJournal.sendResult(player);
         player.sendOverlayMessage(result.message());
         if (result.done()) {
             player.level().playSound(null, player.blockPosition(), SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 0.75f, 1);

@@ -12,6 +12,7 @@ public record UndoStatePayload(int version, CompoundTag fields) implements Custo
     public static final int VERSION = 1;
     private static final String PLACEMENTS = "placements";
     private static final String TICKS_LEFT = "ticksLeft";
+    private static final String RESULT = "result";
     public static final Type<UndoStatePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "undo_state"));
     public static final StreamCodec<ByteBuf, UndoStatePayload> STREAM_CODEC = StreamCodec.composite(
         ByteBufCodecs.VAR_INT, UndoStatePayload::version,
@@ -19,10 +20,11 @@ public record UndoStatePayload(int version, CompoundTag fields) implements Custo
         UndoStatePayload::new
     );
 
-    public static UndoStatePayload of(int placements, int ticksLeft) {
+    public static UndoStatePayload of(int placements, int ticksLeft, boolean result) {
         CompoundTag fields = new CompoundTag();
         fields.putInt(PLACEMENTS, placements);
         fields.putInt(TICKS_LEFT, ticksLeft);
+        fields.putBoolean(RESULT, result);
         return new UndoStatePayload(VERSION, fields);
     }
 
@@ -32,6 +34,10 @@ public record UndoStatePayload(int version, CompoundTag fields) implements Custo
 
     public int ticksLeft() {
         return fields.getIntOr(TICKS_LEFT, 0);
+    }
+
+    public boolean result() {
+        return fields.getBooleanOr(RESULT, false);
     }
 
     @Override
