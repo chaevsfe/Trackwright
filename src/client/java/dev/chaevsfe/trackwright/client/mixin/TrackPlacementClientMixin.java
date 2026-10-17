@@ -34,7 +34,7 @@ import java.util.function.Predicate;
 public abstract class TrackPlacementClientMixin {
     @Inject(method = "clientTick", at = @At("HEAD"))
     private static void trackwright$forgetLastPlan(Minecraft mc, CallbackInfo ci) {
-        TrackGuide.forget();
+        TrackGuide.beginTick(mc);
     }
 
     @ModifyExpressionValue(

@@ -6,6 +6,9 @@ import com.zurrtum.create.infrastructure.component.ConnectingFrom;
 import com.zurrtum.create.infrastructure.config.AllConfigs;
 import com.zurrtum.create.infrastructure.config.CServer;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
+import dev.chaevsfe.trackwright.mining.BlockMiner;
+import dev.chaevsfe.trackwright.track.BoreAccess;
+import dev.chaevsfe.trackwright.track.BorePlan;
 import dev.chaevsfe.trackwright.track.ConnectionLength;
 import dev.chaevsfe.trackwright.track.Messages;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
@@ -14,6 +17,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -62,7 +66,7 @@ public final class GuideLines {
         return info.valid || info.message != null && COST_KNOWN.contains(info.message);
     }
 
-    public static List<Component> planned(ConnectingFrom from, BlockPos target, PlacementInfo info, PlanExtras extras) {
+    public static List<Component> planned(ConnectingFrom from, BlockPos target, PlacementInfo info, PlanExtras extras, ItemStack tool) {
         List<Component> lines = new ArrayList<>();
         lines.add(title());
         BlockPos start = from.pos();
@@ -103,6 +107,14 @@ public final class GuideLines {
                     Component.literal(Integer.toString(through)).withStyle(ChatFormatting.WHITE)
                 ).withStyle(ChatFormatting.AQUA));
                 lines.add(Component.translatable("trackwright.guide.bridge_limits").withStyle(ChatFormatting.GRAY));
+            }
+            addBoreAccess(lines, extension);
+            BorePlan bore = extension.trackwright$bore();
+            if (bore != null) {
+                addBore(lines, bore, tool);
+            }
+            if (info.valid && extension.trackwright$converts()) {
+                lines.add(Component.translatable("trackwright.guide.convert").withStyle(ChatFormatting.AQUA));
             }
             if (extension.trackwright$guessed()) {
                 lines.add(Component.translatable("trackwright.guide.out_of_view").withStyle(ChatFormatting.YELLOW));
@@ -184,6 +196,47 @@ public final class GuideLines {
         }
         lines.add(line("trackwright.guide.tightest_turn", Integer.toString(info.end1Extent), Integer.toString(info.end2Extent)));
         lines.add(hold("trackwright.guide.hold_widest", "trackwright.guide.hold_widest_lock"));
+    }
+
+    private static void addBoreAccess(List<Component> lines, PlacementInfoExtension extension) {
+        BoreAccess access = extension.trackwright$boreAccess();
+        String key = switch (access) {
+            case NO_TOOL -> "trackwright.guide.bore_hint";
+            case OFF -> "trackwright.guide.bore_off";
+            case CREATIVE_ONLY -> "trackwright.guide.bore_creative_only";
+            case NONE, ALLOWED -> null;
+        };
+        if (key != null) {
+            lines.add(Component.translatable(key).withStyle(ChatFormatting.GRAY));
+        }
+    }
+
+    private static void addBore(List<Component> lines, BorePlan bore, ItemStack tool) {
+        int blocks = bore.cells().size();
+        boolean one = blocks == 1;
+        Component count = white(Integer.toString(blocks));
+        Component toolName = tool.getHoverName().copy().withStyle(ChatFormatting.WHITE);
+        if (bore.creative()) {
+            lines.add(Component.translatable(one ? "trackwright.guide.bore_creative_one" : "trackwright.guide.bore_creative", count)
+                .withStyle(ChatFormatting.GOLD));
+        } else if (bore.usesLeft() < 0) {
+            lines.add(Component.translatable(one ? "trackwright.guide.bore_free_one" : "trackwright.guide.bore_free", count, toolName)
+                .withStyle(ChatFormatting.GOLD));
+        } else {
+            lines.add(Component.translatable(one ? "trackwright.guide.bore_one" : "trackwright.guide.bore", count, toolName,
+                white(Integer.toString(bore.wear())), white(Integer.toString(bore.usesLeft()))).withStyle(ChatFormatting.GOLD));
+        }
+        lines.add(line(bore.creative() ? "trackwright.guide.bore_tunnel_creative" : "trackwright.guide.bore_tunnel",
+            Integer.toString(bore.headroom() + 1)));
+        BlockMiner.Problem problem = bore.problem();
+        if (problem != null && problem.refusal() != BlockMiner.Refusal.NOT_LOADED) {
+            lines.add(Component.translatable("trackwright.guide.bore_problem", problem.state().getBlock().getName().withStyle(ChatFormatting.WHITE),
+                white(position(problem.pos()))).withStyle(ChatFormatting.RED));
+        }
+    }
+
+    private static Component white(String text) {
+        return Component.literal(text).withStyle(ChatFormatting.WHITE);
     }
 
     private static Component heights(HeightColumn column, BlockPos target) {

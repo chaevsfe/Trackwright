@@ -11,6 +11,7 @@ import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import dev.chaevsfe.trackwright.track.PlacementRules;
 import dev.chaevsfe.trackwright.track.UnloadedStart;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -39,6 +40,7 @@ public abstract class TrackPlacementMixin {
         boolean flat,
         @Local(name = "level") Level level,
         @Local(name = "info") TrackPlacement.PlacementInfo info,
+        @Local(argsOnly = true) Player player,
         @Local(argsOnly = true) BlockState state2,
         @Local(name = "pos1") BlockPos pos1,
         @Local(name = "axis1") Vec3 axis1,
@@ -48,12 +50,18 @@ public abstract class TrackPlacementMixin {
         if (!flat || !skipCurve.get()) {
             return flat;
         }
-        PlacementRules.Straight straight = PlacementRules.decideStraight(level, pos1, state2, axis1, axis2, info.end1Extent);
+        PlacementRules.Straight straight = PlacementRules.decideStraight(level, player, pos1, state2, axis1, axis2, info.end1Extent);
         PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        extension.trackwright$setBoreAccess(straight.access());
         if (straight.unseen()) {
             extension.trackwright$setGuessed(true);
         }
-        if (straight.bridge()) {
+        if (straight.bore() != null) {
+            extension.trackwright$setBore(straight.bore());
+            if (straight.bore().guessed()) {
+                extension.trackwright$setGuessed(true);
+            }
+        } else if (straight.bridge()) {
             info.end1Extent = 0;
             info.end2Extent = 0;
             skipCurve.set(false);
@@ -99,6 +107,30 @@ public abstract class TrackPlacementMixin {
         return UnloadedStart.extentState(level, pos, original.call(level, pos), firstEnd, start, startState);
     }
 
+    @WrapOperation(
+        method = "tryConnect",
+        at = @At(
+            value = "INVOKE",
+            target = "Lcom/zurrtum/create/content/trains/track/TrackPlacement;placeTracks(Lnet/minecraft/world/level/Level;Lcom/zurrtum/create/content/trains/track/TrackPlacement$PlacementInfo;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;Z)Lcom/zurrtum/create/content/trains/track/TrackPlacement$PlacementInfo;"
+        )
+    )
+    private static TrackPlacement.PlacementInfo trackwright$boreAndConvert(
+        Level level,
+        TrackPlacement.PlacementInfo info,
+        BlockState state1,
+        BlockState state2,
+        BlockPos targetPos1,
+        BlockPos targetPos2,
+        boolean simulate,
+        Operation<TrackPlacement.PlacementInfo> original,
+        @Local(argsOnly = true) Player player,
+        @Local(argsOnly = true) BlockPos pos2,
+        @Local(name = "pos1") BlockPos pos1
+    ) {
+        return PlacementRules.placeTracks(level, player, info, pos1, pos2, simulate,
+            () -> original.call(level, info, state1, state2, targetPos1, targetPos2, simulate));
+    }
+
     @Inject(
         method = "tryConnect",
         at = @At(
@@ -112,6 +144,7 @@ public abstract class TrackPlacementMixin {
     )
     private static void trackwright$refuseOverlaps(
         CallbackInfoReturnable<TrackPlacement.PlacementInfo> cir,
+        @Local(argsOnly = true) Player player,
         @Local(name = "level") Level level,
         @Local(name = "info") TrackPlacement.PlacementInfo info,
         @Local(name = "pos1") BlockPos pos1,
@@ -119,7 +152,7 @@ public abstract class TrackPlacementMixin {
         @Local(name = "axis1") Vec3 axis1,
         @Local(name = "axis2") Vec3 axis2
     ) {
-        String refusal = PlacementRules.refusal(level, info, pos1, pos2, axis1, axis2);
+        String refusal = PlacementRules.refusal(level, player, info, pos1, pos2, axis1, axis2);
         if (refusal != null) {
             info.valid = false;
             cir.setReturnValue(info.withMessage(refusal).tooJumbly());

@@ -58,6 +58,25 @@ public final class JsonConfigFile {
         return null;
     }
 
+    public static @Nullable String readString(JsonObject json, String key) {
+        JsonElement value = json.get(key);
+        if (value instanceof JsonPrimitive primitive && primitive.isString()) {
+            return primitive.getAsString();
+        }
+        return null;
+    }
+
+    public static @Nullable Double readDouble(JsonObject json, String key) {
+        JsonElement value = json.get(key);
+        if (value instanceof JsonPrimitive primitive && primitive.isNumber()) {
+            double number = primitive.getAsDouble();
+            if (Double.isFinite(number)) {
+                return number;
+            }
+        }
+        return null;
+    }
+
     public static void write(Path path, JsonObject known, JsonObject existing) {
         JsonObject json = known.deepCopy();
         for (String key : existing.keySet()) {
