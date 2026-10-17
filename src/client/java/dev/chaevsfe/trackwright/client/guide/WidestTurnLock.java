@@ -2,13 +2,11 @@ package dev.chaevsfe.trackwright.client.guide;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.zurrtum.create.AllDataComponents;
-import dev.chaevsfe.trackwright.Trackwright;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import org.jspecify.annotations.Nullable;
 
@@ -21,8 +19,7 @@ public final class WidestTurnLock {
     private WidestTurnLock() {
     }
 
-    public static void register() {
-        KeyMapping.Category category = KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "trackwright"));
+    public static void register(KeyMapping.Category category) {
         key = KeyMappingHelper.registerKeyMapping(new KeyMapping(KEY_NAME, InputConstants.UNKNOWN.getValue(), category));
     }
 

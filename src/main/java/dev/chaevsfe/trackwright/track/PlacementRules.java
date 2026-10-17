@@ -8,6 +8,8 @@ import dev.chaevsfe.trackwright.config.BoreMode;
 import dev.chaevsfe.trackwright.config.Sides;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
+import dev.chaevsfe.trackwright.undo.UndoMessages;
+import dev.chaevsfe.trackwright.undo.UndoRecorder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
@@ -156,7 +158,9 @@ public final class PlacementRules {
         }
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
             if (bore != null && !bore.cells().isEmpty()) {
+                UndoRecorder.beforeMining(serverLevel, serverPlayer, bore.cells());
                 BlockMiner.Outcome outcome = BlockMiner.mine(serverLevel, serverPlayer, bore.cells());
+                UndoRecorder.afterMining(serverLevel, serverPlayer, outcome.collected(), outcome.experience());
                 if (outcome.stoppedAt() != null) {
                     refundTracks(serverPlayer, info);
                     info.valid = false;
@@ -164,6 +168,7 @@ public final class PlacementRules {
                 }
             }
             if (extension.trackwright$converts()) {
+                UndoRecorder.notUndoable(serverLevel, UndoMessages.CONVERTED);
                 BridgeConversion.remove(serverLevel, serverPlayer, pos1, pos2);
             }
         }

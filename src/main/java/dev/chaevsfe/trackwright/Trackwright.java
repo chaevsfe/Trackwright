@@ -3,9 +3,14 @@ package dev.chaevsfe.trackwright;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.track.PassengerResync;
+import dev.chaevsfe.trackwright.undo.UndoCommand;
+import dev.chaevsfe.trackwright.undo.UndoJournal;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +30,7 @@ public final class Trackwright implements ModInitializer {
             "com.zurrtum.create.content.trains.track.TrackBlock",
             "com.zurrtum.create.content.trains.track.TrackBlockEntity",
             "com.zurrtum.create.content.trains.track.TrackBlockItem",
+            "com.zurrtum.create.content.trains.track.TrackPaver",
             "com.zurrtum.create.content.trains.track.TrackPlacement",
             "com.zurrtum.create.content.trains.track.TrackPlacement$PlacementInfo",
             "com.zurrtum.create.content.trains.track.TrackTargetingBlockItem",
@@ -34,6 +40,11 @@ public final class Trackwright implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerConfig.reload());
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> PassengerResync.clear());
         ServerTickEvents.END_SERVER_TICK.register(PassengerResync::tick);
+        ServerTickEvents.END_SERVER_TICK.register(UndoJournal::tick);
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> UndoJournal.clearAll());
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> UndoJournal.forget(handler.player.getUUID()));
+        ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> UndoJournal.clear(player));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> UndoCommand.register(dispatcher));
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
             ServerConfig.reload();
             TrackwrightNetwork.sendToAll(server);

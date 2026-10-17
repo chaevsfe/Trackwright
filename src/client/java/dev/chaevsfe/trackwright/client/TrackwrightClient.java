@@ -5,10 +5,12 @@ import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
+import dev.chaevsfe.trackwright.client.guide.UndoKey;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
 import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.network.SettingsPayload;
+import dev.chaevsfe.trackwright.network.UndoStatePayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -16,6 +18,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
 
 public final class TrackwrightClient implements ClientModInitializer {
@@ -29,15 +32,20 @@ public final class TrackwrightClient implements ClientModInitializer {
             "net.minecraft.client.renderer.ScreenEffectRenderer"
         );
         ClientConfig.load();
-        WidestTurnLock.register();
+        KeyMapping.Category category = KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "trackwright"));
+        WidestTurnLock.register(category);
+        UndoKey.register(category);
         ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> receiveSettings(payload));
+        ClientPlayNetworking.registerGlobalReceiver(UndoStatePayload.TYPE, (payload, context) -> UndoKey.receive(payload));
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
             RemoteSettings.clear();
+            UndoKey.reset();
             TrackGuide.reset();
             FarEnd.reset();
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             RemoteSettings.clear();
+            UndoKey.reset();
             TrackGuide.reset();
             FarEnd.reset();
         });
@@ -45,6 +53,7 @@ public final class TrackwrightClient implements ClientModInitializer {
         ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) -> FarEnd.endChanged(blockEntity));
         ClientTickEvents.END_CLIENT_TICK.register(FarEnd::refresh);
         ClientTickEvents.END_CLIENT_TICK.register(WidestTurnLock::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(UndoKey::tick);
         HudElementRegistry.attachElementBefore(
             VanillaHudElements.CHAT,
             Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "track_guide"),

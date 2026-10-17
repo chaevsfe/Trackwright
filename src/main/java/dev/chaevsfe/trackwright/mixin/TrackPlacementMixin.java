@@ -10,6 +10,7 @@ import dev.chaevsfe.trackwright.track.ConnectionLength;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import dev.chaevsfe.trackwright.track.PlacementRules;
 import dev.chaevsfe.trackwright.track.UnloadedStart;
+import dev.chaevsfe.trackwright.undo.UndoRecorder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -129,6 +130,29 @@ public abstract class TrackPlacementMixin {
     ) {
         return PlacementRules.placeTracks(level, player, info, pos1, pos2, simulate,
             () -> original.call(level, info, state1, state2, targetPos1, targetPos2, simulate));
+    }
+
+    @WrapOperation(
+        method = "placeTracks",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z")
+    )
+    private static boolean trackwright$recordTrackForUndo(Level level, BlockPos pos, BlockState state, int flags, Operation<Boolean> original) {
+        UndoRecorder.beforeWrite(level, pos);
+        return original.call(level, pos, state, flags);
+    }
+
+    @WrapOperation(
+        method = "tryConnect",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;copyWithCount(I)Lnet/minecraft/world/item/ItemStack;")
+    )
+    private static ItemStack trackwright$recordChargeForUndo(
+        ItemStack slot,
+        int remaining,
+        Operation<ItemStack> original,
+        @Local(argsOnly = true) Player player
+    ) {
+        UndoRecorder.charged(player, slot, remaining);
+        return original.call(slot, remaining);
     }
 
     @Inject(

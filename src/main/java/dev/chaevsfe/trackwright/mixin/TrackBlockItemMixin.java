@@ -7,14 +7,39 @@ import com.zurrtum.create.content.trains.track.TrackBlockItem;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.track.Messages;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
+import dev.chaevsfe.trackwright.undo.UndoRecorder;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(TrackBlockItem.class)
 public abstract class TrackBlockItemMixin {
+    @WrapOperation(
+        method = "useOn",
+        at = @At(
+            value = "INVOKE",
+            target = "Lcom/zurrtum/create/content/trains/track/TrackPlacement;tryConnect(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/item/ItemStack;ZZ)Lcom/zurrtum/create/content/trains/track/TrackPlacement$PlacementInfo;"
+        )
+    )
+    private TrackPlacement.PlacementInfo trackwright$recordForUndo(
+        Level level,
+        Player player,
+        BlockPos pos,
+        BlockState state,
+        ItemStack stack,
+        boolean girder,
+        boolean maximiseTurn,
+        Operation<TrackPlacement.PlacementInfo> original
+    ) {
+        return UndoRecorder.record(level, player, stack, () -> original.call(level, player, pos, state, stack, girder, maximiseTurn));
+    }
+
     @WrapOperation(
         method = "useOn",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;translatable(Ljava/lang/String;)Lnet/minecraft/network/chat/MutableComponent;")

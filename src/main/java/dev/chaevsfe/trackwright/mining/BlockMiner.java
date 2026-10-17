@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -24,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -35,7 +37,7 @@ public final class BlockMiner {
     public static final TagKey<Block> IMMUNE = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "bore_immune"));
     public static final TagKey<Item> TOOLS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "bore_tools"));
 
-    private static final double DROP_REACH = 0.5;
+    private static final double DROP_REACH = 1.5;
 
     public enum Refusal {
         NOT_LOADED(Messages.BORE_NOT_LOADED),
@@ -66,7 +68,7 @@ public final class BlockMiner {
     public record Rules(boolean lavaCheck, double maxHardness) {
     }
 
-    public record Outcome(int mined, @Nullable BlockPos stoppedAt) {
+    public record Outcome(int mined, @Nullable BlockPos stoppedAt, List<ItemStack> collected, int experience) {
     }
 
     private BlockMiner() {
@@ -173,6 +175,7 @@ public final class BlockMiner {
 
     public static Outcome mine(ServerLevel level, ServerPlayer player, List<BlockPos> cells) {
         Set<ItemEntity> drops = new LinkedHashSet<>();
+        int[] experience = {0};
         Outcome outcome = withToolInMainHand(player, () -> {
             boolean hadTool = !player.getMainHandItem().isEmpty();
             int mined = 0;
@@ -182,13 +185,14 @@ public final class BlockMiner {
                     continue;
                 }
                 if (hadTool && player.getMainHandItem().isEmpty()) {
-                    return new Outcome(mined, pos);
+                    return new Outcome(mined, pos, List.of(), 0);
                 }
                 AABB reach = new AABB(pos).inflate(DROP_REACH);
                 Set<ItemEntity> present = new HashSet<>(level.getEntitiesOfClass(ItemEntity.class, reach));
+                Set<ExperienceOrb> orbs = new HashSet<>(level.getEntitiesOfClass(ExperienceOrb.class, reach));
                 boolean destroyed = player.gameMode.destroyBlock(pos);
                 if (!destroyed && level.getBlockState(pos) == before) {
-                    return new Outcome(mined, pos);
+                    return new Outcome(mined, pos, List.of(), 0);
                 }
                 mined++;
                 for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, reach)) {
@@ -196,18 +200,25 @@ public final class BlockMiner {
                         drops.add(item);
                     }
                 }
+                for (ExperienceOrb orb : level.getEntitiesOfClass(ExperienceOrb.class, reach)) {
+                    if (orb.isAlive() && !orbs.contains(orb)) {
+                        experience[0] += orb.getValue();
+                    }
+                }
             }
-            return new Outcome(mined, null);
+            return new Outcome(mined, null, List.of(), 0);
         });
+        List<ItemStack> collected = new ArrayList<>();
         for (ItemEntity item : drops) {
             if (!item.isAlive()) {
                 continue;
             }
             ItemStack stack = item.getItem().copy();
             item.discard();
+            collected.add(stack.copy());
             player.getInventory().placeItemBackInInventory(stack);
         }
-        return outcome;
+        return new Outcome(outcome.mined(), outcome.stoppedAt(), collected, experience[0]);
     }
 
     private static <T> T withToolInMainHand(ServerPlayer player, Supplier<T> action) {
