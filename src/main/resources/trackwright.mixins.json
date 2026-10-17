@@ -11,6 +11,7 @@
     "NavigationMixin",
     "PlacementInfoMixin",
     "SeatMovementBehaviourMixin",
+    "StationBlockEntityMixin",
     "TrackBlockEntityMixin",
     "TrackBlockItemMixin",
     "TrackBlockMixin",
