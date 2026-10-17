@@ -2,12 +2,14 @@ package dev.chaevsfe.trackwright.client.guide;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.zurrtum.create.AllDataComponents;
+import com.zurrtum.create.infrastructure.packet.c2s.PlaceExtendedCurvePacket;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.context.UseOnContext;
 import org.jspecify.annotations.Nullable;
 
 public final class WidestTurnLock {
@@ -46,10 +48,13 @@ public final class WidestTurnLock {
         return mapping != null && !mapping.isUnbound();
     }
 
-    public static boolean appliesToPlacement(LocalPlayer player, InteractionHand hand) {
-        return locked
-            && hand == InteractionHand.MAIN_HAND
-            && !player.isShiftKeyDown()
-            && player.getItemInHand(hand).has(AllDataComponents.TRACK_CONNECTING_FROM);
+    public static void beforeUse(UseOnContext context) {
+        if (!locked || !context.getLevel().isClientSide() || context.getHand() != InteractionHand.MAIN_HAND
+            || !(context.getPlayer() instanceof LocalPlayer player) || player.isShiftKeyDown()
+            || !context.getItemInHand().has(AllDataComponents.TRACK_CONNECTING_FROM)
+            || Minecraft.getInstance().options.keySprint.isDown()) {
+            return;
+        }
+        player.connection.send(new PlaceExtendedCurvePacket(true, true));
     }
 }
