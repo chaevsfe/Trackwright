@@ -4,14 +4,17 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import com.zurrtum.create.catnip.data.Couple;
 import com.zurrtum.create.client.content.trains.track.TrackPlacementClient;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
+import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.AimHelp;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -24,6 +27,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.function.Predicate;
 
 @Mixin(TrackPlacementClient.class)
 public abstract class TrackPlacementClientMixin {
@@ -38,6 +43,22 @@ public abstract class TrackPlacementClientMixin {
     )
     private static @Nullable HitResult trackwright$aim(@Nullable HitResult hit, @Local(argsOnly = true) Minecraft mc) {
         return AimHelp.aim(mc, hit);
+    }
+
+    @ModifyExpressionValue(
+        method = "clientTick",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/BlockHitResult;getDirection()Lnet/minecraft/core/Direction;", ordinal = 1)
+    )
+    private static Direction trackwright$squaresOnceSettled(Direction face) {
+        return AimHelp.faceForSquares(face);
+    }
+
+    @WrapOperation(
+        method = "clientTick",
+        at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/catnip/data/Couple;either(Ljava/util/function/Predicate;)Z")
+    )
+    private static boolean trackwright$alwaysShowSquares(Couple<?> hints, Predicate<?> empty, Operation<Boolean> original) {
+        return !ClientConfig.get().alwaysShowPlacementSquares() && original.call(hints, empty);
     }
 
     @ModifyExpressionValue(method = "clientTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;isDown()Z"))
