@@ -8,6 +8,7 @@
     "ScreenEffectRendererMixin",
     "ScrollInputAccessor",
     "TrackBlockItemClientMixin",
+    "TrackGraphMixin",
     "TrackPlacementAccessor",
     "TrackPlacementClientAccessor",
     "TrackPlacementClientMixin",
