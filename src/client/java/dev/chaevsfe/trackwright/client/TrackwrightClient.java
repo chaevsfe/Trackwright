@@ -1,6 +1,7 @@
 package dev.chaevsfe.trackwright.client;
 
 import dev.chaevsfe.trackwright.Trackwright;
+import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
@@ -26,6 +27,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             "com.zurrtum.create.client.content.trains.track.TrackVisual",
             "net.minecraft.client.renderer.ScreenEffectRenderer"
         );
+        ClientConfig.load();
         WidestTurnLock.register();
         ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> receiveSettings(payload));
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {

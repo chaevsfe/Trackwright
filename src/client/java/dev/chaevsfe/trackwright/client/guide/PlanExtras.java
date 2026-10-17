@@ -23,6 +23,7 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
         boolean maximise,
         boolean locked,
         int angle,
+        boolean deep,
         boolean valid,
         @Nullable String message,
         int end1Extent,
@@ -37,6 +38,7 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
                 && maximise == key.maximise
                 && locked == key.locked
                 && angle == key.angle
+                && deep == key.deep
                 && valid == key.valid
                 && Objects.equals(message, key.message)
                 && end1Extent == key.end1Extent
@@ -45,7 +47,7 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
 
         @Override
         public int hashCode() {
-            return Objects.hash(target, System.identityHashCode(state), System.identityHashCode(stack), maximise, locked, angle, valid, message);
+            return Objects.hash(target, System.identityHashCode(state), System.identityHashCode(stack), maximise, locked, angle, deep, valid, message);
         }
     }
 
@@ -56,13 +58,14 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
 
     public static PlanExtras of(Level level, Player player, BlockPos target, BlockState state, ItemStack stack, boolean maximise, PlacementInfo info) {
         boolean locked = WidestTurnLock.locked();
+        boolean deep = AimHelp.deepChecksAllowed();
         Key key = new Key(target.immutable(), state, stack, maximise, locked, TrackPlacementAccessor.trackwright$hoveringAngle(),
-            info.valid, info.message, info.end1Extent, info.end2Extent);
+            deep, info.valid, info.message, info.end1Extent, info.end2Extent);
         PlanExtras previous = last;
         if (previous != null && key.equals(lastKey)) {
             return previous;
         }
-        PlanExtras extras = new PlanExtras(maximise, locked, otherShape(level, player, target, state, stack, maximise, info));
+        PlanExtras extras = new PlanExtras(maximise, locked, deep ? otherShape(level, player, target, state, stack, maximise, info) : null);
         lastKey = key;
         last = extras;
         return extras;
