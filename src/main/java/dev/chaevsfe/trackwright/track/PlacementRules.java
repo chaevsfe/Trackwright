@@ -1,5 +1,6 @@
 package dev.chaevsfe.trackwright.track;
 
+import com.zurrtum.create.content.kinetics.deployer.DeployerPlayer;
 import com.zurrtum.create.content.trains.track.ITrackBlock;
 import com.zurrtum.create.content.trains.track.TrackBlock;
 import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
@@ -43,7 +44,7 @@ public final class PlacementRules {
         if (settings == null || cells < 3) {
             return Straight.KEEP;
         }
-        boolean tool = BlockMiner.isTool(player.getOffhandItem());
+        boolean tool = !(player instanceof DeployerPlayer) && BlockMiner.isTool(player.getOffhandItem());
         boolean boreAllowed = settings.boreThroughBlocks().allows(player);
         boolean bore = tool && boreAllowed;
         boolean bridges = settings.straightThroughBlocks() && end2.hasProperty(TrackBlock.HAS_BE);
