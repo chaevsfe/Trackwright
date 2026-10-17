@@ -15,6 +15,11 @@ public final class ServerConfig {
     public static final String BORE_HEADROOM = "boreHeadroom";
     public static final String BORE_LAVA_CHECK = "boreLavaCheck";
     public static final String BORE_MAX_HARDNESS = "boreMaxHardness";
+    public static final String PROTECT_TRACK_EQUIPMENT = "protectTrackEquipment";
+    public static final String ROLLERS_SKIP_AIR_PAVING = "rollersSkipAirPaving";
+    public static final String ROLLERS_CLEAR_POWDER_SNOW = "rollersClearPowderSnow";
+    public static final String ROLLERS_IGNORE_FLUIDS = "rollersIgnoreFluids";
+    public static final String CONTRAPTION_CONTROLS_SCHEDULE = "contraptionControlsSchedule";
 
     private static volatile TrackwrightSettings current;
 
@@ -40,9 +45,10 @@ public final class ServerConfig {
         synchronized (ServerConfig.class) {
             current = settings;
         }
-        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreHeadroom={}, boreLavaCheck={}, boreMaxHardness={}",
+        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreHeadroom={}, boreLavaCheck={}, boreMaxHardness={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}",
             settings.straightThroughBlocks(), settings.maxConnectionLength(), settings.protectTrainPassengers(), settings.boreThroughBlocks(),
-            settings.boreHeadroom(), settings.boreLavaCheck(), settings.boreMaxHardness());
+            settings.boreHeadroom(), settings.boreLavaCheck(), settings.boreMaxHardness(), settings.protectTrackEquipment(),
+            settings.rollersSkipAirPaving(), settings.rollersClearPowderSnow(), settings.rollersIgnoreFluids(), settings.contraptionControlsSchedule());
         return settings;
     }
 
@@ -62,6 +68,11 @@ public final class ServerConfig {
         Integer headroom = JsonConfigFile.readInt(json, BORE_HEADROOM);
         Boolean lava = JsonConfigFile.readBoolean(json, BORE_LAVA_CHECK);
         Double hardness = JsonConfigFile.readDouble(json, BORE_MAX_HARDNESS);
+        Boolean equipment = JsonConfigFile.readBoolean(json, PROTECT_TRACK_EQUIPMENT);
+        Boolean airPaving = JsonConfigFile.readBoolean(json, ROLLERS_SKIP_AIR_PAVING);
+        Boolean powderSnow = JsonConfigFile.readBoolean(json, ROLLERS_CLEAR_POWDER_SNOW);
+        Boolean fluids = JsonConfigFile.readBoolean(json, ROLLERS_IGNORE_FLUIDS);
+        Boolean controls = JsonConfigFile.readBoolean(json, CONTRAPTION_CONTROLS_SCHEDULE);
         if (straight == null) {
             straight = defaults.straightThroughBlocks();
             complete = false;
@@ -105,7 +116,28 @@ public final class ServerConfig {
         } else if (hardness < 0) {
             Trackwright.LOGGER.warn("{} {} is below 0, using 0 (no limit)", BORE_MAX_HARDNESS, hardness);
         }
-        TrackwrightSettings settings = new TrackwrightSettings(straight, length, protect, bore, headroom, lava, hardness);
+        if (equipment == null) {
+            equipment = defaults.protectTrackEquipment();
+            complete = false;
+        }
+        if (airPaving == null) {
+            airPaving = defaults.rollersSkipAirPaving();
+            complete = false;
+        }
+        if (powderSnow == null) {
+            powderSnow = defaults.rollersClearPowderSnow();
+            complete = false;
+        }
+        if (fluids == null) {
+            fluids = defaults.rollersIgnoreFluids();
+            complete = false;
+        }
+        if (controls == null) {
+            controls = defaults.contraptionControlsSchedule();
+            complete = false;
+        }
+        TrackwrightSettings settings = new TrackwrightSettings(straight, length, protect, bore, headroom, lava, hardness,
+            equipment, airPaving, powderSnow, fluids, controls);
         if (contents.writable() && !complete) {
             JsonObject known = new JsonObject();
             known.addProperty(STRAIGHT_THROUGH_BLOCKS, settings.straightThroughBlocks());
@@ -115,6 +147,11 @@ public final class ServerConfig {
             known.addProperty(BORE_HEADROOM, headroom);
             known.addProperty(BORE_LAVA_CHECK, settings.boreLavaCheck());
             known.addProperty(BORE_MAX_HARDNESS, hardness);
+            known.addProperty(PROTECT_TRACK_EQUIPMENT, settings.protectTrackEquipment());
+            known.addProperty(ROLLERS_SKIP_AIR_PAVING, settings.rollersSkipAirPaving());
+            known.addProperty(ROLLERS_CLEAR_POWDER_SNOW, settings.rollersClearPowderSnow());
+            known.addProperty(ROLLERS_IGNORE_FLUIDS, settings.rollersIgnoreFluids());
+            known.addProperty(CONTRAPTION_CONTROLS_SCHEDULE, settings.contraptionControlsSchedule());
             JsonConfigFile.write(path, known, json);
         }
         return settings;

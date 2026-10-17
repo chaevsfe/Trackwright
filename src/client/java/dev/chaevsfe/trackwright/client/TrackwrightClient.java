@@ -7,6 +7,7 @@ import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
 import dev.chaevsfe.trackwright.client.guide.UndoKey;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
+import dev.chaevsfe.trackwright.client.schedule.ActorStepsClient;
 import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.network.SettingsPayload;
@@ -25,13 +26,16 @@ public final class TrackwrightClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         Trackwright.loadHookedClasses(
+            "com.zurrtum.create.client.content.trains.schedule.ScheduleScreen",
             "com.zurrtum.create.client.content.trains.track.TrackPlacementClient",
             "com.zurrtum.create.client.content.trains.track.TrackPlacementOverlay",
             "com.zurrtum.create.client.content.trains.track.TrackRenderer",
             "com.zurrtum.create.client.content.trains.track.TrackVisual",
+            "com.zurrtum.create.client.foundation.gui.widget.ScrollInput",
             "net.minecraft.client.renderer.ScreenEffectRenderer"
         );
         ClientConfig.load();
+        ActorStepsClient.register();
         KeyMapping.Category category = KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "trackwright"));
         WidestTurnLock.register(category);
         UndoKey.register(category);
