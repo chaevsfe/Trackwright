@@ -40,7 +40,7 @@ public final class TrackwrightNetwork {
 
     public static void sendUndoState(ServerPlayer player, int placements, int ticksLeft) {
         if (ServerPlayNetworking.canSend(player, UndoStatePayload.TYPE)) {
-            ServerPlayNetworking.send(player, new UndoStatePayload(UndoStatePayload.VERSION, placements, ticksLeft));
+            ServerPlayNetworking.send(player, UndoStatePayload.of(placements, ticksLeft));
         }
     }
 
