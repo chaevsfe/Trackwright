@@ -24,7 +24,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             "com.zurrtum.create.client.content.trains.track.TrackVisual",
             "net.minecraft.client.renderer.ScreenEffectRenderer"
         );
-        ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> RemoteSettings.set(payload.settings()));
+        ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> receiveSettings(payload));
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
             RemoteSettings.clear();
             TrackGuide.reset();
@@ -43,5 +43,13 @@ public final class TrackwrightClient implements ClientModInitializer {
             Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "track_guide"),
             TrackGuideHud::extract
         );
+    }
+
+    private static void receiveSettings(SettingsPayload payload) {
+        if (!payload.sameVersion()) {
+            Trackwright.LOGGER.info("This server's Trackwright sends settings format {} and this client reads format {}; only the settings both know are used",
+                payload.version(), SettingsPayload.VERSION);
+        }
+        RemoteSettings.set(payload.settings());
     }
 }
