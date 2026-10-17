@@ -24,8 +24,6 @@ public final class UndoMessages {
     public static final String TRAIN = "trackwright.undo.train";
     public static final String POINTS = "trackwright.undo.points";
     public static final String IN_THE_WAY = "trackwright.undo.in_the_way";
-    public static final String DROPS_GONE = "trackwright.undo.drops_gone";
-    public static final String EXPERIENCE = "trackwright.undo.experience";
     public static final String CONVERTED = "trackwright.undo.converted";
     public static final String PLAYERS_ONLY = "trackwright.undo.players_only";
 
@@ -44,8 +42,6 @@ public final class UndoMessages {
         Map.entry(TRAIN, "A train is on your last track placement"),
         Map.entry(POINTS, "Remove the stations, signals and observers on your last track placement first"),
         Map.entry(IN_THE_WAY, "Something is standing where blocks would be put back"),
-        Map.entry(DROPS_GONE, "The blocks mined for your last track placement are no longer in your inventory"),
-        Map.entry(EXPERIENCE, "Mining for your last track placement gave experience, so it cannot be undone"),
         Map.entry(CONVERTED, "Track laid over a straight through blocks cannot be undone"),
         Map.entry(PLAYERS_ONLY, "Only a player can undo a track placement")
     );

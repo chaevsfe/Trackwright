@@ -23,10 +23,10 @@ final class PlacementRecord {
 
     static final class Cell {
         Kind kind;
-        final BlockState before;
-        final @Nullable CompoundTag beforeEntity;
-        final @Nullable CompoundTag beforeKey;
-        final Set<BlockPos> beforeConnections;
+        BlockState before;
+        @Nullable CompoundTag beforeEntity;
+        @Nullable CompoundTag beforeKey;
+        Set<BlockPos> beforeConnections;
         BlockState after;
         @Nullable CompoundTag afterKey;
         Set<BlockPos> afterConnections = Set.of();
@@ -40,8 +40,20 @@ final class PlacementRecord {
             this.after = before;
         }
 
+        void rebase(BlockState state, @Nullable CompoundTag entity, @Nullable CompoundTag key, Set<BlockPos> connections) {
+            before = state;
+            beforeEntity = entity;
+            beforeKey = key;
+            beforeConnections = connections;
+            after = state;
+        }
+
         boolean placed() {
-            return kind != Kind.NEIGHBOUR;
+            return kind == Kind.WRITTEN;
+        }
+
+        boolean mined() {
+            return kind == Kind.MINED;
         }
     }
 
@@ -53,11 +65,6 @@ final class PlacementRecord {
     final Set<BlockPos> watched;
     final Map<BlockPos, Set<BlockPos>> newCurves;
     final List<ItemStack> charged;
-    final List<ItemStack> drops;
-    final int experience;
-    final ItemStack toolBefore;
-    final ItemStack toolAfter;
-    final boolean bored;
     final @Nullable ConnectingFrom from;
     final Item trackItem;
     final @Nullable String refusal;
@@ -73,11 +80,6 @@ final class PlacementRecord {
         Set<BlockPos> watched,
         Map<BlockPos, Set<BlockPos>> newCurves,
         List<ItemStack> charged,
-        List<ItemStack> drops,
-        int experience,
-        ItemStack toolBefore,
-        ItemStack toolAfter,
-        boolean bored,
         @Nullable ConnectingFrom from,
         Item trackItem,
         @Nullable String refusal
@@ -90,11 +92,6 @@ final class PlacementRecord {
         this.watched = watched;
         this.newCurves = newCurves;
         this.charged = charged;
-        this.drops = drops;
-        this.experience = experience;
-        this.toolBefore = toolBefore;
-        this.toolAfter = toolAfter;
-        this.bored = bored;
         this.from = from;
         this.trackItem = trackItem;
         this.refusal = refusal;

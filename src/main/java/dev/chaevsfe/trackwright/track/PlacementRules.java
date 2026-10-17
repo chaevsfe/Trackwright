@@ -160,7 +160,7 @@ public final class PlacementRules {
             if (bore != null && !bore.cells().isEmpty()) {
                 UndoRecorder.beforeMining(serverLevel, serverPlayer, bore.cells());
                 BlockMiner.Outcome outcome = BlockMiner.mine(serverLevel, serverPlayer, bore.cells());
-                UndoRecorder.afterMining(serverLevel, serverPlayer, outcome.collected(), outcome.experience());
+                UndoRecorder.afterMining(serverLevel, serverPlayer);
                 if (outcome.stoppedAt() != null) {
                     refundTracks(serverPlayer, info);
                     info.valid = false;
