@@ -40,7 +40,7 @@ public final class UndoKey {
                 continue;
             }
             if (ClientPlayNetworking.canSend(UndoPayload.TYPE)) {
-                ClientPlayNetworking.send(new UndoPayload(UndoPayload.VERSION));
+                ClientPlayNetworking.send(UndoPayload.request());
             } else {
                 player.sendOverlayMessage(Component.translatable("trackwright.undo.unsupported").withStyle(ChatFormatting.RED));
             }
