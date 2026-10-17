@@ -34,12 +34,24 @@ public final class GuideLines {
     private GuideLines() {
     }
 
-    public static List<Component> waiting(ConnectingFrom from) {
+    public static List<Component> waiting(ConnectingFrom from, int walkCloser) {
         List<Component> lines = new ArrayList<>();
         lines.add(title());
         lines.add(line("trackwright.guide.start", position(from.pos())));
-        lines.add(Component.translatable("trackwright.guide.aim").withStyle(ChatFormatting.GRAY));
+        if (walkCloser > 0) {
+            lines.add(outOfReach(walkCloser));
+        } else {
+            lines.add(Component.translatable("trackwright.guide.aim").withStyle(ChatFormatting.GRAY));
+        }
         return lines;
+    }
+
+    public static Component outOfReach(int walkCloser) {
+        String blocks = Integer.toString(walkCloser);
+        return Component.translatable(
+            walkCloser == 1 ? "trackwright.guide.out_of_reach_one" : "trackwright.guide.out_of_reach",
+            Component.literal(blocks).withStyle(ChatFormatting.WHITE)
+        ).withStyle(ChatFormatting.YELLOW);
     }
 
     public static boolean geometryFinal(PlacementInfo info) {
@@ -63,10 +75,15 @@ public final class GuideLines {
                 lines.add(line("trackwright.guide.reach", number(Math.sqrt(start.distSqr(target))), Integer.toString(limit)));
             }
             if (info.valid || info.message != null && !BEFORE_GEOMETRY.contains(info.message)) {
-                addGeometry(lines, info, dx, dy, dz, horizontal);
+                addGeometry(lines, info, dx, dz);
             }
             if (geometryFinal(info)) {
-                addShape(lines, info, extras);
+                PlanGeometry.Climb climb = PlanGeometry.climb(info.curve, dx, dy, dz);
+                boolean climbs = Math.abs(climb.rise()) >= 0.05;
+                if (climbs) {
+                    addClimb(lines, climb);
+                }
+                addShape(lines, info, extras, climbs && inLine(info, dx, dz));
             }
             if (info.valid || info.message != null && COST_KNOWN.contains(info.message)) {
                 lines.add(line("trackwright.guide.tracks", Integer.toString(info.requiredTracks)));
@@ -94,7 +111,7 @@ public final class GuideLines {
         return lines;
     }
 
-    private static void addGeometry(List<Component> lines, PlacementInfo info, int dx, int dy, int dz, double horizontal) {
+    private static void addGeometry(List<Component> lines, PlacementInfo info, int dx, int dz) {
         double change = PlanGeometry.headingChange(info.axis1, info.axis2);
         if (!Double.isNaN(change)) {
             if (Math.abs(change) < 0.5) {
@@ -115,25 +132,46 @@ public final class GuideLines {
                 lines.add(counted("trackwright.guide.radius", "trackwright.guide.radius_one", number(radius)));
             }
         }
-        if (horizontal > 0) {
-            lines.add(line("trackwright.guide.grade", String.format(Locale.ROOT, "%+.1f%%", dy / horizontal * 100)));
-        }
     }
 
-    private static void addShape(List<Component> lines, PlacementInfo info, PlanExtras extras) {
+    private static boolean inLine(PlacementInfo info, int dx, int dz) {
+        double change = PlanGeometry.headingChange(info.axis1, info.axis2);
+        if (!Double.isNaN(change) && Math.abs(change) >= 0.5) {
+            return false;
+        }
+        double sideways = PlanGeometry.sideways(info.axis1, dx, dz);
+        return Double.isNaN(sideways) || Math.abs(sideways) < 0.05;
+    }
+
+    private static void addClimb(List<Component> lines, PlanGeometry.Climb climb) {
+        String rise = number(Math.abs(climb.rise()));
+        boolean one = "1".equals(rise);
+        String key = climb.rise() > 0
+            ? one ? "trackwright.guide.climb_one" : "trackwright.guide.climb"
+            : one ? "trackwright.guide.descend_one" : "trackwright.guide.descend";
+        lines.add(line(key, rise, number(climb.run()), Math.round(climb.steepest() * 100) + "%"));
+    }
+
+    private static void addShape(List<Component> lines, PlacementInfo info, PlanExtras extras, boolean climbOnly) {
         if (info.curve == null) {
             return;
         }
         boolean depends = extras.shapeDependsOnWidest(info);
         if (extras.maximised()) {
             if (extras.locked()) {
-                lines.add(Component.translatable("trackwright.guide.widest_turn_locked").withStyle(ChatFormatting.GRAY));
+                lines.add(Component.translatable(climbOnly ? "trackwright.guide.climb_spread_locked" : "trackwright.guide.widest_turn_locked")
+                    .withStyle(ChatFormatting.GRAY));
             } else if (depends) {
-                lines.add(Component.translatable("trackwright.guide.widest_turn").withStyle(ChatFormatting.GRAY));
+                lines.add(Component.translatable(climbOnly ? "trackwright.guide.climb_spread" : "trackwright.guide.widest_turn")
+                    .withStyle(ChatFormatting.GRAY));
             }
             return;
         }
         if (!depends) {
+            return;
+        }
+        if (climbOnly) {
+            lines.add(hold("trackwright.guide.hold_spread", "trackwright.guide.hold_spread_lock"));
             return;
         }
         lines.add(line("trackwright.guide.tightest_turn", Integer.toString(info.end1Extent), Integer.toString(info.end2Extent)));
@@ -165,7 +203,7 @@ public final class GuideLines {
         return text.withStyle("track.second_point".equals(info.message) ? ChatFormatting.WHITE : ChatFormatting.RED);
     }
 
-    private static @Nullable Integer connectionLimit() {
+    public static @Nullable Integer connectionLimit() {
         CServer server = AllConfigs.server();
         if (server == null) {
             return null;

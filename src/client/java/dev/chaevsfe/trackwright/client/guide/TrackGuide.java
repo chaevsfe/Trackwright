@@ -15,6 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class TrackGuide {
@@ -38,6 +39,7 @@ public final class TrackGuide {
         planned = null;
         lastPlanned = null;
         PlanExtras.reset();
+        AimHelp.reset();
     }
 
     public static void capture(Level level, Player player, BlockPos target, BlockState state, ItemStack stack, boolean maximise, PlacementInfo info) {
@@ -81,11 +83,17 @@ public final class TrackGuide {
         if (from == null) {
             return List.of();
         }
+        int walkCloser = AimHelp.walkCloser();
         Planned current = planned;
         if (current != null && current.from.equals(from) && ItemStack.isSameItemSameComponents(current.stack, stack)) {
-            return current.lines;
+            if (walkCloser <= 0) {
+                return current.lines;
+            }
+            List<Component> lines = new ArrayList<>(current.lines);
+            lines.add(GuideLines.outOfReach(walkCloser));
+            return lines;
         }
-        return GuideLines.waiting(from);
+        return GuideLines.waiting(from, walkCloser);
     }
 
     private static @Nullable ItemStack heldTrack(Player player) {

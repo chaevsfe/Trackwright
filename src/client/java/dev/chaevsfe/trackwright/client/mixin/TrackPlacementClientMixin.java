@@ -6,6 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.zurrtum.create.client.content.trains.track.TrackPlacementClient;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
+import dev.chaevsfe.trackwright.client.guide.AimHelp;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
 import net.minecraft.client.Minecraft;
@@ -16,6 +17,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.HitResult;
+import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,6 +30,14 @@ public abstract class TrackPlacementClientMixin {
     @Inject(method = "clientTick", at = @At("HEAD"))
     private static void trackwright$forgetLastPlan(Minecraft mc, CallbackInfo ci) {
         TrackGuide.forget();
+    }
+
+    @ModifyExpressionValue(
+        method = "clientTick",
+        at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;hitResult:Lnet/minecraft/world/phys/HitResult;", opcode = Opcodes.GETFIELD)
+    )
+    private static @Nullable HitResult trackwright$aim(@Nullable HitResult hit, @Local(argsOnly = true) Minecraft mc) {
+        return AimHelp.aim(mc, hit);
     }
 
     @ModifyExpressionValue(method = "clientTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;isDown()Z"))

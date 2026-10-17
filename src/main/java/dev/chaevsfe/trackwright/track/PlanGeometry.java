@@ -1,14 +1,46 @@
 package dev.chaevsfe.trackwright.track;
 
+import com.zurrtum.create.catnip.math.VecHelper;
 import com.zurrtum.create.content.trains.track.BezierConnection;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class PlanGeometry {
     private static final int RADIUS_SAMPLES = 64;
+    private static final int CLIMB_SAMPLES = 128;
     private static final double EPSILON = 1.0E-6;
 
     private PlanGeometry() {
+    }
+
+    public record Climb(double rise, double run, double steepest) {
+    }
+
+    public static Climb climb(@Nullable BezierConnection curve, int dx, int dy, int dz) {
+        if (curve == null) {
+            double run = Math.sqrt((double) dx * dx + (double) dz * dz);
+            return new Climb(dy, run, run < EPSILON ? 0 : Math.abs(dy) / run);
+        }
+        Vec3 start = curve.starts.getFirst();
+        Vec3 end = curve.starts.getSecond();
+        double handle = curve.getHandleLength();
+        Vec3 control1 = start.add(curve.axes.getFirst().scale(handle));
+        Vec3 control2 = end.add(curve.axes.getSecond().scale(handle));
+        double steepest = 0;
+        double run = 0;
+        Vec3 previous = start;
+        for (int i = 0; i <= CLIMB_SAMPLES; i++) {
+            float t = i / (float) CLIMB_SAMPLES;
+            Vec3 direction = VecHelper.bezierDerivative(start, end, control1, control2, t);
+            double across = Math.sqrt(direction.x * direction.x + direction.z * direction.z);
+            if (across > EPSILON) {
+                steepest = Math.max(steepest, Math.abs(direction.y) / across);
+            }
+            Vec3 point = VecHelper.bezier(start, end, control1, control2, t);
+            run += Math.sqrt((point.x - previous.x) * (point.x - previous.x) + (point.z - previous.z) * (point.z - previous.z));
+            previous = point;
+        }
+        return new Climb(end.y - start.y, run, steepest);
     }
 
     public static double headingChange(@Nullable Vec3 axis1, @Nullable Vec3 axis2) {
