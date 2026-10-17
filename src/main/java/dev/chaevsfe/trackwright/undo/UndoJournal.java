@@ -144,11 +144,18 @@ public final class UndoJournal {
         }
     }
 
-
     static void sendState(ServerPlayer player) {
+        sendState(player, false);
+    }
+
+    static void sendResult(ServerPlayer player) {
+        sendState(player, true);
+    }
+
+    private static void sendState(ServerPlayer player, boolean result) {
         Deque<PlacementRecord> journal = JOURNALS.get(player.getUUID());
         PlacementRecord newest = journal == null ? null : journal.peekFirst();
         int now = player.level().getServer().getTickCount();
-        TrackwrightNetwork.sendUndoState(player, journal == null ? 0 : journal.size(), newest == null ? 0 : ticksLeft(newest, now));
+        TrackwrightNetwork.sendUndoState(player, journal == null ? 0 : journal.size(), newest == null ? 0 : ticksLeft(newest, now), result);
     }
 }

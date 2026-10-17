@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright.client;
 
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
+import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
 import dev.chaevsfe.trackwright.client.guide.UndoKey;
@@ -43,12 +44,14 @@ public final class TrackwrightClient implements ClientModInitializer {
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
             RemoteSettings.clear();
             UndoKey.reset();
+            ActionBarHold.reset();
             TrackGuide.reset();
             FarEnd.reset();
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             RemoteSettings.clear();
             UndoKey.reset();
+            ActionBarHold.reset();
             TrackGuide.reset();
             FarEnd.reset();
         });

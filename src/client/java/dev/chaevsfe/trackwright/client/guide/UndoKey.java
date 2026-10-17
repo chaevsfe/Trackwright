@@ -43,6 +43,7 @@ public final class UndoKey {
                 ClientPlayNetworking.send(UndoPayload.request());
             } else {
                 player.sendOverlayMessage(Component.translatable("trackwright.undo.unsupported").withStyle(ChatFormatting.RED));
+                ActionBarHold.start();
             }
         }
     }
@@ -50,6 +51,9 @@ public final class UndoKey {
     public static void receive(UndoStatePayload payload) {
         placements = payload.placements();
         until = Util.getMillis() + payload.ticksLeft() * MILLIS_PER_TICK;
+        if (payload.result()) {
+            ActionBarHold.start();
+        }
     }
 
     public static void reset() {

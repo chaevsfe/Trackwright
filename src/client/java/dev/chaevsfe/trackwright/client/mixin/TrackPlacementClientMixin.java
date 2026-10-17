@@ -1,6 +1,7 @@
 package dev.chaevsfe.trackwright.client.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -8,12 +9,15 @@ import com.zurrtum.create.catnip.data.Couple;
 import com.zurrtum.create.client.content.trains.track.TrackPlacementClient;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
+import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.AimHelp;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -62,6 +66,14 @@ public abstract class TrackPlacementClientMixin {
     @ModifyExpressionValue(method = "clientTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;isDown()Z"))
     private static boolean trackwright$lockedWidestTurn(boolean held) {
         return held || WidestTurnLock.locked();
+    }
+
+    @WrapWithCondition(
+        method = "clientTick",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;sendOverlayMessage(Lnet/minecraft/network/chat/Component;)V")
+    )
+    private static boolean trackwright$keepTrackwrightMessage(LocalPlayer player, Component message) {
+        return !ActionBarHold.active();
     }
 
     @WrapOperation(
