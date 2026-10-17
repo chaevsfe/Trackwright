@@ -1,6 +1,7 @@
 package dev.chaevsfe.trackwright.undo;
 
 import com.zurrtum.create.AllDataComponents;
+import com.zurrtum.create.content.kinetics.deployer.DeployerPlayer;
 import com.zurrtum.create.content.trains.track.ITrackBlock;
 import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.zurrtum.create.infrastructure.component.ConnectingFrom;
@@ -126,7 +127,8 @@ public final class UndoRecorder {
     }
 
     public static PlacementInfo record(Level level, Player player, ItemStack stack, Supplier<PlacementInfo> placement) {
-        if (!(level instanceof ServerLevel serverLevel) || !(player instanceof ServerPlayer serverPlayer) || session != null) {
+        if (!(level instanceof ServerLevel serverLevel) || !(player instanceof ServerPlayer serverPlayer) || player instanceof DeployerPlayer
+            || session != null) {
             return placement.get();
         }
         Session started = new Session(serverLevel, serverPlayer, stack.get(AllDataComponents.TRACK_CONNECTING_FROM), stack.getItem());
