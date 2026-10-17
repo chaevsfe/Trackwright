@@ -90,6 +90,7 @@
   "trackwright.undo.converted": "Track laid over a straight through blocks cannot be undone",
   "trackwright.undo.players_only": "Only a player can undo a track placement",
   "trackwright.undo.unsupported": "Undo needs Trackwright on the server",
+  "trackwright.station.on_curve": "Trains cannot be built or taken apart at a station on a curve",
   "trackwright.schedule.instruction.contraption_controls": "Switch Train Actors",
   "trackwright.schedule.contraption_controls.target": "%s: %s",
   "trackwright.schedule.contraption_controls.all": "All actors",
