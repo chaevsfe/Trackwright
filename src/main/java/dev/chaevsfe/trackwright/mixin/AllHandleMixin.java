@@ -1,11 +1,14 @@
 package dev.chaevsfe.trackwright.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.zurrtum.create.AllHandle;
 import com.zurrtum.create.infrastructure.packet.c2s.CurvedTrackDestroyPacket;
 import com.zurrtum.create.infrastructure.packet.c2s.CurvedTrackSelectionPacket;
+import com.zurrtum.create.infrastructure.packet.c2s.ScheduleEditPacket;
+import dev.chaevsfe.trackwright.schedule.ActorSteps;
 import dev.chaevsfe.trackwright.track.ConnectionLength;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -46,6 +49,13 @@ public abstract class AllHandleMixin {
         @Local(argsOnly = true) CurvedTrackSelectionPacket packet
     ) {
         trackwright$withCurveReach(listener, pos, packet.targetPos(), distance, predicate, original);
+    }
+
+    @WrapMethod(method = "onScheduleEdit")
+    private static void trackwright$keepActorSteps(ServerGamePacketListenerImpl listener, ScheduleEditPacket packet, Operation<Void> original) {
+        if (!ActorSteps.refuseEdit(listener.player)) {
+            original.call(listener, packet);
+        }
     }
 
     @Unique

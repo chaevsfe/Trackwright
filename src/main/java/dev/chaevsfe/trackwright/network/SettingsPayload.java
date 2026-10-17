@@ -29,6 +29,11 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
         fields.putInt(ServerConfig.BORE_HEADROOM, settings.boreHeadroom());
         fields.putBoolean(ServerConfig.BORE_LAVA_CHECK, settings.boreLavaCheck());
         fields.putDouble(ServerConfig.BORE_MAX_HARDNESS, settings.boreMaxHardness());
+        fields.putBoolean(ServerConfig.PROTECT_TRACK_EQUIPMENT, settings.protectTrackEquipment());
+        fields.putBoolean(ServerConfig.ROLLERS_SKIP_AIR_PAVING, settings.rollersSkipAirPaving());
+        fields.putBoolean(ServerConfig.ROLLERS_CLEAR_POWDER_SNOW, settings.rollersClearPowderSnow());
+        fields.putBoolean(ServerConfig.ROLLERS_IGNORE_FLUIDS, settings.rollersIgnoreFluids());
+        fields.putBoolean(ServerConfig.CONTRAPTION_CONTROLS_SCHEDULE, settings.contraptionControlsSchedule());
         return new SettingsPayload(VERSION, fields);
     }
 
@@ -40,7 +45,12 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
             BoreMode.byId(fields.getStringOr(ServerConfig.BORE_THROUGH_BLOCKS, BoreMode.OFF.id())),
             fields.getIntOr(ServerConfig.BORE_HEADROOM, 0),
             fields.getBooleanOr(ServerConfig.BORE_LAVA_CHECK, false),
-            fields.getDoubleOr(ServerConfig.BORE_MAX_HARDNESS, 0)
+            fields.getDoubleOr(ServerConfig.BORE_MAX_HARDNESS, 0),
+            fields.getBooleanOr(ServerConfig.PROTECT_TRACK_EQUIPMENT, false),
+            fields.getBooleanOr(ServerConfig.ROLLERS_SKIP_AIR_PAVING, false),
+            fields.getBooleanOr(ServerConfig.ROLLERS_CLEAR_POWDER_SNOW, false),
+            fields.getBooleanOr(ServerConfig.ROLLERS_IGNORE_FLUIDS, false),
+            fields.getBooleanOr(ServerConfig.CONTRAPTION_CONTROLS_SCHEDULE, false)
         );
     }
 

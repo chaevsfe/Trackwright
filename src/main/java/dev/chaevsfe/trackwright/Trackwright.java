@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright;
 
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
+import dev.chaevsfe.trackwright.schedule.ActorSteps;
 import dev.chaevsfe.trackwright.track.PassengerResync;
 import dev.chaevsfe.trackwright.undo.UndoCommand;
 import dev.chaevsfe.trackwright.undo.UndoJournal;
@@ -23,7 +24,11 @@ public final class Trackwright implements ModInitializer {
         loadHookedClasses(
             "com.zurrtum.create.AllHandle",
             "com.zurrtum.create.catnip.config.ConfigBase$CValue",
+            "com.zurrtum.create.content.contraptions.Contraption",
+            "com.zurrtum.create.content.contraptions.actors.roller.RollerMovementBehaviour",
             "com.zurrtum.create.content.contraptions.actors.seat.SeatMovementBehaviour",
+            "com.zurrtum.create.content.kinetics.base.BlockBreakingMovementBehaviour",
+            "com.zurrtum.create.content.trains.entity.Carriage",
             "com.zurrtum.create.content.trains.entity.CarriageContraptionEntity",
             "com.zurrtum.create.content.trains.entity.Navigation",
             "com.zurrtum.create.content.trains.station.StationBlockEntity",
@@ -37,6 +42,7 @@ public final class Trackwright implements ModInitializer {
             "net.minecraft.world.entity.LivingEntity"
         );
         TrackwrightNetwork.register();
+        ActorSteps.register();
         ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerConfig.reload());
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> PassengerResync.clear());
         ServerTickEvents.END_SERVER_TICK.register(PassengerResync::tick);
