@@ -81,7 +81,7 @@ public final class GuideLines {
             if (info.valid || info.message != null && !BEFORE_GEOMETRY.contains(info.message)) {
                 addGeometry(lines, info, dx, dz);
             }
-            if (geometryFinal(info)) {
+            if (info.valid) {
                 PlanGeometry.Climb climb = PlanGeometry.climb(info.curve, dx, dy, dz);
                 boolean climbs = Math.abs(climb.rise()) >= 0.05;
                 if (climbs) {

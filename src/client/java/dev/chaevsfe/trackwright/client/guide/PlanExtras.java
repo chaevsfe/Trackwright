@@ -75,7 +75,7 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
     }
 
     private static @Nullable PlacementInfo otherShape(Level level, Player player, BlockPos target, BlockState state, ItemStack stack, boolean maximise, PlacementInfo info) {
-        if (info.curve == null || !GuideLines.geometryFinal(info)) {
+        if (info.curve == null || !info.valid) {
             return null;
         }
         PlacementCache saved = PlacementCache.save();
