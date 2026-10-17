@@ -57,6 +57,10 @@ public final class TrackGuide {
         }
         lastPlanned = planned;
         showThroughBlocks(info);
+        HeightColumn column = extras.column();
+        if (column != null) {
+            column.show();
+        }
     }
 
     private static void showThroughBlocks(PlacementInfo info) {

@@ -12,6 +12,7 @@ public final class ClientConfig {
     public static final String ALWAYS_SHOW_PLACEMENT_SQUARES = "alwaysShowPlacementSquares";
     public static final String PREVIEW_RANGE = "previewRange";
     public static final String PLANTS_COUNT_AS_GROUND = "plantsCountAsGround";
+    public static final String SHOW_HEIGHT_HINTS = "showHeightHints";
 
     private static volatile ClientSettings current = ClientSettings.DEFAULTS;
 
@@ -31,6 +32,7 @@ public final class ClientConfig {
         Boolean squares = JsonConfigFile.readBoolean(json, ALWAYS_SHOW_PLACEMENT_SQUARES);
         Integer range = JsonConfigFile.readInt(json, PREVIEW_RANGE);
         Boolean plants = JsonConfigFile.readBoolean(json, PLANTS_COUNT_AS_GROUND);
+        Boolean heights = JsonConfigFile.readBoolean(json, SHOW_HEIGHT_HINTS);
         if (squares == null) {
             squares = defaults.alwaysShowPlacementSquares();
             complete = false;
@@ -45,16 +47,21 @@ public final class ClientConfig {
             plants = defaults.plantsCountAsGround();
             complete = false;
         }
-        ClientSettings settings = new ClientSettings(squares, range, plants);
+        if (heights == null) {
+            heights = defaults.showHeightHints();
+            complete = false;
+        }
+        ClientSettings settings = new ClientSettings(squares, range, plants, heights);
         if (contents.writable() && !complete) {
             JsonObject known = new JsonObject();
             known.addProperty(ALWAYS_SHOW_PLACEMENT_SQUARES, settings.alwaysShowPlacementSquares());
             known.addProperty(PREVIEW_RANGE, range);
             known.addProperty(PLANTS_COUNT_AS_GROUND, settings.plantsCountAsGround());
+            known.addProperty(SHOW_HEIGHT_HINTS, settings.showHeightHints());
             JsonConfigFile.write(path, known, json);
         }
         current = settings;
-        Trackwright.LOGGER.info("Trackwright client settings: alwaysShowPlacementSquares={}, previewRange={}, plantsCountAsGround={}",
-            settings.alwaysShowPlacementSquares(), settings.previewRange(), settings.plantsCountAsGround());
+        Trackwright.LOGGER.info("Trackwright client settings: alwaysShowPlacementSquares={}, previewRange={}, plantsCountAsGround={}, showHeightHints={}",
+            settings.alwaysShowPlacementSquares(), settings.previewRange(), settings.plantsCountAsGround(), settings.showHeightHints());
     }
 }
