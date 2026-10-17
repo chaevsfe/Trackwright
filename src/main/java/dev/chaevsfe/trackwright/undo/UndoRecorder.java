@@ -38,11 +38,6 @@ public final class UndoRecorder {
         final Item trackItem;
         final Map<BlockPos, PlacementRecord.Cell> cells = new LinkedHashMap<>();
         final List<ItemStack> charged = new ArrayList<>();
-        final List<ItemStack> drops = new ArrayList<>();
-        int experience;
-        ItemStack toolBefore = ItemStack.EMPTY;
-        ItemStack toolAfter = ItemStack.EMPTY;
-        boolean bored;
         @Nullable String refusal;
 
         Session(ServerLevel level, ServerPlayer player, @Nullable ConnectingFrom from, Item trackItem) {
@@ -55,8 +50,8 @@ public final class UndoRecorder {
         void touch(BlockPos pos, PlacementRecord.Kind kind) {
             BlockPos key = pos.immutable();
             PlacementRecord.Cell cell = cells.get(key);
-            if (cell != null && cell.placed()) {
-                if (kind == PlacementRecord.Kind.MINED) {
+            if (cell != null && cell.kind != PlacementRecord.Kind.NEIGHBOUR) {
+                if (kind == PlacementRecord.Kind.WRITTEN) {
                     cell.kind = kind;
                 }
                 return;
@@ -79,8 +74,16 @@ public final class UndoRecorder {
                 BlockSnapshots.connections(level, pos));
         }
 
+        void rebase() {
+            for (Map.Entry<BlockPos, PlacementRecord.Cell> entry : cells.entrySet()) {
+                BlockPos pos = entry.getKey();
+                entry.getValue().rebase(level.getBlockState(pos), BlockSnapshots.full(level, pos), BlockSnapshots.key(level, pos),
+                    BlockSnapshots.connections(level, pos));
+            }
+        }
+
         @Nullable PlacementRecord finish() {
-            boolean changed = !charged.isEmpty() || !drops.isEmpty();
+            boolean changed = !charged.isEmpty();
             Set<BlockPos> tracks = new HashSet<>();
             Map<BlockPos, Set<BlockPos>> curves = new HashMap<>();
             for (Map.Entry<BlockPos, PlacementRecord.Cell> entry : cells.entrySet()) {
@@ -118,8 +121,7 @@ public final class UndoRecorder {
                 }
             }
             return new PlacementRecord(level.dimension(), level.getServer().getTickCount(), level.getGameTime(), cells, tracks, watched, curves,
-                List.copyOf(charged), List.copyOf(drops), experience, toolBefore, toolAfter, bored, from, trackItem,
-                refusal != null ? refusal : experience > 0 ? UndoMessages.EXPERIENCE : null);
+                List.copyOf(charged), from, trackItem, refusal);
         }
     }
 
@@ -164,20 +166,14 @@ public final class UndoRecorder {
         for (BlockPos pos : cells) {
             current.touch(pos, PlacementRecord.Kind.MINED);
         }
-        current.bored = true;
-        current.toolBefore = player.getOffhandItem().copy();
     }
 
-    public static void afterMining(Level level, ServerPlayer player, List<ItemStack> collected, int experience) {
+    public static void afterMining(Level level, ServerPlayer player) {
         Session current = active(level);
         if (current == null || current.player != player) {
             return;
         }
-        for (ItemStack stack : collected) {
-            current.drops.add(stack.copy());
-        }
-        current.experience += experience;
-        current.toolAfter = player.getOffhandItem().copy();
+        current.rebase();
     }
 
     public static void charged(Player player, ItemStack slot, int remaining) {

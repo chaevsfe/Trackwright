@@ -13,7 +13,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -68,7 +67,7 @@ public final class BlockMiner {
     public record Rules(boolean lavaCheck, double maxHardness) {
     }
 
-    public record Outcome(int mined, @Nullable BlockPos stoppedAt, List<ItemStack> collected, int experience) {
+    public record Outcome(int mined, @Nullable BlockPos stoppedAt, List<ItemStack> collected) {
     }
 
     private BlockMiner() {
@@ -175,7 +174,6 @@ public final class BlockMiner {
 
     public static Outcome mine(ServerLevel level, ServerPlayer player, List<BlockPos> cells) {
         Set<ItemEntity> drops = new LinkedHashSet<>();
-        int[] experience = {0};
         Outcome outcome = withToolInMainHand(player, () -> {
             boolean hadTool = !player.getMainHandItem().isEmpty();
             int mined = 0;
@@ -185,14 +183,13 @@ public final class BlockMiner {
                     continue;
                 }
                 if (hadTool && player.getMainHandItem().isEmpty()) {
-                    return new Outcome(mined, pos, List.of(), 0);
+                    return new Outcome(mined, pos, List.of());
                 }
                 AABB reach = new AABB(pos).inflate(DROP_REACH);
                 Set<ItemEntity> present = new HashSet<>(level.getEntitiesOfClass(ItemEntity.class, reach));
-                Set<ExperienceOrb> orbs = new HashSet<>(level.getEntitiesOfClass(ExperienceOrb.class, reach));
                 boolean destroyed = player.gameMode.destroyBlock(pos);
                 if (!destroyed && level.getBlockState(pos) == before) {
-                    return new Outcome(mined, pos, List.of(), 0);
+                    return new Outcome(mined, pos, List.of());
                 }
                 mined++;
                 for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, reach)) {
@@ -200,13 +197,8 @@ public final class BlockMiner {
                         drops.add(item);
                     }
                 }
-                for (ExperienceOrb orb : level.getEntitiesOfClass(ExperienceOrb.class, reach)) {
-                    if (orb.isAlive() && !orbs.contains(orb)) {
-                        experience[0] += orb.getValue();
-                    }
-                }
             }
-            return new Outcome(mined, null, List.of(), 0);
+            return new Outcome(mined, null, List.of());
         });
         List<ItemStack> collected = new ArrayList<>();
         for (ItemEntity item : drops) {
@@ -218,7 +210,7 @@ public final class BlockMiner {
             collected.add(stack.copy());
             player.getInventory().placeItemBackInInventory(stack);
         }
-        return new Outcome(outcome.mined(), outcome.stoppedAt(), collected, experience[0]);
+        return new Outcome(outcome.mined(), outcome.stoppedAt(), collected);
     }
 
     private static <T> T withToolInMainHand(ServerPlayer player, Supplier<T> action) {

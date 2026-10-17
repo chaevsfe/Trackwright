@@ -87,8 +87,6 @@
   "trackwright.undo.train": "A train is on your last track placement",
   "trackwright.undo.points": "Remove the stations, signals and observers on your last track placement first",
   "trackwright.undo.in_the_way": "Something is standing where blocks would be put back",
-  "trackwright.undo.drops_gone": "The blocks mined for your last track placement are no longer in your inventory",
-  "trackwright.undo.experience": "Mining for your last track placement gave experience, so it cannot be undone",
   "trackwright.undo.converted": "Track laid over a straight through blocks cannot be undone",
   "trackwright.undo.players_only": "Only a player can undo a track placement",
   "trackwright.undo.unsupported": "Undo needs Trackwright on the server",

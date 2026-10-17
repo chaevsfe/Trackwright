@@ -15,7 +15,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -123,9 +122,6 @@ public final class TrackUndo {
         if (!permitted(level, player, restored)) {
             return UndoMessages.PROTECTED;
         }
-        if (!holds(player, record.drops)) {
-            return UndoMessages.DROPS_GONE;
-        }
         return null;
     }
 
@@ -148,7 +144,10 @@ public final class TrackUndo {
         return now == cell.after && BlockSnapshots.sameKey(cell.afterKey, BlockSnapshots.key(level, pos));
     }
 
-    private static boolean restorable(ServerLevel level, BlockPos pos, PlacementRecord.Cell cell, boolean bored) {
+    private static boolean restorable(ServerLevel level, BlockPos pos, PlacementRecord.Cell cell) {
+        if (cell.mined()) {
+            return false;
+        }
         BlockState now = level.getBlockState(pos);
         if (cell.placed()) {
             return now != cell.before || !BlockSnapshots.sameKey(cell.beforeKey, BlockSnapshots.key(level, pos));
@@ -157,13 +156,13 @@ public final class TrackUndo {
             && now != cell.before
             && cell.beforeEntity == null
             && level.getBlockEntity(pos) == null
-            && (cell.before.canBeReplaced() || cell.before.getBlock() == now.getBlock() || bored);
+            && (cell.before.canBeReplaced() || cell.before.getBlock() == now.getBlock());
     }
 
     private static List<BlockPos> restored(ServerLevel level, PlacementRecord record) {
         List<BlockPos> cells = new ArrayList<>();
         for (Map.Entry<BlockPos, PlacementRecord.Cell> entry : record.cells.entrySet()) {
-            if (restorable(level, entry.getKey(), entry.getValue(), record.bored)) {
+            if (restorable(level, entry.getKey(), entry.getValue())) {
                 cells.add(entry.getKey());
             }
         }
@@ -197,81 +196,8 @@ public final class TrackUndo {
         return true;
     }
 
-    private static List<Integer> slots(Inventory inventory) {
-        List<Integer> slots = new ArrayList<>();
-        for (int i = 0; i < inventory.getNonEquipmentItems().size(); i++) {
-            slots.add(i);
-        }
-        slots.add(Inventory.SLOT_OFFHAND);
-        return slots;
-    }
-
-    private static boolean holds(ServerPlayer player, List<ItemStack> wanted) {
-        if (wanted.isEmpty()) {
-            return true;
-        }
-        Inventory inventory = player.getInventory();
-        List<ItemStack> kinds = new ArrayList<>();
-        List<Integer> needed = new ArrayList<>();
-        for (ItemStack stack : wanted) {
-            int index = indexOf(kinds, stack);
-            if (index < 0) {
-                kinds.add(stack);
-                needed.add(stack.getCount());
-            } else {
-                needed.set(index, needed.get(index) + stack.getCount());
-            }
-        }
-        for (int i = 0; i < kinds.size(); i++) {
-            int found = 0;
-            for (int slot : slots(inventory)) {
-                ItemStack held = inventory.getItem(slot);
-                if (ItemStack.isSameItemSameComponents(held, kinds.get(i))) {
-                    found += held.getCount();
-                }
-            }
-            if (found < needed.get(i)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static int indexOf(List<ItemStack> kinds, ItemStack stack) {
-        for (int i = 0; i < kinds.size(); i++) {
-            if (ItemStack.isSameItemSameComponents(kinds.get(i), stack)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private static void take(ServerPlayer player, List<ItemStack> wanted) {
-        Inventory inventory = player.getInventory();
-        for (ItemStack stack : wanted) {
-            int left = stack.getCount();
-            for (int slot : slots(inventory)) {
-                if (left <= 0) {
-                    break;
-                }
-                ItemStack held = inventory.getItem(slot);
-                if (!ItemStack.isSameItemSameComponents(held, stack)) {
-                    continue;
-                }
-                int taken = Math.min(left, held.getCount());
-                held.shrink(taken);
-                if (held.isEmpty()) {
-                    inventory.setItem(slot, ItemStack.EMPTY);
-                }
-                left -= taken;
-            }
-        }
-        inventory.setChanged();
-    }
-
     private static void apply(ServerLevel level, ServerPlayer player, PlacementRecord record) {
         List<BlockPos> restored = restored(level, record);
-        take(player, record.drops);
         for (Map.Entry<BlockPos, Set<BlockPos>> entry : record.newCurves.entrySet()) {
             BlockPos pos = entry.getKey();
             if (!(level.getBlockEntity(pos) instanceof TrackBlockEntity track)) {
@@ -340,7 +266,6 @@ public final class TrackUndo {
         for (ItemStack stack : record.charged) {
             player.getInventory().placeItemBackInInventory(stack.copy());
         }
-        returnWear(player, record);
         returnSelection(level, player, record);
     }
 
@@ -350,23 +275,6 @@ public final class TrackUndo {
         }
         BlockState now = level.getBlockState(pos);
         return now.getBlock() instanceof ITrackBlock || BlockSnapshots.fake(now) ? 0 : 1;
-    }
-
-    private static void returnWear(ServerPlayer player, PlacementRecord record) {
-        if (record.toolAfter.isEmpty() || record.toolBefore.isEmpty() || !record.toolBefore.isDamageableItem()) {
-            return;
-        }
-        Inventory inventory = player.getInventory();
-        List<Integer> slots = slots(inventory);
-        slots.addFirst(slots.removeLast());
-        for (int slot : slots) {
-            ItemStack held = inventory.getItem(slot);
-            if (ItemStack.matches(held, record.toolAfter)) {
-                held.setDamageValue(record.toolBefore.getDamageValue());
-                inventory.setChanged();
-                return;
-            }
-        }
     }
 
     private static void returnSelection(ServerLevel level, ServerPlayer player, PlacementRecord record) {
