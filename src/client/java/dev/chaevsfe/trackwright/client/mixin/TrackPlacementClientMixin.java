@@ -12,10 +12,8 @@ import dev.chaevsfe.trackwright.client.guide.AimHelp;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -64,15 +62,6 @@ public abstract class TrackPlacementClientMixin {
     @ModifyExpressionValue(method = "clientTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;isDown()Z"))
     private static boolean trackwright$lockedWidestTurn(boolean held) {
         return held || WidestTurnLock.locked();
-    }
-
-    @ModifyExpressionValue(method = "sendExtenderPacket", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;isDown()Z"))
-    private static boolean trackwright$lockedWidestTurnOnPlace(
-        boolean held,
-        @Local(argsOnly = true) LocalPlayer player,
-        @Local(argsOnly = true) InteractionHand hand
-    ) {
-        return held || WidestTurnLock.appliesToPlacement(player, hand);
     }
 
     @WrapOperation(
