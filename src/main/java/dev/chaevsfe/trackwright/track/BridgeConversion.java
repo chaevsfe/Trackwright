@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright.track;
 
 import com.zurrtum.create.Create;
 import com.zurrtum.create.content.trains.GlobalRailwayManager;
+import com.zurrtum.create.content.trains.entity.CarriageContraptionEntity;
 import com.zurrtum.create.content.trains.entity.Train;
 import com.zurrtum.create.content.trains.graph.TrackEdge;
 import com.zurrtum.create.content.trains.graph.TrackGraph;
@@ -13,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -21,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 
 public final class BridgeConversion {
+    private static final double CARRIAGE_REACH = 2;
+
     private BridgeConversion() {
     }
 
@@ -54,6 +58,9 @@ public final class BridgeConversion {
         }
         if (edges.isEmpty() || level.isClientSide() || railways.trains == null) {
             return null;
+        }
+        if (!level.getEntitiesOfClass(CarriageContraptionEntity.class, new AABB(pos1).minmax(new AABB(pos2)).inflate(CARRIAGE_REACH)).isEmpty()) {
+            return Messages.CONVERT_TRAIN;
         }
         for (Train train : railways.trains.values()) {
             boolean[] on = {false};
