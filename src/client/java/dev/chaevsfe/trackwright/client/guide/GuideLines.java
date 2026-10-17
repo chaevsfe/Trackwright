@@ -264,7 +264,7 @@ public final class GuideLines {
     private static Component heights(HeightColumn column, BlockPos target) {
         Integer nearest = column.nearest();
         if (nearest == null) {
-            return line("trackwright.guide.no_height", Integer.toString(target.getY() - HeightColumn.SPAN), Integer.toString(target.getY() + HeightColumn.SPAN));
+            return line("trackwright.guide.no_height", Integer.toString(column.lowest()), Integer.toString(column.highest()));
         }
         int change = nearest - target.getY();
         String blocks = Integer.toString(Math.abs(change));
