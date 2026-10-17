@@ -15,6 +15,7 @@
     "TrackBlockEntityMixin",
     "TrackBlockItemMixin",
     "TrackBlockMixin",
+    "TrackPaverMixin",
     "TrackPlacementMixin",
     "TrackTargetingBlockItemMixin"
   ],

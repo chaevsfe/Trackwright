@@ -1,6 +1,8 @@
 package dev.chaevsfe.trackwright.network;
 
 import dev.chaevsfe.trackwright.config.ServerConfig;
+import dev.chaevsfe.trackwright.undo.TrackUndo;
+import dev.chaevsfe.trackwright.undo.UndoJournal;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -13,6 +15,16 @@ public final class TrackwrightNetwork {
 
     public static void register() {
         PayloadTypeRegistry.clientboundPlay().register(SettingsPayload.TYPE, SettingsPayload.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(UndoStatePayload.TYPE, UndoStatePayload.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(UndoPayload.TYPE, UndoPayload.STREAM_CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(UndoPayload.TYPE, (payload, context) -> {
+            ServerPlayer player = context.player();
+            context.server().execute(() -> {
+                if (UndoJournal.acceptRequest(player)) {
+                    TrackUndo.undoAndTell(player);
+                }
+            });
+        });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sendTo(handler.player));
     }
 
@@ -23,6 +35,12 @@ public final class TrackwrightNetwork {
     public static void sendTo(ServerPlayer player) {
         if (hasTrackwright(player)) {
             ServerPlayNetworking.send(player, SettingsPayload.of(ServerConfig.get()));
+        }
+    }
+
+    public static void sendUndoState(ServerPlayer player, int placements, int ticksLeft) {
+        if (ServerPlayNetworking.canSend(player, UndoStatePayload.TYPE)) {
+            ServerPlayNetworking.send(player, new UndoStatePayload(UndoStatePayload.VERSION, placements, ticksLeft));
         }
     }
 

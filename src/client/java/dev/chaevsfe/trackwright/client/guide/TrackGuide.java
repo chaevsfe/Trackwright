@@ -133,7 +133,7 @@ public final class TrackGuide {
         }
         ConnectingFrom from = stack.get(AllDataComponents.TRACK_CONNECTING_FROM);
         if (from == null) {
-            return List.of();
+            return UndoKey.live() && UndoKey.bound() ? GuideLines.undoHint() : List.of();
         }
         int walkCloser = AimHelp.walkCloser();
         Planned current = planned;

@@ -50,6 +50,13 @@ public final class GuideLines {
         return lines;
     }
 
+    public static List<Component> undoHint() {
+        return List.of(
+            title(),
+            Component.translatable("trackwright.guide.undo", Component.keybind(UndoKey.KEY_NAME).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GRAY)
+        );
+    }
+
     public static Component outOfReach(int walkCloser) {
         String blocks = Integer.toString(walkCloser);
         return Component.translatable(
