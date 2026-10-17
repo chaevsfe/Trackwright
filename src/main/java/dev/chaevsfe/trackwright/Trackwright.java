@@ -21,6 +21,7 @@ public final class Trackwright implements ModInitializer {
             "com.zurrtum.create.content.contraptions.actors.seat.SeatMovementBehaviour",
             "com.zurrtum.create.content.trains.entity.CarriageContraptionEntity",
             "com.zurrtum.create.content.trains.entity.Navigation",
+            "com.zurrtum.create.content.trains.station.StationBlockEntity",
             "com.zurrtum.create.content.trains.track.TrackBlock",
             "com.zurrtum.create.content.trains.track.TrackBlockEntity",
             "com.zurrtum.create.content.trains.track.TrackBlockItem",
