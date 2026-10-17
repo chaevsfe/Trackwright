@@ -89,6 +89,9 @@ public final class ActorSwitch {
     public static void apply(Contraption contraption, ItemStack target, boolean on, Sender sender) {
         List<ItemStack> disabled = contraption.getDisabledActors();
         if (target.isEmpty()) {
+            if (on ? disabled.isEmpty() : disabled.size() == 1 && disabled.getFirst().isEmpty()) {
+                return;
+            }
             disabled.clear();
             if (!on) {
                 disabled.add(ItemStack.EMPTY);
