@@ -27,6 +27,18 @@ placement and train behaviour at runtime through mixins and redistributes no
 Create Fly class, texture or translation. Create's own text is referenced by
 translation key only.
 
+Icon
+----
+The mod icon (assets/trackwright/icon.png) shows Create's standard track,
+rendered from Create Fly's own track model and textures, which are the Create
+team's art. The settings gear and the background are this project's own.
+
+Credits
+-------
+- E-Thang: testing, and the ideas behind most of the second round of
+  features (bore mode, undo, the slope and height hints, the placement
+  squares, the train roller fixes and the Switch Train Actors schedule step).
+
 Dependencies (not bundled)
 --------------------------
 - Create Fly, CC0-1.0
