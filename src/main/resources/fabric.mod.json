@@ -7,6 +7,9 @@
   "authors": [
     "chaevsfe"
   ],
+  "contributors": [
+    "E-Thang"
+  ],
   "contact": {
     "homepage": "https://github.com/chaevsfe/Trackwright",
     "sources": "https://github.com/chaevsfe/Trackwright",
@@ -15,6 +18,7 @@
   "license": [
     "GPL-3.0-or-later"
   ],
+  "icon": "assets/trackwright/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
