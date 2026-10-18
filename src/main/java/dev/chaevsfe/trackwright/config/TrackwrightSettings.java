@@ -19,7 +19,7 @@ public record TrackwrightSettings(
     public static final int MAX_BORE_HEADROOM = 3;
     public static final TrackwrightSettings DEFAULTS = new TrackwrightSettings(
         true, MAX_CONNECTION_LENGTH, true, BoreMode.SURVIVAL, 1, true, 0,
-        true, true, false, false, false
+        true, true, false, false, true
     );
 
     public TrackwrightSettings {
