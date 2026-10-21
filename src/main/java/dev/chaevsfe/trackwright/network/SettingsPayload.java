@@ -34,6 +34,7 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
         fields.putBoolean(ServerConfig.ROLLERS_CLEAR_POWDER_SNOW, settings.rollersClearPowderSnow());
         fields.putBoolean(ServerConfig.ROLLERS_IGNORE_FLUIDS, settings.rollersIgnoreFluids());
         fields.putBoolean(ServerConfig.CONTRAPTION_CONTROLS_SCHEDULE, settings.contraptionControlsSchedule());
+        fields.putBoolean(ServerConfig.TRAIN_DRILLS_FULL_FACE, settings.trainDrillsFullFace());
         return new SettingsPayload(VERSION, fields);
     }
 
@@ -50,7 +51,8 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
             fields.getBooleanOr(ServerConfig.ROLLERS_SKIP_AIR_PAVING, false),
             fields.getBooleanOr(ServerConfig.ROLLERS_CLEAR_POWDER_SNOW, false),
             fields.getBooleanOr(ServerConfig.ROLLERS_IGNORE_FLUIDS, false),
-            fields.getBooleanOr(ServerConfig.CONTRAPTION_CONTROLS_SCHEDULE, false)
+            fields.getBooleanOr(ServerConfig.CONTRAPTION_CONTROLS_SCHEDULE, false),
+            fields.getBooleanOr(ServerConfig.TRAIN_DRILLS_FULL_FACE, false)
         );
     }
 

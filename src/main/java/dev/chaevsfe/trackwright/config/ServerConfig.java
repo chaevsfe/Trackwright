@@ -20,6 +20,7 @@ public final class ServerConfig {
     public static final String ROLLERS_CLEAR_POWDER_SNOW = "rollersClearPowderSnow";
     public static final String ROLLERS_IGNORE_FLUIDS = "rollersIgnoreFluids";
     public static final String CONTRAPTION_CONTROLS_SCHEDULE = "contraptionControlsSchedule";
+    public static final String TRAIN_DRILLS_FULL_FACE = "trainDrillsFullFace";
 
     private static volatile TrackwrightSettings current;
 
@@ -45,10 +46,11 @@ public final class ServerConfig {
         synchronized (ServerConfig.class) {
             current = settings;
         }
-        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreHeadroom={}, boreLavaCheck={}, boreMaxHardness={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}",
+        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreHeadroom={}, boreLavaCheck={}, boreMaxHardness={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}",
             settings.straightThroughBlocks(), settings.maxConnectionLength(), settings.protectTrainPassengers(), settings.boreThroughBlocks(),
             settings.boreHeadroom(), settings.boreLavaCheck(), settings.boreMaxHardness(), settings.protectTrackEquipment(),
-            settings.rollersSkipAirPaving(), settings.rollersClearPowderSnow(), settings.rollersIgnoreFluids(), settings.contraptionControlsSchedule());
+            settings.rollersSkipAirPaving(), settings.rollersClearPowderSnow(), settings.rollersIgnoreFluids(), settings.contraptionControlsSchedule(),
+            settings.trainDrillsFullFace());
         return settings;
     }
 
@@ -73,6 +75,7 @@ public final class ServerConfig {
         Boolean powderSnow = JsonConfigFile.readBoolean(json, ROLLERS_CLEAR_POWDER_SNOW);
         Boolean fluids = JsonConfigFile.readBoolean(json, ROLLERS_IGNORE_FLUIDS);
         Boolean controls = JsonConfigFile.readBoolean(json, CONTRAPTION_CONTROLS_SCHEDULE);
+        Boolean drillFace = JsonConfigFile.readBoolean(json, TRAIN_DRILLS_FULL_FACE);
         if (straight == null) {
             straight = defaults.straightThroughBlocks();
             complete = false;
@@ -136,8 +139,12 @@ public final class ServerConfig {
             controls = defaults.contraptionControlsSchedule();
             complete = false;
         }
+        if (drillFace == null) {
+            drillFace = defaults.trainDrillsFullFace();
+            complete = false;
+        }
         TrackwrightSettings settings = new TrackwrightSettings(straight, length, protect, bore, headroom, lava, hardness,
-            equipment, airPaving, powderSnow, fluids, controls);
+            equipment, airPaving, powderSnow, fluids, controls, drillFace);
         if (contents.writable() && !complete) {
             JsonObject known = new JsonObject();
             known.addProperty(STRAIGHT_THROUGH_BLOCKS, settings.straightThroughBlocks());
@@ -152,6 +159,7 @@ public final class ServerConfig {
             known.addProperty(ROLLERS_CLEAR_POWDER_SNOW, settings.rollersClearPowderSnow());
             known.addProperty(ROLLERS_IGNORE_FLUIDS, settings.rollersIgnoreFluids());
             known.addProperty(CONTRAPTION_CONTROLS_SCHEDULE, settings.contraptionControlsSchedule());
+            known.addProperty(TRAIN_DRILLS_FULL_FACE, settings.trainDrillsFullFace());
             JsonConfigFile.write(path, known, json);
         }
         return settings;
