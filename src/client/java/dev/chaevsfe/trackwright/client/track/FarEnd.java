@@ -19,16 +19,23 @@ import java.util.Set;
 
 public final class FarEnd {
     private static final Set<BlockPos> STALE = new HashSet<>();
+    private static final Set<BlockPos> LOADED = new HashSet<>();
 
     private FarEnd() {
     }
 
     public static boolean firstEndUnloaded(Level level, BezierConnection connection) {
+        if (level != Minecraft.getInstance().level) {
+            return false;
+        }
         BlockPos first = connection.getKey();
         return !level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(first.getX()), SectionPos.blockToSectionCoord(first.getZ()));
     }
 
     public static boolean firstEndHidden(Level level, BezierConnection connection) {
+        if (level != Minecraft.getInstance().level) {
+            return false;
+        }
         if (firstEndUnloaded(level, connection)) {
             return true;
         }
@@ -50,18 +57,29 @@ public final class FarEnd {
         return dx * dx + dz * dz >= (long) sure * sure;
     }
 
-    public static void endChanged(BlockEntity blockEntity) {
+    public static void endUnloaded(BlockEntity blockEntity) {
         if (blockEntity instanceof TrackBlockEntity track) {
             STALE.addAll(track.getConnections().keySet());
         }
     }
 
+    public static void endLoaded(BlockEntity blockEntity) {
+        if (blockEntity instanceof TrackBlockEntity) {
+            LOADED.add(blockEntity.getBlockPos());
+        }
+    }
+
     public static void refresh(Minecraft mc) {
-        if (STALE.isEmpty()) {
+        if (STALE.isEmpty() && LOADED.isEmpty()) {
             return;
         }
         ClientLevel level = mc.level;
         if (level != null) {
+            for (BlockPos pos : LOADED) {
+                if (level.getBlockEntity(pos) instanceof TrackBlockEntity track) {
+                    STALE.addAll(track.getConnections().keySet());
+                }
+            }
             for (BlockPos pos : STALE) {
                 if (level.getBlockEntity(pos) instanceof TrackBlockEntity track) {
                     VisualizationHelper.queueUpdate(track);
@@ -69,9 +87,11 @@ public final class FarEnd {
             }
         }
         STALE.clear();
+        LOADED.clear();
     }
 
     public static void reset() {
         STALE.clear();
+        LOADED.clear();
     }
 }

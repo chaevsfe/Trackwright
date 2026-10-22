@@ -33,7 +33,7 @@ public abstract class ClientChunkCacheMixin {
         for (LevelChunk chunk : trackwright$heldBeforeResize) {
             ChunkPos pos = chunk.getPos();
             if (cache.getChunk(pos.x, pos.z, ChunkStatus.FULL, false) != chunk) {
-                chunk.getBlockEntities().values().forEach(FarEnd::endChanged);
+                chunk.getBlockEntities().values().forEach(FarEnd::endUnloaded);
             }
         }
         trackwright$heldBeforeResize.clear();

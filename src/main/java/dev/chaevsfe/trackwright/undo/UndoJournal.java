@@ -63,6 +63,14 @@ public final class UndoJournal {
         }
     }
 
+    public static void respawned(ServerPlayer player) {
+        Deque<PlacementRecord> journal = JOURNALS.get(player.getUUID());
+        PlacementRecord newest = journal == null ? null : journal.peekFirst();
+        if (newest != null && !newest.dimension.equals(player.level().dimension())) {
+            clear(player);
+        }
+    }
+
     public static void forget(UUID player) {
         JOURNALS.remove(player);
         LAST_REQUEST.remove(player);

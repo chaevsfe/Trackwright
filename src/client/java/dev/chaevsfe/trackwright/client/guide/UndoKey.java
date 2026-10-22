@@ -1,7 +1,7 @@
 package dev.chaevsfe.trackwright.client.guide;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.simibubi.create.AllTags.AllItemTags;
+import com.simibubi.create.AllTags.AllBlockTags;
 import dev.chaevsfe.trackwright.client.TrackwrightClient;
 import dev.chaevsfe.trackwright.network.UndoPayload;
 import dev.chaevsfe.trackwright.network.UndoStatePayload;
@@ -76,6 +76,6 @@ public final class UndoKey {
     }
 
     private static boolean holdsTrack(LocalPlayer player) {
-        return player.getMainHandItem().is(AllItemTags.TRACKS.tag) || player.getOffhandItem().is(AllItemTags.TRACKS.tag);
+        return AllBlockTags.TRACKS.matches(player.getMainHandItem()) || AllBlockTags.TRACKS.matches(player.getOffhandItem());
     }
 }

@@ -52,6 +52,11 @@ public final class Trackwright {
                 UndoJournal.clear(player);
             }
         });
+        game.addListener(PlayerEvent.PlayerRespawnEvent.class, event -> {
+            if (event.getEntity() instanceof ServerPlayer player) {
+                UndoJournal.respawned(player);
+            }
+        });
         game.addListener(RegisterCommandsEvent.class, event -> UndoCommand.register(event.getDispatcher()));
         game.addListener(AddReloadListenerEvent.class, event -> reloadSettings());
     }

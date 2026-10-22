@@ -6,6 +6,7 @@ import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.content.kinetics.drill.DrillMovementBehaviour;
 import com.simibubi.create.content.trains.entity.CarriageContraption;
 import dev.chaevsfe.trackwright.config.ServerConfig;
+import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -127,9 +128,9 @@ public final class DrillFace {
     }
 
     private static boolean stuck(BlockBreakingMovementBehaviour behaviour, MovementContext context) {
-        BlockPos pos = NbtUtils.readBlockPos(context.data, BREAKING_POS).orElse(null);
+        BlockPos pos = NBTHelper.readBlockPos(context.data, BREAKING_POS);
         Level level = context.world;
-        if (pos == null || !level.isLoaded(pos)) {
+        if (!level.isLoaded(pos)) {
             return true;
         }
         BlockState state = level.getBlockState(pos);

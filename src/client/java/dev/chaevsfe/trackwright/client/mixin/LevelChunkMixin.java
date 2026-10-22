@@ -20,10 +20,10 @@ public abstract class LevelChunkMixin {
         Object replaced = original.call(blockEntities, pos, loaded);
         if (trackwright$clientSide()) {
             if (replaced instanceof BlockEntity old && old != loaded) {
-                FarEnd.endChanged(old);
+                FarEnd.endUnloaded(old);
             }
             if (loaded instanceof BlockEntity blockEntity) {
-                FarEnd.endChanged(blockEntity);
+                FarEnd.endLoaded(blockEntity);
             }
         }
         return replaced;
@@ -39,7 +39,7 @@ public abstract class LevelChunkMixin {
     private Object trackwright$blockEntityUnloaded(Map<Object, Object> blockEntities, Object pos, Operation<Object> original) {
         Object removed = original.call(blockEntities, pos);
         if (removed instanceof BlockEntity blockEntity && trackwright$clientSide()) {
-            FarEnd.endChanged(blockEntity);
+            FarEnd.endUnloaded(blockEntity);
         }
         return removed;
     }
@@ -47,7 +47,7 @@ public abstract class LevelChunkMixin {
     @Inject(method = "clearAllBlockEntities", at = @At("HEAD"))
     private void trackwright$blockEntitiesUnloaded(CallbackInfo ci) {
         if (trackwright$clientSide()) {
-            ((LevelChunk) (Object) this).getBlockEntities().values().forEach(FarEnd::endChanged);
+            ((LevelChunk) (Object) this).getBlockEntities().values().forEach(FarEnd::endUnloaded);
         }
     }
 

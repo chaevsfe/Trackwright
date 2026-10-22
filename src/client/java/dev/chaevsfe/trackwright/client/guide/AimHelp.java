@@ -1,7 +1,7 @@
 package dev.chaevsfe.trackwright.client.guide;
 
 import com.simibubi.create.AllDataComponents;
-import com.simibubi.create.AllTags.AllItemTags;
+import com.simibubi.create.AllTags.AllBlockTags;
 import com.simibubi.create.content.trains.track.ITrackBlock;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.config.ClientSettings;
@@ -84,10 +84,10 @@ public final class AimHelp {
 
     static boolean holdsSelection(LocalPlayer player) {
         ItemStack stack = player.getMainHandItem();
-        if (!stack.is(AllItemTags.TRACKS.tag)) {
+        if (!AllBlockTags.TRACKS.matches(stack)) {
             stack = player.getOffhandItem();
         }
-        return stack.is(AllItemTags.TRACKS.tag) && stack.has(AllDataComponents.TRACK_CONNECTING_FROM);
+        return AllBlockTags.TRACKS.matches(stack) && stack.has(AllDataComponents.TRACK_CONNECTING_FROM);
     }
 
     private static BlockHitResult groundUnderPlant(Level level, BlockHitResult hit) {

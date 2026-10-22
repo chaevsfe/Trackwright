@@ -2,7 +2,7 @@ package dev.chaevsfe.trackwright.client.guide;
 
 import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.AllSpecialTextures;
-import com.simibubi.create.AllTags.AllItemTags;
+import com.simibubi.create.AllTags.AllBlockTags;
 import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.simibubi.create.content.trains.track.TrackPlacement;
@@ -173,10 +173,10 @@ public final class TrackGuide {
 
     private static @Nullable ItemStack heldTrack(Player player) {
         ItemStack stack = player.getMainHandItem();
-        if (stack.is(AllItemTags.TRACKS.tag)) {
+        if (AllBlockTags.TRACKS.matches(stack)) {
             return stack;
         }
         stack = player.getOffhandItem();
-        return stack.is(AllItemTags.TRACKS.tag) ? stack : null;
+        return AllBlockTags.TRACKS.matches(stack) ? stack : null;
     }
 }
