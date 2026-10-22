@@ -8,18 +8,19 @@ import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.trains.entity.Carriage;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
 import com.simibubi.create.content.trains.entity.Train;
+import dev.chaevsfe.trackwright.TagReads;
 import dev.chaevsfe.trackwright.mixin.CarriageAccessor;
+import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
-import net.minecraft.world.level.storage.ValueInput;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.jspecify.annotations.Nullable;
 
@@ -55,7 +56,7 @@ public final class ActorSwitch {
         if (id.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        Identifier key = Identifier.tryParse(id);
+        ResourceLocation key = ResourceLocation.tryParse(id);
         if (key == null) {
             return null;
         }
@@ -79,7 +80,9 @@ public final class ActorSwitch {
             });
             CompoundTag saved = ((CarriageAccessor) carriage).trackwright$serialisedEntity();
             if (live[0]) {
-                saved.getCompound(CONTRAPTION).ifPresent(contraption -> contraption.remove(PENDING));
+                if (saved.contains(CONTRAPTION, Tag.TAG_COMPOUND)) {
+                    saved.getCompound(CONTRAPTION).remove(PENDING);
+                }
             } else {
                 queue(saved, target, on);
             }
@@ -137,26 +140,28 @@ public final class ActorSwitch {
         sender.send(target, true);
     }
 
-    public static void applyPending(Contraption contraption, ValueInput view) {
-        for (ValueInput step : view.childrenListOrEmpty(PENDING)) {
-            ItemStack target = stackOf(step.getStringOr(ACTOR, ""));
+    public static void applyPending(Contraption contraption, CompoundTag nbt) {
+        for (Tag tag : nbt.getList(PENDING, Tag.TAG_COMPOUND)) {
+            if (!(tag instanceof CompoundTag step)) {
+                continue;
+            }
+            ItemStack target = stackOf(TagReads.stringOr(step, ACTOR, ""));
             if (target != null) {
-                apply(contraption, target, step.getBooleanOr(ON, true), NOBODY);
+                apply(contraption, target, TagReads.booleanOr(step, ON, true), NOBODY);
             }
         }
     }
 
     private static void queue(CompoundTag entity, ItemStack target, boolean on) {
-        Optional<CompoundTag> found = entity.getCompound(CONTRAPTION);
-        if (found.isEmpty()) {
+        if (!entity.contains(CONTRAPTION, Tag.TAG_COMPOUND)) {
             return;
         }
-        CompoundTag contraption = found.get();
+        CompoundTag contraption = entity.getCompound(CONTRAPTION);
         String id = idOf(target);
         ListTag kept = new ListTag();
         if (!id.isEmpty()) {
-            for (Tag tag : contraption.getListOrEmpty(PENDING)) {
-                if (tag instanceof CompoundTag step && !step.getStringOr(ACTOR, "").equals(id)) {
+            for (Tag tag : contraption.getList(PENDING, Tag.TAG_COMPOUND)) {
+                if (tag instanceof CompoundTag step && !TagReads.stringOr(step, ACTOR, "").equals(id)) {
                     kept.add(step);
                 }
             }
@@ -172,8 +177,8 @@ public final class ActorSwitch {
     }
 
     private static void send(CarriageContraptionEntity entity, ItemStack filter, boolean enable) {
-        if (entity.level() instanceof ServerLevel level) {
-            level.getChunkSource().sendToTrackingPlayers(entity, new ContraptionDisableActorPacket(entity.getId(), filter.copy(), enable));
+        if (entity.level() instanceof ServerLevel) {
+            CatnipServices.NETWORK.sendToClientsTrackingEntity(entity, new ContraptionDisableActorPacket(entity.getId(), filter.copy(), enable));
         }
     }
 }

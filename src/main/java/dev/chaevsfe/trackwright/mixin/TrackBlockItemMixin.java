@@ -42,33 +42,41 @@ public abstract class TrackBlockItemMixin {
 
     @WrapOperation(
         method = "useOn",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;translatable(Ljava/lang/String;)Lnet/minecraft/network/chat/MutableComponent;", ordinal = 2)
+        at = @At(
+            value = "INVOKE",
+            target = "Lcom/simibubi/create/foundation/utility/CreateLang;translateDirect(Ljava/lang/String;[Ljava/lang/Object;)Lnet/minecraft/network/chat/MutableComponent;",
+            ordinal = 2
+        )
     )
     private MutableComponent trackwright$fallbackForVanillaClients(
-        String key,
+        String message,
+        Object[] args,
         Operation<MutableComponent> original,
         @Local(name = "info") TrackPlacement.PlacementInfo info
     ) {
+        String key = "create." + message;
         MutableComponent named = Messages.named(key, info);
         if (named != null) {
             return named;
         }
         String fallback = Messages.fallback(key);
-        return fallback != null ? Component.translatableWithFallback(key, fallback) : original.call(key);
+        return fallback != null ? Component.translatableWithFallback(key, fallback) : original.call(message, args);
     }
 
     @WrapOperation(
         method = "useOn",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;sendOverlayMessage(Lnet/minecraft/network/chat/Component;)V", ordinal = 2)
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;displayClientMessage(Lnet/minecraft/network/chat/Component;Z)V", ordinal = 2)
     )
     private void trackwright$refusalInChatForVanillaClients(
         Player player,
         Component message,
+        boolean actionBar,
         Operation<Void> original,
         @Local(name = "info") TrackPlacement.PlacementInfo info
     ) {
-        original.call(player, Messages.overlayFor(player, message, info));
-        if (!info.valid && (Messages.isOwn(info.message) || ((PlacementInfoExtension) info).trackwright$bridged())) {
+        original.call(player, Messages.overlayFor(player, message, info), actionBar);
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        if (!extension.trackwright$valid() && (Messages.isOwn(extension.trackwright$message()) || extension.trackwright$bridged())) {
             Messages.repeatInChatWithoutTrackwright(player, message);
         }
     }

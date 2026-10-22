@@ -1,19 +1,36 @@
 package dev.chaevsfe.trackwright.mixin;
 
+import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.track.BoreAccess;
 import dev.chaevsfe.trackwright.track.BorePlan;
 import dev.chaevsfe.trackwright.track.Gap;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.util.List;
 
 @Mixin(TrackPlacement.PlacementInfo.class)
 public abstract class PlacementInfoMixin implements PlacementInfoExtension {
+    @Shadow
+    BezierConnection curve;
+    @Shadow
+    boolean valid;
+    @Shadow
+    int end1Extent;
+    @Shadow
+    int end2Extent;
+    @Shadow
+    String message;
+    @Shadow
+    Vec3 axis1;
+    @Shadow
+    Vec3 axis2;
     @Unique
     private boolean trackwright$bridged;
     @Unique
@@ -28,6 +45,56 @@ public abstract class PlacementInfoMixin implements PlacementInfoExtension {
     private boolean trackwright$converts;
     @Unique
     private @Nullable Gap trackwright$gap;
+
+    @Override
+    public @Nullable BezierConnection trackwright$curve() {
+        return curve;
+    }
+
+    @Override
+    public boolean trackwright$valid() {
+        return valid;
+    }
+
+    @Override
+    public void trackwright$setValid(boolean valid) {
+        this.valid = valid;
+    }
+
+    @Override
+    public int trackwright$end1Extent() {
+        return end1Extent;
+    }
+
+    @Override
+    public void trackwright$setEnd1Extent(int extent) {
+        end1Extent = extent;
+    }
+
+    @Override
+    public int trackwright$end2Extent() {
+        return end2Extent;
+    }
+
+    @Override
+    public void trackwright$setEnd2Extent(int extent) {
+        end2Extent = extent;
+    }
+
+    @Override
+    public @Nullable String trackwright$message() {
+        return message;
+    }
+
+    @Override
+    public @Nullable Vec3 trackwright$axis1() {
+        return axis1;
+    }
+
+    @Override
+    public @Nullable Vec3 trackwright$axis2() {
+        return axis2;
+    }
 
     @Override
     public boolean trackwright$bridged() {

@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright.track;
 
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
+import dev.chaevsfe.trackwright.TagReads;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.config.Sides;
@@ -54,7 +55,7 @@ public final class PassengerProtection {
     }
 
     private static @Nullable Entity rider(CarriageContraptionEntity carriage, MovementContext context) {
-        int seat = context.data.getIntOr("SeatIndex", -1);
+        int seat = TagReads.intOr(context.data, "SeatIndex", -1);
         if (seat < 0) {
             return null;
         }

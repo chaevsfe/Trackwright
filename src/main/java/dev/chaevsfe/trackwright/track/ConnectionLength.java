@@ -4,8 +4,6 @@ import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.BezierTrackPointLocation;
 import com.simibubi.create.content.trains.track.TrackBlockEntity;
-import com.simibubi.create.infrastructure.config.AllConfigs;
-import com.simibubi.create.infrastructure.config.CServer;
 import dev.chaevsfe.trackwright.config.Sides;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import net.minecraft.core.BlockPos;
@@ -16,10 +14,6 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 public final class ConnectionLength {
-    public static final int CURVE_REACH_MARGIN = 16;
-
-    private static final ThreadLocal<Integer> CURVE_REACH = new ThreadLocal<>();
-
     private ConnectionLength() {
     }
 
@@ -61,27 +55,8 @@ public final class ConnectionLength {
         return Double.isFinite(length) ? Mth.ceil(length) : 0;
     }
 
-    public static @Nullable Integer enterCurveReach(int reach) {
-        Integer previous = CURVE_REACH.get();
-        CURVE_REACH.set(reach);
-        return previous;
-    }
-
-    public static void exitCurveReach(@Nullable Integer previous) {
-        if (previous == null) {
-            CURVE_REACH.remove();
-        } else {
-            CURVE_REACH.set(previous);
-        }
-    }
-
-    public static Object duringCurveReach(Object configValue, Object value) {
-        Integer reach = CURVE_REACH.get();
-        if (reach == null || !(value instanceof Integer createLength) || reach <= createLength) {
-            return value;
-        }
-        CServer server = AllConfigs.server();
-        if (server == null || configValue != server.trains.maxTrackPlacementLength) {
+    public static Object alongCurve(Object value, int reach) {
+        if (!(value instanceof Integer createLength) || reach <= createLength) {
             return value;
         }
         return reach;

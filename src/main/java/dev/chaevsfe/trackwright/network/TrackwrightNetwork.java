@@ -3,44 +3,60 @@ package dev.chaevsfe.trackwright.network;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.undo.TrackUndo;
 import dev.chaevsfe.trackwright.undo.UndoJournal;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+
+import java.util.function.Consumer;
 
 public final class TrackwrightNetwork {
+    public static final String PROTOCOL = "1";
+
+    private static volatile Consumer<SettingsPayload> settingsReceiver = payload -> {
+    };
+    private static volatile Consumer<UndoStatePayload> undoStateReceiver = payload -> {
+    };
+
     private TrackwrightNetwork() {
     }
 
-    public static void register() {
-        PayloadTypeRegistry.clientboundPlay().register(SettingsPayload.TYPE, SettingsPayload.STREAM_CODEC);
-        PayloadTypeRegistry.clientboundPlay().register(UndoStatePayload.TYPE, UndoStatePayload.STREAM_CODEC);
-        PayloadTypeRegistry.serverboundPlay().register(UndoPayload.TYPE, UndoPayload.STREAM_CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(UndoPayload.TYPE, (payload, context) -> {
-            ServerPlayer player = context.player();
-            context.server().execute(() -> {
-                if (UndoJournal.acceptRequest(player)) {
-                    TrackUndo.undoAndTell(player);
-                }
-            });
+    public static void register(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar(PROTOCOL).optional();
+        registrar.playToClient(SettingsPayload.TYPE, SettingsPayload.STREAM_CODEC, (payload, context) -> settingsReceiver.accept(payload));
+        registrar.playToClient(UndoStatePayload.TYPE, UndoStatePayload.STREAM_CODEC, (payload, context) -> undoStateReceiver.accept(payload));
+        registrar.playToServer(UndoPayload.TYPE, UndoPayload.STREAM_CODEC, (payload, context) -> {
+            if (context.player() instanceof ServerPlayer player && UndoJournal.acceptRequest(player)) {
+                TrackUndo.undoAndTell(player);
+            }
         });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sendTo(handler.player));
+    }
+
+    public static void receiveOnClient(Consumer<SettingsPayload> settings, Consumer<UndoStatePayload> undoState) {
+        settingsReceiver = settings;
+        undoStateReceiver = undoState;
+    }
+
+    public static boolean canSend(ServerPlayer player, CustomPacketPayload.Type<?> type) {
+        return !(player instanceof FakePlayer) && player.connection != null && player.connection.hasChannel(type);
     }
 
     public static boolean hasTrackwright(ServerPlayer player) {
-        return ServerPlayNetworking.canSend(player, SettingsPayload.TYPE);
+        return canSend(player, SettingsPayload.TYPE);
     }
 
     public static void sendTo(ServerPlayer player) {
         if (hasTrackwright(player)) {
-            ServerPlayNetworking.send(player, SettingsPayload.of(ServerConfig.get()));
+            PacketDistributor.sendToPlayer(player, SettingsPayload.of(ServerConfig.get()));
         }
     }
 
     public static void sendUndoState(ServerPlayer player, int placements, int ticksLeft, boolean result) {
-        if (ServerPlayNetworking.canSend(player, UndoStatePayload.TYPE)) {
-            ServerPlayNetworking.send(player, UndoStatePayload.of(placements, ticksLeft, result));
+        if (canSend(player, UndoStatePayload.TYPE)) {
+            PacketDistributor.sendToPlayer(player, UndoStatePayload.of(placements, ticksLeft, result));
         }
     }
 

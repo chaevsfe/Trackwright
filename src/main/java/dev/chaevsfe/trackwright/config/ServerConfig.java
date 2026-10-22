@@ -2,7 +2,7 @@ package dev.chaevsfe.trackwright.config;
 
 import com.google.gson.JsonObject;
 import dev.chaevsfe.trackwright.Trackwright;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 
 import java.nio.file.Path;
 
@@ -56,7 +56,7 @@ public final class ServerConfig {
     }
 
     private static Path path() {
-        return FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        return FMLPaths.CONFIGDIR.get().resolve(FILE_NAME);
     }
 
     private static TrackwrightSettings load(Path path) {

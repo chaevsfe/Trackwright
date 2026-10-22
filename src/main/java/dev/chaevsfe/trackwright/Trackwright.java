@@ -6,24 +6,58 @@ import dev.chaevsfe.trackwright.schedule.ActorSteps;
 import dev.chaevsfe.trackwright.track.PassengerResync;
 import dev.chaevsfe.trackwright.undo.UndoCommand;
 import dev.chaevsfe.trackwright.undo.UndoJournal;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Trackwright implements ModInitializer {
+@Mod(Trackwright.MOD_ID)
+public final class Trackwright {
     public static final String MOD_ID = "trackwright";
     public static final Logger LOGGER = LoggerFactory.getLogger("Trackwright");
 
-    @Override
-    public void onInitialize() {
+    public Trackwright(IEventBus modBus) {
+        modBus.addListener(FMLCommonSetupEvent.class, event -> event.enqueueWork(Trackwright::setUp));
+        modBus.addListener(RegisterPayloadHandlersEvent.class, TrackwrightNetwork::register);
+        IEventBus game = NeoForge.EVENT_BUS;
+        game.addListener(ServerAboutToStartEvent.class, event -> ServerConfig.reload());
+        game.addListener(ServerStoppedEvent.class, event -> {
+            PassengerResync.clear();
+            UndoJournal.clearAll();
+        });
+        game.addListener(ServerTickEvent.Post.class, event -> {
+            PassengerResync.tick(event.getServer());
+            UndoJournal.tick(event.getServer());
+        });
+        game.addListener(PlayerEvent.PlayerLoggedInEvent.class, event -> {
+            if (event.getEntity() instanceof ServerPlayer player) {
+                TrackwrightNetwork.sendTo(player);
+            }
+        });
+        game.addListener(PlayerEvent.PlayerLoggedOutEvent.class, event -> UndoJournal.forget(event.getEntity().getUUID()));
+        game.addListener(PlayerEvent.PlayerChangedDimensionEvent.class, event -> {
+            if (event.getEntity() instanceof ServerPlayer player) {
+                UndoJournal.clear(player);
+            }
+        });
+        game.addListener(RegisterCommandsEvent.class, event -> UndoCommand.register(event.getDispatcher()));
+        game.addListener(AddReloadListenerEvent.class, event -> reloadSettings());
+    }
+
+    private static void setUp() {
         loadHookedClasses(
-            "com.simibubi.create.AllHandle",
-            "net.createmod.catnip.config.ConfigBase$CValue",
             "com.simibubi.create.content.contraptions.Contraption",
             "com.simibubi.create.content.contraptions.actors.roller.RollerMovementBehaviour",
             "com.simibubi.create.content.contraptions.actors.seat.SeatMovementBehaviour",
@@ -31,7 +65,11 @@ public final class Trackwright implements ModInitializer {
             "com.simibubi.create.content.trains.entity.Carriage",
             "com.simibubi.create.content.trains.entity.CarriageContraptionEntity",
             "com.simibubi.create.content.trains.entity.Navigation",
+            "com.simibubi.create.content.trains.graph.TrackGraph",
+            "com.simibubi.create.content.trains.schedule.ScheduleEditPacket",
             "com.simibubi.create.content.trains.station.StationBlockEntity",
+            "com.simibubi.create.content.trains.track.CurvedTrackDestroyPacket",
+            "com.simibubi.create.content.trains.track.CurvedTrackSelectionPacket",
             "com.simibubi.create.content.trains.track.TrackBlock",
             "com.simibubi.create.content.trains.track.TrackBlockEntity",
             "com.simibubi.create.content.trains.track.TrackBlockItem",
@@ -39,19 +77,18 @@ public final class Trackwright implements ModInitializer {
             "com.simibubi.create.content.trains.track.TrackPlacement",
             "com.simibubi.create.content.trains.track.TrackPlacement$PlacementInfo",
             "com.simibubi.create.content.trains.track.TrackTargetingBlockItem",
+            "com.simibubi.create.foundation.networking.BlockEntityConfigurationPacket",
             "net.minecraft.world.entity.LivingEntity"
         );
-        TrackwrightNetwork.register();
         ActorSteps.register();
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerConfig.reload());
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> PassengerResync.clear());
-        ServerTickEvents.END_SERVER_TICK.register(PassengerResync::tick);
-        ServerTickEvents.END_SERVER_TICK.register(UndoJournal::tick);
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> UndoJournal.clearAll());
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> UndoJournal.forget(handler.player.getUUID()));
-        ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> UndoJournal.clear(player));
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> UndoCommand.register(dispatcher));
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+    }
+
+    private static void reloadSettings() {
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) {
+            return;
+        }
+        server.execute(() -> {
             ServerConfig.reload();
             TrackwrightNetwork.sendToAll(server);
         });

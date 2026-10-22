@@ -2,12 +2,11 @@ package dev.chaevsfe.trackwright.mining;
 
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.track.Messages;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
@@ -22,6 +21,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Fallable;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -33,8 +34,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public final class BlockMiner {
-    public static final TagKey<Block> IMMUNE = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "bore_immune"));
-    public static final TagKey<Item> TOOLS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "bore_tools"));
+    public static final TagKey<Block> IMMUNE = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(Trackwright.MOD_ID, "bore_immune"));
+    public static final TagKey<Item> TOOLS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Trackwright.MOD_ID, "bore_tools"));
 
     private static final double DROP_REACH = 1.5;
 
@@ -164,12 +165,16 @@ public final class BlockMiner {
                 BlockState state = level.getBlockState(pos);
                 if (!level.mayInteract(player, pos)
                     || player.blockActionRestricted(level, pos, player.gameMode.getGameModeForPlayer())
-                    || !PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level, player, pos, state, null)) {
+                    || !breakAllowed(level, player, pos, state)) {
                     return new Problem(Refusal.PROTECTED, pos, state);
                 }
             }
             return null;
         });
+    }
+
+    public static boolean breakAllowed(ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
+        return !NeoForge.EVENT_BUS.post(new BlockEvent.BreakEvent(level, pos, state, player)).isCanceled();
     }
 
     public static Outcome mine(ServerLevel level, ServerPlayer player, List<BlockPos> cells) {

@@ -10,6 +10,7 @@ import com.simibubi.create.content.trains.graph.TrackNode;
 import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.TrackBlockEntity;
 import com.simibubi.create.content.trains.track.TrackPropagator;
+import dev.chaevsfe.trackwright.mixin.TrackGraphAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -43,7 +44,7 @@ public final class BridgeConversion {
         }
         Set<TrackEdge> edges = Collections.newSetFromMap(new IdentityHashMap<>());
         for (TrackGraph graph : railways.trackNetworks.values()) {
-            for (Map<TrackNode, TrackEdge> from : graph.connectionsByNode.values()) {
+            for (Map<TrackNode, TrackEdge> from : ((TrackGraphAccessor) graph).trackwright$connectionsByNode().values()) {
                 for (TrackEdge edge : from.values()) {
                     if (edge.isTurn() && joins(edge.getTurn(), pos1, pos2)) {
                         edges.add(edge);

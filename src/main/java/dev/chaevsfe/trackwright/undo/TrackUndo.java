@@ -6,20 +6,18 @@ import com.simibubi.create.content.trains.track.ITrackBlock;
 import com.simibubi.create.content.trains.track.TrackBlockEntity;
 import com.simibubi.create.content.trains.track.TrackPropagator;
 import dev.chaevsfe.trackwright.Trackwright;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import dev.chaevsfe.trackwright.mining.BlockMiner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -42,7 +40,7 @@ public final class TrackUndo {
     public static Result undoAndTell(ServerPlayer player) {
         Result result = undo(player);
         UndoJournal.sendResult(player);
-        player.sendOverlayMessage(result.message());
+        player.displayClientMessage(result.message(), true);
         if (result.done()) {
             player.level().playSound(null, player.blockPosition(), SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 0.75f, 1);
         } else {
@@ -60,7 +58,7 @@ public final class TrackUndo {
         if (refusal != null) {
             return refused(refusal);
         }
-        ServerLevel level = player.level();
+        ServerLevel level = player.serverLevel();
         try {
             apply(level, player, record);
         } finally {
@@ -81,7 +79,7 @@ public final class TrackUndo {
         if (record.changed) {
             return UndoMessages.CHANGED;
         }
-        ServerLevel level = player.level();
+        ServerLevel level = player.serverLevel();
         if (!level.dimension().equals(record.dimension)) {
             return UndoMessages.OTHER_DIMENSION;
         }
@@ -187,10 +185,9 @@ public final class TrackUndo {
     private static boolean permitted(ServerLevel level, ServerPlayer player, List<BlockPos> restored) {
         for (BlockPos pos : restored) {
             BlockState state = level.getBlockState(pos);
-            BlockEntity entity = level.getBlockEntity(pos);
             if (!level.mayInteract(player, pos)
                 || player.blockActionRestricted(level, pos, player.gameMode.getGameModeForPlayer())
-                || !PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level, player, pos, state, entity)) {
+                || !BlockMiner.breakAllowed(level, player, pos, state)) {
                 return false;
             }
         }
@@ -240,7 +237,7 @@ public final class TrackUndo {
             if (entity == null) {
                 continue;
             }
-            entity.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), cell.beforeEntity));
+            entity.loadWithComponents(cell.beforeEntity, level.registryAccess());
             entity.setChanged();
             BlockState state = level.getBlockState(pos);
             level.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);

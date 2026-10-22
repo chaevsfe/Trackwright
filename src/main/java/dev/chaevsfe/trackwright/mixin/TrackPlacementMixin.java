@@ -51,8 +51,8 @@ public abstract class TrackPlacementMixin {
         if (!flat || !skipCurve.get()) {
             return flat;
         }
-        PlacementRules.Straight straight = PlacementRules.decideStraight(level, player, pos1, state2, axis1, axis2, info.end1Extent);
         PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        PlacementRules.Straight straight = PlacementRules.decideStraight(level, player, pos1, state2, axis1, axis2, extension.trackwright$end1Extent());
         extension.trackwright$setBoreAccess(straight.access());
         if (straight.unseen()) {
             extension.trackwright$setGuessed(true);
@@ -63,8 +63,8 @@ public abstract class TrackPlacementMixin {
                 extension.trackwright$setGuessed(true);
             }
         } else if (straight.bridge()) {
-            info.end1Extent = 0;
-            info.end2Extent = 0;
+            extension.trackwright$setEnd1Extent(0);
+            extension.trackwright$setEnd2Extent(0);
             skipCurve.set(false);
             extension.trackwright$setBridged(true);
             if (level.isClientSide()) {
@@ -178,7 +178,7 @@ public abstract class TrackPlacementMixin {
     ) {
         String refusal = PlacementRules.refusal(level, player, info, pos1, pos2, axis1, axis2);
         if (refusal != null) {
-            info.valid = false;
+            ((PlacementInfoExtension) info).trackwright$setValid(false);
             cir.setReturnValue(info.withMessage(refusal).tooJumbly());
         }
     }

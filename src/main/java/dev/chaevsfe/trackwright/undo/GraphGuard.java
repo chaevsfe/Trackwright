@@ -9,6 +9,7 @@ import com.simibubi.create.content.trains.graph.TrackGraph;
 import com.simibubi.create.content.trains.graph.TrackNode;
 import com.simibubi.create.content.trains.signal.TrackEdgePoint;
 import com.simibubi.create.content.trains.track.BezierConnection;
+import dev.chaevsfe.trackwright.mixin.TrackGraphAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -48,7 +49,7 @@ final class GraphGuard {
         Set<TrackEdge> edges = Collections.newSetFromMap(new IdentityHashMap<>());
         AABB reach = box.inflate(1);
         for (TrackGraph graph : railways.trackNetworks.values()) {
-            for (Map.Entry<TrackNode, Map<TrackNode, TrackEdge>> from : graph.connectionsByNode.entrySet()) {
+            for (Map.Entry<TrackNode, Map<TrackNode, TrackEdge>> from : ((TrackGraphAccessor) graph).trackwright$connectionsByNode().entrySet()) {
                 TrackNode node = from.getKey();
                 if (!dimension.equals(node.getLocation().getDimension())) {
                     continue;

@@ -95,8 +95,9 @@ public final class Messages {
     }
 
     public static Component overlayFor(Player player, Component message, PlacementInfo info) {
-        if (info.message != null && player instanceof ServerPlayer serverPlayer && TrackwrightNetwork.hasTrackwright(serverPlayer)) {
-            Gap gap = gapFor("create." + info.message, info);
+        String infoMessage = ((PlacementInfoExtension) info).trackwright$message();
+        if (infoMessage != null && player instanceof ServerPlayer serverPlayer && TrackwrightNetwork.hasTrackwright(serverPlayer)) {
+            Gap gap = gapFor("create." + infoMessage, info);
             if (gap != null) {
                 if (!seenBy(serverPlayer, gap.pos())) {
                     return positioned(gap, false);
@@ -117,7 +118,7 @@ public final class Messages {
 
     private static boolean seenBy(ServerPlayer player, BlockPos pos) {
         return player.getChunkTrackingView().contains(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))
-            && !player.connection.chunkSender.isPending(ChunkPos.pack(pos));
+            && !player.connection.chunkSender.isPending(ChunkPos.asLong(pos));
     }
 
     private static @Nullable Gap gapFor(String key, PlacementInfo info) {

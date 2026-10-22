@@ -5,6 +5,7 @@ import com.simibubi.create.content.kinetics.deployer.DeployerFakePlayer;
 import com.simibubi.create.content.trains.track.ITrackBlock;
 import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
+import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -139,7 +140,7 @@ public final class UndoRecorder {
         } finally {
             session = null;
         }
-        if (info.valid && started.cells.values().stream().anyMatch(PlacementRecord.Cell::placed)) {
+        if (((PlacementInfoExtension) info).trackwright$valid() && started.cells.values().stream().anyMatch(PlacementRecord.Cell::placed)) {
             PlacementRecord record = started.finish();
             if (record != null) {
                 UndoJournal.push(serverPlayer, record);

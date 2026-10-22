@@ -50,8 +50,8 @@ public abstract class StationBlockEntityMixin {
     @Unique
     private static void trackwright$tell(@Nullable ServerPlayer player) {
         if (player != null) {
-            player.sendOverlayMessage(Component.translatableWithFallback("trackwright.station.on_curve",
-                "Trains cannot be built or taken apart at a station on a curve").withStyle(ChatFormatting.RED));
+            player.displayClientMessage(Component.translatableWithFallback("trackwright.station.on_curve",
+                "Trains cannot be built or taken apart at a station on a curve").withStyle(ChatFormatting.RED), true);
         }
     }
 }

@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -57,7 +58,7 @@ public final class DrillFace {
         });
         Set<BlockPos> merged = new LinkedHashSet<>(cells(context, entered, continuous ? from : null));
         if (continuous) {
-            for (long cell : data.getLongArray(QUEUE).orElse(new long[0])) {
+            for (long cell : data.getLongArray(QUEUE)) {
                 BlockPos pos = BlockPos.of(cell);
                 if (!pos.equals(entered)) {
                     merged.add(pos);
@@ -100,7 +101,7 @@ public final class DrillFace {
             }
             data.remove(BREAKING_POS);
         }
-        long[] packed = data.getLongArray(QUEUE).orElse(new long[0]);
+        long[] packed = data.getLongArray(QUEUE);
         Level level = context.world;
         int used = 0;
         BlockPos found = null;
@@ -120,13 +121,13 @@ public final class DrillFace {
             data.putLongArray(QUEUE, Arrays.copyOfRange(packed, used, packed.length));
         }
         if (found != null) {
-            data.store(BREAKING_POS, BlockPos.CODEC, found);
+            data.put(BREAKING_POS, NbtUtils.writeBlockPos(found));
             context.stall = true;
         }
     }
 
     private static boolean stuck(BlockBreakingMovementBehaviour behaviour, MovementContext context) {
-        BlockPos pos = context.data.read(BREAKING_POS, BlockPos.CODEC).orElse(null);
+        BlockPos pos = NbtUtils.readBlockPos(context.data, BREAKING_POS).orElse(null);
         Level level = context.world;
         if (pos == null || !level.isLoaded(pos)) {
             return true;
@@ -136,8 +137,8 @@ public final class DrillFace {
     }
 
     private static @Nullable Vec3 previous(CompoundTag data) {
-        long[] bits = data.getLongArray(PREVIOUS).orElse(null);
-        if (bits == null || bits.length != 3) {
+        long[] bits = data.getLongArray(PREVIOUS);
+        if (bits.length != 3) {
             return null;
         }
         return new Vec3(Double.longBitsToDouble(bits[0]), Double.longBitsToDouble(bits[1]), Double.longBitsToDouble(bits[2]));
@@ -145,8 +146,8 @@ public final class DrillFace {
 
     public static List<BlockPos> cells(MovementContext context, BlockPos entered, @Nullable Vec3 from) {
         Direction facing = context.state.getValue(DirectionalKineticBlock.FACING);
-        Vec3 localFacing = Vec3.atLowerCornerOf(facing.getUnitVec3i());
-        Vec3i a = facing.getAxis() == Direction.Axis.Y ? Direction.EAST.getUnitVec3i() : Direction.UP.getUnitVec3i();
+        Vec3 localFacing = Vec3.atLowerCornerOf(facing.getNormal());
+        Vec3i a = facing.getAxis() == Direction.Axis.Y ? Direction.EAST.getNormal() : Direction.UP.getNormal();
         Vec3 localA = Vec3.atLowerCornerOf(a);
         Vec3 localB = localFacing.cross(localA);
         Vec3 worldA = context.rotation.apply(localA).normalize();

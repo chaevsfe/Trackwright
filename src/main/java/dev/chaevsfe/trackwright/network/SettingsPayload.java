@@ -1,5 +1,6 @@
 package dev.chaevsfe.trackwright.network;
 
+import dev.chaevsfe.trackwright.TagReads;
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.config.BoreMode;
 import dev.chaevsfe.trackwright.config.ServerConfig;
@@ -9,11 +10,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public record SettingsPayload(int version, CompoundTag fields) implements CustomPacketPayload {
     public static final int VERSION = 1;
-    public static final Type<SettingsPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "settings"));
+    public static final Type<SettingsPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Trackwright.MOD_ID, "settings"));
     public static final StreamCodec<ByteBuf, SettingsPayload> STREAM_CODEC = StreamCodec.composite(
         ByteBufCodecs.VAR_INT, SettingsPayload::version,
         ByteBufCodecs.COMPOUND_TAG, SettingsPayload::fields,
@@ -41,20 +42,20 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
 
     public TrackwrightSettings settings() {
         return new TrackwrightSettings(
-            fields.getBooleanOr(ServerConfig.STRAIGHT_THROUGH_BLOCKS, false),
-            fields.getIntOr(ServerConfig.MAX_CONNECTION_LENGTH, TrackwrightSettings.MIN_CONNECTION_LENGTH),
-            fields.getBooleanOr(ServerConfig.PROTECT_TRAIN_PASSENGERS, false),
-            BoreMode.byId(fields.getStringOr(ServerConfig.BORE_THROUGH_BLOCKS, BoreMode.OFF.id())),
-            fields.getIntOr(ServerConfig.BORE_HEADROOM, 0),
-            fields.getBooleanOr(ServerConfig.BORE_LAVA_CHECK, false),
-            fields.getDoubleOr(ServerConfig.BORE_MAX_HARDNESS, 0),
-            fields.getBooleanOr(ServerConfig.REFUSE_BLOCKED_TRACK_ENDS, false),
-            fields.getBooleanOr(ServerConfig.PROTECT_TRACK_EQUIPMENT, false),
-            fields.getBooleanOr(ServerConfig.ROLLERS_SKIP_AIR_PAVING, false),
-            fields.getBooleanOr(ServerConfig.ROLLERS_CLEAR_POWDER_SNOW, false),
-            fields.getBooleanOr(ServerConfig.ROLLERS_IGNORE_FLUIDS, false),
-            fields.getBooleanOr(ServerConfig.CONTRAPTION_CONTROLS_SCHEDULE, false),
-            fields.getBooleanOr(ServerConfig.TRAIN_DRILLS_FULL_FACE, false)
+            TagReads.booleanOr(fields, ServerConfig.STRAIGHT_THROUGH_BLOCKS, false),
+            TagReads.intOr(fields, ServerConfig.MAX_CONNECTION_LENGTH, TrackwrightSettings.MIN_CONNECTION_LENGTH),
+            TagReads.booleanOr(fields, ServerConfig.PROTECT_TRAIN_PASSENGERS, false),
+            BoreMode.byId(TagReads.stringOr(fields, ServerConfig.BORE_THROUGH_BLOCKS, BoreMode.OFF.id())),
+            TagReads.intOr(fields, ServerConfig.BORE_HEADROOM, 0),
+            TagReads.booleanOr(fields, ServerConfig.BORE_LAVA_CHECK, false),
+            TagReads.doubleOr(fields, ServerConfig.BORE_MAX_HARDNESS, 0),
+            TagReads.booleanOr(fields, ServerConfig.REFUSE_BLOCKED_TRACK_ENDS, false),
+            TagReads.booleanOr(fields, ServerConfig.PROTECT_TRACK_EQUIPMENT, false),
+            TagReads.booleanOr(fields, ServerConfig.ROLLERS_SKIP_AIR_PAVING, false),
+            TagReads.booleanOr(fields, ServerConfig.ROLLERS_CLEAR_POWDER_SNOW, false),
+            TagReads.booleanOr(fields, ServerConfig.ROLLERS_IGNORE_FLUIDS, false),
+            TagReads.booleanOr(fields, ServerConfig.CONTRAPTION_CONTROLS_SCHEDULE, false),
+            TagReads.booleanOr(fields, ServerConfig.TRAIN_DRILLS_FULL_FACE, false)
         );
     }
 

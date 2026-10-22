@@ -1,6 +1,7 @@
 package dev.chaevsfe.trackwright.track;
 
 import com.simibubi.create.content.kinetics.deployer.DeployerFakePlayer;
+import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.ITrackBlock;
 import com.simibubi.create.content.trains.track.TrackBlock;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
@@ -144,8 +145,8 @@ public final class PlacementRules {
                 return Messages.OVERLAPS_STRAIGHT;
             }
         }
-        boolean curve = info.curve != null;
-        int cells1 = curve ? info.end1Extent + 1 : info.end1Extent;
+        boolean curve = extension.trackwright$curve() != null;
+        int cells1 = curve ? extension.trackwright$end1Extent() + 1 : extension.trackwright$end1Extent();
         BlockPos keepA = null;
         BlockPos keepB = null;
         if (!curve && line1 != null && cells1 > 0 && BridgeConversion.existing(level, pos1, pos2) != null) {
@@ -156,7 +157,7 @@ public final class PlacementRules {
         if (line1 != null && cells1 > 0 && StraightConnections.overlapsStraight(level, line1, 0, cells1 - 1, keepA, keepB)) {
             return Messages.OVERLAPS_STRAIGHT;
         }
-        int cells2 = curve ? info.end2Extent + 1 : info.end2Extent;
+        int cells2 = curve ? extension.trackwright$end2Extent() + 1 : extension.trackwright$end2Extent();
         StraightConnections.Line line2 = StraightConnections.line(pos2, axis2);
         if (line2 != null && cells2 > 0 && StraightConnections.overlapsStraight(level, line2, 0, cells2 - 1, null, null)) {
             return Messages.OVERLAPS_STRAIGHT;
@@ -248,12 +249,13 @@ public final class PlacementRules {
 
     private static Route route(Level level, PlacementInfo info, PathCells.Ends ends, BlockPos pos1, BlockPos pos2, PathScan endScan) {
         PathCells.Body body = PathCells.Body.NONE;
-        if (info.curve != null) {
+        BezierConnection curve = ((PlacementInfoExtension) info).trackwright$curve();
+        if (curve != null) {
             Set<BlockPos> excluded = new HashSet<>(ends.first());
             excluded.addAll(ends.second());
             excluded.add(pos1);
             excluded.add(pos2);
-            body = PathCells.body(info.curve, excluded);
+            body = PathCells.body(curve, excluded);
         }
         PathScan bodyScan = new PathScan(level, true);
         bodyScan.visit(body.cells());
@@ -314,12 +316,12 @@ public final class PlacementRules {
         BorePlan bore = extension.trackwright$bore();
         if (simulate) {
             PlacementInfo result = original.get();
-            if (bore != null && result.valid) {
+            if (bore != null && ((PlacementInfoExtension) result).trackwright$valid()) {
                 result.requiredTracks += bore.trackCells().size();
             }
             return result;
         }
-        if (!info.valid) {
+        if (!extension.trackwright$valid()) {
             return original.get();
         }
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
@@ -329,7 +331,7 @@ public final class PlacementRules {
                 UndoRecorder.afterMining(serverLevel, serverPlayer);
                 if (outcome.stoppedAt() != null) {
                     refundTracks(serverPlayer, info);
-                    info.valid = false;
+                    extension.trackwright$setValid(false);
                     return info.withMessage(Messages.BORE_STOPPED).tooJumbly();
                 }
             }
@@ -372,7 +374,7 @@ public final class PlacementRules {
             return state;
         }
         if (context.getPlayer() instanceof ServerPlayer player) {
-            player.sendOverlayMessage(Messages.overlay(Messages.OVERLAPS_STRAIGHT));
+            player.displayClientMessage(Messages.overlay(Messages.OVERLAPS_STRAIGHT), true);
         }
         return null;
     }

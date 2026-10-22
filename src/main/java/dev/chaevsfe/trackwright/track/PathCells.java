@@ -37,10 +37,11 @@ public final class PathCells {
     }
 
     public static Ends ends(PlacementInfo info, BlockPos pos1, BlockPos pos2, Vec3 axis1, Vec3 axis2) {
-        boolean curve = info.curve != null;
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        boolean curve = extension.trackwright$curve() != null;
         Set<BlockPos> starts = new HashSet<>();
-        List<BlockPos> first = walk(pos1, axis1, info.end1Extent, curve, pos1, pos2, starts);
-        List<BlockPos> second = walk(pos2, axis2, info.end2Extent, curve, pos1, pos2, starts);
+        List<BlockPos> first = walk(pos1, axis1, extension.trackwright$end1Extent(), curve, pos1, pos2, starts);
+        List<BlockPos> second = walk(pos2, axis2, extension.trackwright$end2Extent(), curve, pos1, pos2, starts);
         return new Ends(first, second, starts);
     }
 
