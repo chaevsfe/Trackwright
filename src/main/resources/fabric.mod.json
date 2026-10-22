@@ -3,7 +3,7 @@
   "id": "trackwright",
   "version": "${version}",
   "name": "Create Fly: Trackwright",
-  "description": "Track laying helpers for Create Fly: a placement guide, straight track through solid blocks or a tunnel bored with an off-hand pickaxe, connections up to 128 blocks, undo for your last placements, full speed on straight connections, seated train passengers safe inside walls, train drills and rollers that spare track equipment and a schedule step that switches a train's actors on or off.",
+  "description": "Track placement for Create: a guide on screen, straight track and tunnels through blocks, undo, and fixes for trains.",
   "authors": [
     "chaevsfe"
   ],
