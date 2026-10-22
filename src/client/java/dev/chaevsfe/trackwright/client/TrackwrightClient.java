@@ -28,6 +28,7 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 @Mod(value = Trackwright.MOD_ID, dist = Dist.CLIENT)
 public final class TrackwrightClient {
@@ -57,6 +58,7 @@ public final class TrackwrightClient {
             WidestTurnLock.tick(mc);
             UndoKey.tick(mc);
         });
+        game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, WidestTurnLock::beforeUse);
         game.addListener(RenderBlockScreenEffectEvent.class, event -> {
             if (event.getOverlayType() == RenderBlockScreenEffectEvent.OverlayType.BLOCK && PassengerProtection.isProtectedOnClient(event.getPlayer())) {
                 event.setCanceled(true);

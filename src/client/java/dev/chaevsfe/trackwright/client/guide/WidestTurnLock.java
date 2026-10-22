@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.context.UseOnContext;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import org.jspecify.annotations.Nullable;
 
 public final class WidestTurnLock {
@@ -52,10 +52,10 @@ public final class WidestTurnLock {
         return mapping != null && !mapping.isUnbound();
     }
 
-    public static void beforeUse(UseOnContext context) {
-        if (!locked || !context.getLevel().isClientSide() || context.getHand() != InteractionHand.MAIN_HAND
-            || !(context.getPlayer() instanceof LocalPlayer player) || player.isShiftKeyDown()
-            || !context.getItemInHand().has(AllDataComponents.TRACK_CONNECTING_FROM)
+    public static void beforeUse(PlayerInteractEvent.RightClickBlock event) {
+        if (!locked || !event.getLevel().isClientSide() || event.getHand() != InteractionHand.MAIN_HAND
+            || !(event.getEntity() instanceof LocalPlayer player) || player.isShiftKeyDown()
+            || !event.getItemStack().has(AllDataComponents.TRACK_CONNECTING_FROM)
             || Minecraft.getInstance().options.keySprint.isDown()) {
             return;
         }
