@@ -83,6 +83,7 @@ public final class Trackwright {
             "com.simibubi.create.content.trains.track.TrackPlacement$PlacementInfo",
             "com.simibubi.create.content.trains.track.TrackTargetingBlockItem",
             "com.simibubi.create.foundation.networking.BlockEntityConfigurationPacket",
+            "net.minecraft.server.network.ServerGamePacketListenerImpl",
             "net.minecraft.world.entity.LivingEntity"
         );
         ActorSteps.register();

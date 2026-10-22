@@ -17,6 +17,7 @@
     "RollerMovementBehaviourMixin",
     "ScheduleEditPacketMixin",
     "SeatMovementBehaviourMixin",
+    "ServerGamePacketListenerImplMixin",
     "StationBlockEntityMixin",
     "TrackBlockEntityMixin",
     "TrackBlockItemMixin",

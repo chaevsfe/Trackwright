@@ -58,7 +58,7 @@ public final class TrackwrightClient {
             WidestTurnLock.tick(mc);
             UndoKey.tick(mc);
         });
-        game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, WidestTurnLock::beforeUse);
+        game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, WidestTurnLock::beforeBlockUse);
         game.addListener(RenderBlockScreenEffectEvent.class, event -> {
             if (event.getOverlayType() == RenderBlockScreenEffectEvent.OverlayType.BLOCK && PassengerProtection.isProtectedOnClient(event.getPlayer())) {
                 event.setCanceled(true);

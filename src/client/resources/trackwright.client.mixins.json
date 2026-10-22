@@ -8,6 +8,7 @@
     "LevelChunkMixin",
     "ScheduleScreenMixin",
     "ScrollInputAccessor",
+    "TrackBlockItemClientMixin",
     "TrackGraphMixin",
     "TrackPlacementAccessor",
     "TrackPlacementClientMixin",
