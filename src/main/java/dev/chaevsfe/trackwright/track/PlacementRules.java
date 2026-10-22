@@ -12,6 +12,7 @@ import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.undo.UndoMessages;
 import dev.chaevsfe.trackwright.undo.UndoRecorder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,16 +58,17 @@ public final class PlacementRules {
 
         private void visit(Collection<BlockPos> cells) {
             for (BlockPos pos : cells) {
-                if (level.isClientSide()) {
-                    if (!level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))) {
+                if (!loaded(level, pos)) {
+                    if (level.isClientSide()) {
                         unseen = true;
                         continue;
                     }
-                } else if (skipUnloaded && !level.isLoaded(pos)) {
                     if (unloaded == null) {
                         unloaded = pos;
                     }
-                    continue;
+                    if (skipUnloaded) {
+                        continue;
+                    }
                 }
                 BlockState state = level.getBlockState(pos);
                 if (state.getBlock() instanceof ITrackBlock) {
@@ -77,6 +78,12 @@ public final class PlacementRules {
                 }
             }
         }
+    }
+
+    private static boolean loaded(Level level, BlockPos pos) {
+        return level.isClientSide()
+            ? level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))
+            : level.isLoaded(pos);
     }
 
     private static boolean holdsBoreTool(Player player) {
@@ -204,15 +211,42 @@ public final class PlacementRules {
             if (endScan.blocked.isEmpty()) {
                 return null;
             }
-            Gap gap = Gap.of(endScan.blocked, ends.starts());
             BoreAccess access = access(settings, tool, boreAllowed);
-            if (access == BoreAccess.NO_TOOL && !boreCouldClear(level, endScan.blocked, settings)) {
+            if (!settings.refuseBlockedTrackEnds()) {
+                if (tool) {
+                    extension.trackwright$setBoreAccess(access);
+                }
+                return null;
+            }
+            Gap gap = Gap.of(endScan.blocked, ends.starts());
+            if (access == BoreAccess.NO_TOOL && !boreCouldClear(level, info, ends, pos1, pos2, endScan, settings)) {
                 access = BoreAccess.NONE;
             }
             extension.trackwright$setBoreAccess(access);
             extension.trackwright$setGap(gap);
             return gap.start() ? Messages.GAP_START : Messages.GAP;
         }
+        Route route = route(level, info, ends, pos1, pos2, endScan);
+        if (route.unseen()) {
+            extension.trackwright$setGuessed(true);
+        }
+        if (endScan.blocked.isEmpty() && route.bodyClear() && endScan.unloaded == null) {
+            return null;
+        }
+        extension.trackwright$setBoreAccess(BoreAccess.ALLOWED);
+        BorePlan plan = BorePlan.of(level, player, route.path(), route.blocked(), route.bodyCells(), route.unloaded(), route.unseen(), settings);
+        extension.trackwright$setBore(plan);
+        if (plan.guessed()) {
+            extension.trackwright$setGuessed(true);
+        }
+        return null;
+    }
+
+    private record Route(List<BlockPos> path, Set<BlockPos> blocked, Set<BlockPos> bodyCells, @Nullable BlockPos unloaded, boolean unseen,
+                         boolean bodyClear) {
+    }
+
+    private static Route route(Level level, PlacementInfo info, PathCells.Ends ends, BlockPos pos1, BlockPos pos2, PathScan endScan) {
         PathCells.Body body = PathCells.Body.NONE;
         if (info.curve != null) {
             Set<BlockPos> excluded = new HashSet<>(ends.first());
@@ -231,13 +265,6 @@ public final class PlacementRules {
             }
         }
         bodyScan.visit(beds);
-        if (bodyScan.unseen) {
-            extension.trackwright$setGuessed(true);
-        }
-        if (endScan.blocked.isEmpty() && bodyScan.blocked.isEmpty() && endScan.unloaded == null) {
-            return null;
-        }
-        extension.trackwright$setBoreAccess(BoreAccess.ALLOWED);
         List<BlockPos> path = new ArrayList<>(ends.first());
         path.addAll(body.cells());
         path.addAll(beds);
@@ -247,40 +274,38 @@ public final class PlacementRules {
         Set<BlockPos> bodyCells = new HashSet<>(body.cells());
         bodyCells.addAll(beds);
         BlockPos unloaded = endScan.unloaded != null ? endScan.unloaded : bodyScan.unloaded;
-        BorePlan plan = BorePlan.of(level, player, path, blocked, bodyCells, unloaded, endScan.unseen || bodyScan.unseen, settings);
-        extension.trackwright$setBore(plan);
-        if (plan.guessed()) {
-            extension.trackwright$setGuessed(true);
-        }
-        return null;
+        return new Route(path, blocked, bodyCells, unloaded, endScan.unseen || bodyScan.unseen, bodyScan.blocked.isEmpty());
     }
 
-    private static boolean boreCouldClear(Level level, Map<BlockPos, BlockState> gap, TrackwrightSettings settings) {
-        BlockMiner.Rules rules = new BlockMiner.Rules(settings.boreLavaCheck(), settings.boreMaxHardness());
-        Set<BlockPos> mined = new LinkedHashSet<>();
-        for (Map.Entry<BlockPos, BlockState> entry : gap.entrySet()) {
-            BlockPos pos = entry.getKey();
-            if (BlockMiner.checkBlock(level, pos, entry.getValue(), ItemStack.EMPTY, true, rules) != null) {
+    private static boolean boreCouldClear(Level level, PlacementInfo info, PathCells.Ends ends, BlockPos pos1, BlockPos pos2, PathScan endScan,
+                                          TrackwrightSettings settings) {
+        if (endScan.unseen || endScan.unloaded != null) {
+            return false;
+        }
+        Route route = route(level, info, ends, pos1, pos2, endScan);
+        if (route.unseen() || route.unloaded() != null) {
+            return false;
+        }
+        BorePlan plan = BorePlan.of(level, ItemStack.EMPTY, true, route.path(), route.blocked(), route.bodyCells(), null, false, settings);
+        if (plan.guessed() || plan.problem() != null) {
+            return false;
+        }
+        Set<BlockPos> mined = new HashSet<>(plan.cells());
+        for (BlockPos pos : plan.cells()) {
+            if (!mined.contains(pos.above()) && !level.isLoaded(pos.above())) {
                 return false;
             }
-            mined.add(pos);
-            for (int h = 1; h <= settings.boreHeadroom(); h++) {
-                BlockPos above = pos.above(h);
-                if (mined.contains(above) || !level.isLoaded(above)) {
-                    continue;
-                }
-                BlockState state = level.getBlockState(above);
-                if (!BlockMiner.needsMining(state)) {
-                    continue;
-                }
-                if (state.getBlock() instanceof ITrackBlock || BlockMiner.checkBlock(level, above, state, ItemStack.EMPTY, true, rules) != null) {
+            if (!settings.boreLavaCheck()) {
+                continue;
+            }
+            for (Direction direction : Direction.values()) {
+                BlockPos next = pos.relative(direction);
+                if (!mined.contains(next) && !level.isLoaded(next)) {
                     return false;
                 }
-                mined.add(above);
             }
         }
-        BlockMiner.Problem problem = BlockMiner.checkSurroundings(level, mined, rules);
-        return problem == null || problem.refusal() == BlockMiner.Refusal.NOT_LOADED;
+        return true;
     }
 
     public static PlacementInfo placeTracks(Level level, Player player, PlacementInfo info, BlockPos pos1, BlockPos pos2, boolean simulate,

@@ -51,8 +51,11 @@ public record BorePlan(
 
     public static BorePlan of(Level level, Player player, List<BlockPos> path, Set<BlockPos> blocked, Set<BlockPos> body,
                               @Nullable BlockPos unloaded, boolean unseen, TrackwrightSettings settings) {
-        boolean creative = player.isCreative();
-        ItemStack tool = player.getOffhandItem();
+        return of(level, player.getOffhandItem(), player.isCreative(), path, blocked, body, unloaded, unseen, settings);
+    }
+
+    public static BorePlan of(Level level, ItemStack tool, boolean creative, List<BlockPos> path, Set<BlockPos> blocked, Set<BlockPos> body,
+                              @Nullable BlockPos unloaded, boolean unseen, TrackwrightSettings settings) {
         BlockMiner.Rules rules = new BlockMiner.Rules(settings.boreLavaCheck(), settings.boreMaxHardness());
         int headroom = settings.boreHeadroom();
         Set<BlockPos> onPath = new HashSet<>(path);
