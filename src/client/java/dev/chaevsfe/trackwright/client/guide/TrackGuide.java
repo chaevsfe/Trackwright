@@ -10,6 +10,7 @@ import com.zurrtum.create.infrastructure.component.ConnectingFrom;
 import dev.chaevsfe.trackwright.client.mixin.TrackPlacementClientAccessor;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.track.BorePlan;
+import dev.chaevsfe.trackwright.track.Gap;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -30,6 +31,7 @@ public final class TrackGuide {
     private static final String BORE_OUTLINE = "trackwright_bore";
     private static final String BORE_HEADROOM_OUTLINE = "trackwright_bore_headroom";
     private static final String BORE_PROBLEM_OUTLINE = "trackwright_bore_problem";
+    private static final String GAP_OUTLINE = "trackwright_gaps";
     private static final int BORE_COLOR = 0xF0A030;
     private static final int BORE_HEADROOM_COLOR = 0xF6D28C;
     private static final int BORE_PROBLEM_COLOR = 0xEA5C2B;
@@ -83,6 +85,7 @@ public final class TrackGuide {
         lastPlanned = planned;
         showThroughBlocks(info);
         showBore(info);
+        showGaps(info);
         HeightColumn column = extras.column();
         if (column != null) {
             column.show();
@@ -117,8 +120,9 @@ public final class TrackGuide {
                 .lineWidth(1 / 16f)
                 .withFaceTexture(AllSpecialTextures.CHECKERED);
         }
-        if (!bore.trackCells().isEmpty()) {
-            Outliner.getInstance().showCluster(BORE_OUTLINE, bore.trackCells())
+        List<BlockPos> path = bore.pathCells();
+        if (!path.isEmpty()) {
+            Outliner.getInstance().showCluster(BORE_OUTLINE, path)
                 .colored(BORE_COLOR)
                 .disableLineNormals()
                 .lineWidth(1 / 32f)
@@ -131,6 +135,18 @@ public final class TrackGuide {
                 .lineWidth(1 / 64f)
                 .withFaceTexture(AllSpecialTextures.THIN_CHECKERED);
         }
+    }
+
+    private static void showGaps(PlacementInfo info) {
+        Gap gap = ((PlacementInfoExtension) info).trackwright$gap();
+        if (gap == null || gap.cells().isEmpty()) {
+            return;
+        }
+        Outliner.getInstance().showCluster(GAP_OUTLINE, gap.cells())
+            .colored(BORE_PROBLEM_COLOR)
+            .disableLineNormals()
+            .lineWidth(1 / 32f)
+            .withFaceTexture(AllSpecialTextures.CHECKERED);
     }
 
     public static List<Component> linesFor(Player player) {

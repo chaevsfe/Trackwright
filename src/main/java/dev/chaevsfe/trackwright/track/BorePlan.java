@@ -12,12 +12,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 public record BorePlan(
     List<BlockPos> cells,
     List<BlockPos> trackCells,
+    List<BlockPos> bodyCells,
     List<BlockPos> headroomCells,
     int headroom,
     int wear,
@@ -29,33 +32,46 @@ public record BorePlan(
     public BorePlan {
         cells = List.copyOf(cells);
         trackCells = List.copyOf(trackCells);
+        bodyCells = List.copyOf(bodyCells);
         headroomCells = List.copyOf(headroomCells);
     }
 
     public BorePlan withProblem(BlockMiner.Problem found) {
-        return new BorePlan(cells, trackCells, headroomCells, headroom, wear, usesLeft, creative, found, guessed);
+        return new BorePlan(cells, trackCells, bodyCells, headroomCells, headroom, wear, usesLeft, creative, found, guessed);
     }
 
-    public static BorePlan of(Level level, Player player, StraightConnections.Line line, int cells, Set<BlockPos> blocked,
+    public List<BlockPos> pathCells() {
+        if (bodyCells.isEmpty()) {
+            return trackCells;
+        }
+        List<BlockPos> path = new ArrayList<>(trackCells);
+        path.addAll(bodyCells);
+        return path;
+    }
+
+    public static BorePlan of(Level level, Player player, List<BlockPos> path, Set<BlockPos> blocked, Set<BlockPos> body,
                               @Nullable BlockPos unloaded, boolean unseen, TrackwrightSettings settings) {
         boolean creative = player.isCreative();
         ItemStack tool = player.getOffhandItem();
         BlockMiner.Rules rules = new BlockMiner.Rules(settings.boreLavaCheck(), settings.boreMaxHardness());
         int headroom = settings.boreHeadroom();
-        List<BlockPos> all = new ArrayList<>();
+        Set<BlockPos> onPath = new HashSet<>(path);
+        Set<BlockPos> all = new LinkedHashSet<>();
         List<BlockPos> track = new ArrayList<>();
+        List<BlockPos> bodyMined = new ArrayList<>();
         List<BlockPos> above = new ArrayList<>();
         BlockMiner.Problem problem = unloaded == null ? null
             : new BlockMiner.Problem(BlockMiner.Refusal.NOT_LOADED, unloaded.immutable(), Blocks.AIR.defaultBlockState());
         boolean guessed = unseen;
-        for (int i = 1; i < cells - 1; i++) {
-            BlockPos base = line.at(i);
-            if (blocked.contains(base)) {
-                track.add(base);
-                all.add(base);
+        for (BlockPos base : path) {
+            if (blocked.contains(base) && all.add(base)) {
+                (body.contains(base) ? bodyMined : track).add(base);
             }
             for (int h = 1; h <= headroom; h++) {
                 BlockPos pos = base.above(h);
+                if (onPath.contains(pos) || all.contains(pos)) {
+                    continue;
+                }
                 if (!level.isLoaded(pos)) {
                     if (level.isClientSide()) {
                         guessed = true;
@@ -89,6 +105,6 @@ public record BorePlan(
         if (problem == null) {
             problem = BlockMiner.checkSurroundings(level, all, rules);
         }
-        return new BorePlan(all, track, above, headroom, wear, left, creative, problem, guessed);
+        return new BorePlan(new ArrayList<>(all), track, bodyMined, above, headroom, wear, left, creative, problem, guessed);
     }
 }

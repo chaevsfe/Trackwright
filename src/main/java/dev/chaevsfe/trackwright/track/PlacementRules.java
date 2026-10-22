@@ -15,7 +15,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -25,8 +24,13 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public final class PlacementRules {
@@ -39,12 +43,58 @@ public final class PlacementRules {
         static final Straight KEEP = new Straight(false, false, List.of(), null, BoreAccess.NONE);
     }
 
+    private static final class PathScan {
+        private final Level level;
+        private final boolean skipUnloaded;
+        private final Map<BlockPos, BlockState> blocked = new LinkedHashMap<>();
+        private boolean unseen;
+        private boolean trackInside;
+        private @Nullable BlockPos unloaded;
+
+        private PathScan(Level level, boolean skipUnloaded) {
+            this.level = level;
+            this.skipUnloaded = skipUnloaded;
+        }
+
+        private void visit(Collection<BlockPos> cells) {
+            for (BlockPos pos : cells) {
+                if (level.isClientSide()) {
+                    if (!level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))) {
+                        unseen = true;
+                        continue;
+                    }
+                } else if (skipUnloaded && !level.isLoaded(pos)) {
+                    if (unloaded == null) {
+                        unloaded = pos;
+                    }
+                    continue;
+                }
+                BlockState state = level.getBlockState(pos);
+                if (state.getBlock() instanceof ITrackBlock) {
+                    trackInside = true;
+                } else if (PathCells.blocks(state)) {
+                    blocked.put(pos, state);
+                }
+            }
+        }
+    }
+
+    private static boolean holdsBoreTool(Player player) {
+        return !(player instanceof DeployerPlayer) && BlockMiner.isTool(player.getOffhandItem());
+    }
+
+    private static BoreAccess access(TrackwrightSettings settings, boolean tool, boolean boreAllowed) {
+        return tool
+            ? boreAllowed ? BoreAccess.ALLOWED : settings.boreThroughBlocks() == BoreMode.CREATIVE_ONLY ? BoreAccess.CREATIVE_ONLY : BoreAccess.OFF
+            : boreAllowed ? BoreAccess.NO_TOOL : BoreAccess.NONE;
+    }
+
     public static Straight decideStraight(Level level, Player player, BlockPos pos1, BlockState end2, Vec3 axis1, Vec3 axis2, int cells) {
         TrackwrightSettings settings = Sides.forLevel(level);
         if (settings == null || cells < 3) {
             return Straight.KEEP;
         }
-        boolean tool = !(player instanceof DeployerPlayer) && BlockMiner.isTool(player.getOffhandItem());
+        boolean tool = holdsBoreTool(player);
         boolean boreAllowed = settings.boreThroughBlocks().allows(player);
         boolean bore = tool && boreAllowed;
         boolean bridges = settings.straightThroughBlocks() && end2.hasProperty(TrackBlock.HAS_BE);
@@ -55,43 +105,24 @@ public final class PlacementRules {
         if (line == null || StraightConnections.line(pos1, axis2) == null) {
             return Straight.KEEP;
         }
-        List<BlockPos> blocked = new ArrayList<>();
-        boolean trackInside = false;
-        boolean unseen = false;
-        BlockPos unloaded = null;
+        List<BlockPos> path = new ArrayList<>();
         for (int i = 1; i < cells - 1; i++) {
-            BlockPos pos = line.at(i);
-            if (level.isClientSide()) {
-                if (!level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))) {
-                    unseen = true;
-                    continue;
-                }
-            } else if (bore && !level.isLoaded(pos)) {
-                if (unloaded == null) {
-                    unloaded = pos;
-                }
-                continue;
-            }
-            BlockState state = level.getBlockState(pos);
-            if (state.getBlock() instanceof ITrackBlock) {
-                trackInside = true;
-            } else if (!state.canBeReplaced() && !state.is(BlockTags.FLOWERS)) {
-                blocked.add(pos);
-            }
+            path.add(line.at(i));
         }
-        if (blocked.isEmpty()) {
-            return new Straight(false, unseen, List.of(), null, BoreAccess.NONE);
+        PathScan scan = new PathScan(level, bore);
+        scan.visit(path);
+        if (scan.blocked.isEmpty()) {
+            return new Straight(false, scan.unseen, List.of(), null, BoreAccess.NONE);
         }
-        BoreAccess access = tool
-            ? boreAllowed ? BoreAccess.ALLOWED : settings.boreThroughBlocks() == BoreMode.CREATIVE_ONLY ? BoreAccess.CREATIVE_ONLY : BoreAccess.OFF
-            : boreAllowed ? BoreAccess.NO_TOOL : BoreAccess.NONE;
+        List<BlockPos> blocked = new ArrayList<>(scan.blocked.keySet());
+        BoreAccess access = access(settings, tool, boreAllowed);
         if (bore) {
-            return new Straight(false, unseen, blocked, BorePlan.of(level, player, line, cells, new HashSet<>(blocked), unloaded, unseen, settings), access);
+            return new Straight(false, scan.unseen, blocked, BorePlan.of(level, player, path, new HashSet<>(blocked), Set.of(), scan.unloaded, scan.unseen, settings), access);
         }
-        if (bridges && !trackInside) {
-            return new Straight(true, unseen, blocked, null, access);
+        if (bridges && !scan.trackInside) {
+            return new Straight(true, scan.unseen, blocked, null, access);
         }
-        return new Straight(false, unseen, List.of(), null, access);
+        return new Straight(false, scan.unseen, List.of(), null, access);
     }
 
     public static @Nullable String refusal(Level level, Player player, PlacementInfo info, BlockPos pos1, BlockPos pos2, Vec3 axis1, Vec3 axis2) {
@@ -130,6 +161,13 @@ public final class PlacementRules {
             }
         }
         BorePlan bore = extension.trackwright$bore();
+        if (bore == null && !extension.trackwright$bridged() && (curve || axis1.y != 0)) {
+            String gap = decidePath(level, player, info, pos1, pos2, axis1, axis2);
+            if (gap != null) {
+                return gap;
+            }
+            bore = extension.trackwright$bore();
+        }
         if (bore == null) {
             return null;
         }
@@ -146,16 +184,118 @@ public final class PlacementRules {
         return null;
     }
 
+    private static @Nullable String decidePath(Level level, Player player, PlacementInfo info, BlockPos pos1, BlockPos pos2, Vec3 axis1, Vec3 axis2) {
+        TrackwrightSettings settings = Sides.forLevel(level);
+        if (settings == null) {
+            return null;
+        }
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        boolean tool = holdsBoreTool(player);
+        boolean boreAllowed = settings.boreThroughBlocks().allows(player);
+        boolean bore = tool && boreAllowed;
+        PathCells.Ends ends = PathCells.ends(info, pos1, pos2, axis1, axis2);
+        PathScan endScan = new PathScan(level, bore);
+        endScan.visit(ends.first());
+        endScan.visit(ends.second());
+        if (endScan.unseen) {
+            extension.trackwright$setGuessed(true);
+        }
+        if (!bore) {
+            if (endScan.blocked.isEmpty()) {
+                return null;
+            }
+            Gap gap = Gap.of(endScan.blocked, ends.starts());
+            BoreAccess access = access(settings, tool, boreAllowed);
+            if (access == BoreAccess.NO_TOOL && !boreCouldClear(level, endScan.blocked, settings)) {
+                access = BoreAccess.NONE;
+            }
+            extension.trackwright$setBoreAccess(access);
+            extension.trackwright$setGap(gap);
+            return gap.start() ? Messages.GAP_START : Messages.GAP;
+        }
+        PathCells.Body body = PathCells.Body.NONE;
+        if (info.curve != null) {
+            Set<BlockPos> excluded = new HashSet<>(ends.first());
+            excluded.addAll(ends.second());
+            excluded.add(pos1);
+            excluded.add(pos2);
+            body = PathCells.body(info.curve, excluded);
+        }
+        PathScan bodyScan = new PathScan(level, true);
+        bodyScan.visit(body.cells());
+        List<BlockPos> beds = new ArrayList<>();
+        for (BlockPos cell : body.cells()) {
+            BlockPos bed = body.beds().get(cell);
+            if (bed != null && bodyScan.blocked.containsKey(cell)) {
+                beds.add(bed);
+            }
+        }
+        bodyScan.visit(beds);
+        if (bodyScan.unseen) {
+            extension.trackwright$setGuessed(true);
+        }
+        if (endScan.blocked.isEmpty() && bodyScan.blocked.isEmpty() && endScan.unloaded == null) {
+            return null;
+        }
+        extension.trackwright$setBoreAccess(BoreAccess.ALLOWED);
+        List<BlockPos> path = new ArrayList<>(ends.first());
+        path.addAll(body.cells());
+        path.addAll(beds);
+        path.addAll(ends.second().reversed());
+        Set<BlockPos> blocked = new HashSet<>(endScan.blocked.keySet());
+        blocked.addAll(bodyScan.blocked.keySet());
+        Set<BlockPos> bodyCells = new HashSet<>(body.cells());
+        bodyCells.addAll(beds);
+        BlockPos unloaded = endScan.unloaded != null ? endScan.unloaded : bodyScan.unloaded;
+        BorePlan plan = BorePlan.of(level, player, path, blocked, bodyCells, unloaded, endScan.unseen || bodyScan.unseen, settings);
+        extension.trackwright$setBore(plan);
+        if (plan.guessed()) {
+            extension.trackwright$setGuessed(true);
+        }
+        return null;
+    }
+
+    private static boolean boreCouldClear(Level level, Map<BlockPos, BlockState> gap, TrackwrightSettings settings) {
+        BlockMiner.Rules rules = new BlockMiner.Rules(settings.boreLavaCheck(), settings.boreMaxHardness());
+        Set<BlockPos> mined = new LinkedHashSet<>();
+        for (Map.Entry<BlockPos, BlockState> entry : gap.entrySet()) {
+            BlockPos pos = entry.getKey();
+            if (BlockMiner.checkBlock(level, pos, entry.getValue(), ItemStack.EMPTY, true, rules) != null) {
+                return false;
+            }
+            mined.add(pos);
+            for (int h = 1; h <= settings.boreHeadroom(); h++) {
+                BlockPos above = pos.above(h);
+                if (mined.contains(above) || !level.isLoaded(above)) {
+                    continue;
+                }
+                BlockState state = level.getBlockState(above);
+                if (!BlockMiner.needsMining(state)) {
+                    continue;
+                }
+                if (state.getBlock() instanceof ITrackBlock || BlockMiner.checkBlock(level, above, state, ItemStack.EMPTY, true, rules) != null) {
+                    return false;
+                }
+                mined.add(above);
+            }
+        }
+        BlockMiner.Problem problem = BlockMiner.checkSurroundings(level, mined, rules);
+        return problem == null || problem.refusal() == BlockMiner.Refusal.NOT_LOADED;
+    }
+
     public static PlacementInfo placeTracks(Level level, Player player, PlacementInfo info, BlockPos pos1, BlockPos pos2, boolean simulate,
                                             Supplier<PlacementInfo> original) {
         PlacementInfoExtension extension = (PlacementInfoExtension) info;
         BorePlan bore = extension.trackwright$bore();
         if (simulate) {
             PlacementInfo result = original.get();
-            if (bore != null) {
+            if (bore != null && result.valid) {
                 result.requiredTracks += bore.trackCells().size();
             }
             return result;
+        }
+        if (!info.valid) {
+            return original.get();
         }
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
             if (bore != null && !bore.cells().isEmpty()) {

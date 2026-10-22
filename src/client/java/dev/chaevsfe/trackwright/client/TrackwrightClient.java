@@ -12,9 +12,11 @@ import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.network.SettingsPayload;
 import dev.chaevsfe.trackwright.network.UndoStatePayload;
+import dev.chaevsfe.trackwright.track.Messages;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -55,6 +57,11 @@ public final class TrackwrightClient implements ClientModInitializer {
             ActionBarHold.reset();
             TrackGuide.reset();
             FarEnd.reset();
+        });
+        ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
+            if (overlay && Messages.isOwnOverlay(message)) {
+                ActionBarHold.start();
+            }
         });
         ClientBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> FarEnd.endChanged(blockEntity));
         ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) -> FarEnd.endChanged(blockEntity));
