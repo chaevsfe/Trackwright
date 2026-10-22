@@ -1,14 +1,14 @@
 package dev.chaevsfe.trackwright.client.guide;
 
-import com.zurrtum.create.AllDataComponents;
-import com.zurrtum.create.client.AllSpecialTextures;
-import com.zurrtum.create.client.catnip.outliner.Outliner;
-import com.zurrtum.create.content.trains.track.ITrackBlock;
-import com.zurrtum.create.content.trains.track.TrackBlockItem;
-import com.zurrtum.create.content.trains.track.TrackPlacement;
-import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
-import com.zurrtum.create.infrastructure.component.ConnectingFrom;
+import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.AllSpecialTextures;
+import com.simibubi.create.content.trains.track.ITrackBlock;
+import com.simibubi.create.content.trains.track.TrackBlockItem;
+import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
+import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
+import com.simibubi.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
+import net.createmod.catnip.outliner.Outliner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;

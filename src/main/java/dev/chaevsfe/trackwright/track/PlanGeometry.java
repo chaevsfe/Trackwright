@@ -1,7 +1,7 @@
 package dev.chaevsfe.trackwright.track;
 
-import com.zurrtum.create.catnip.math.VecHelper;
-import com.zurrtum.create.content.trains.track.BezierConnection;
+import com.simibubi.create.content.trains.track.BezierConnection;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 

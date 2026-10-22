@@ -1,7 +1,7 @@
 package dev.chaevsfe.trackwright.client.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.zurrtum.create.client.content.trains.track.TrackPlacementOverlay;
+import com.simibubi.create.content.trains.track.TrackPlacementOverlay;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

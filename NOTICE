@@ -1,4 +1,4 @@
-Create Fly: Trackwright
+Create: Trackwright
 Copyright (C) 2026 chaevsfe
 
 This program is free software: you can redistribute it and/or modify
@@ -14,23 +14,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-This is an add-on for Create Fly. It is not affiliated with or endorsed by
-ZurrTum or the Create team.
+This is an add-on for Create, by simibubi and the Create team. It is not
+affiliated with or endorsed by the Create team.
 
 Builds on
 ---------
 - Create by simibubi and the Create team, MIT
-- Create Fly by ZurrTum, CC0-1.0
 
 Every class in this mod is this project's own. It changes Create's track
 placement and train behaviour at runtime through mixins and redistributes no
-Create Fly class, texture or translation. Create's own text is referenced by
+Create class, texture or translation. Create's own text is referenced by
 translation key only.
 
 Icon
 ----
 The mod icon (assets/trackwright/icon.png) shows Create's standard track,
-rendered from Create Fly's own track model and textures, which are the Create
+rendered from Create's own track model and textures, which are the Create
 team's art. The settings gear and the background are this project's own.
 
 Credits
@@ -41,5 +40,5 @@ Credits
 
 Dependencies (not bundled)
 --------------------------
-- Create Fly, CC0-1.0
-- Fabric API, Apache-2.0
+- Create, MIT
+- NeoForge, LGPL-3.0

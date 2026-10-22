@@ -1,11 +1,11 @@
 package dev.chaevsfe.trackwright.schedule;
 
-import com.zurrtum.create.AllDataComponents;
-import com.zurrtum.create.AllItems;
-import com.zurrtum.create.AllSchedules;
-import com.zurrtum.create.catnip.data.Pair;
+import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.AllItems;
+import com.simibubi.create.content.trains.schedule.Schedule;
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
+import net.createmod.catnip.data.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -23,10 +23,10 @@ public final class ActorSteps {
     }
 
     public static synchronized void register() {
-        if (AllSchedules.INSTRUCTION_TYPES.stream().noneMatch(type -> type.getFirst().equals(ID))) {
-            AllSchedules.INSTRUCTION_TYPES.add(Pair.of(ID, ActorStepInstruction::new));
+        if (Schedule.INSTRUCTION_TYPES.stream().noneMatch(type -> type.getFirst().equals(ID))) {
+            Schedule.INSTRUCTION_TYPES.add(Pair.of(ID, ActorStepInstruction::new));
         }
-        if (!(AllSchedules.createScheduleInstruction(ID) instanceof ActorStepInstruction)) {
+        if (!(Schedule.createScheduleInstruction(ID) instanceof ActorStepInstruction)) {
             throw new IllegalStateException("Trackwright could not add its schedule step " + ID + " to Create's schedule list");
         }
     }

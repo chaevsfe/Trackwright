@@ -2,8 +2,8 @@ package dev.chaevsfe.trackwright.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.zurrtum.create.content.trains.entity.Navigation;
-import com.zurrtum.create.content.trains.track.BezierConnection;
+import com.simibubi.create.content.trains.entity.Navigation;
+import com.simibubi.create.content.trains.track.BezierConnection;
 import dev.chaevsfe.trackwright.track.StraightConnections;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

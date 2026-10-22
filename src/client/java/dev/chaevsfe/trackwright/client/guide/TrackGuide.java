@@ -1,17 +1,17 @@
 package dev.chaevsfe.trackwright.client.guide;
 
-import com.zurrtum.create.AllDataComponents;
-import com.zurrtum.create.AllItemTags;
-import com.zurrtum.create.client.AllSpecialTextures;
-import com.zurrtum.create.client.catnip.outliner.Outliner;
-import com.zurrtum.create.content.trains.track.TrackPlacement;
-import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
-import com.zurrtum.create.infrastructure.component.ConnectingFrom;
+import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.AllSpecialTextures;
+import com.simibubi.create.AllTags.AllItemTags;
+import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
+import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
+import com.simibubi.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.client.mixin.TrackPlacementClientAccessor;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.track.BorePlan;
 import dev.chaevsfe.trackwright.track.Gap;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
+import net.createmod.catnip.outliner.Outliner;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;

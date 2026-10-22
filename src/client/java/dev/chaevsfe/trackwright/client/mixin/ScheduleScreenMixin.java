@@ -1,14 +1,14 @@
 package dev.chaevsfe.trackwright.client.mixin;
 
-import com.zurrtum.create.AllSchedules;
-import com.zurrtum.create.catnip.data.Pair;
-import com.zurrtum.create.client.content.trains.schedule.IScheduleInput;
-import com.zurrtum.create.client.content.trains.schedule.ScheduleScreen;
-import com.zurrtum.create.client.foundation.gui.widget.SelectionScrollInput;
-import com.zurrtum.create.content.trains.schedule.ScheduleDataEntry;
-import com.zurrtum.create.content.trains.schedule.destination.ScheduleInstruction;
+import com.simibubi.create.content.trains.schedule.IScheduleInput;
+import com.simibubi.create.content.trains.schedule.Schedule;
+import com.simibubi.create.content.trains.schedule.ScheduleDataEntry;
+import com.simibubi.create.content.trains.schedule.ScheduleScreen;
+import com.simibubi.create.content.trains.schedule.destination.ScheduleInstruction;
+import com.simibubi.create.foundation.gui.widget.SelectionScrollInput;
 import dev.chaevsfe.trackwright.client.schedule.ActorStepsClient;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
+import net.createmod.catnip.data.Pair;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,7 +32,7 @@ public abstract class ScheduleScreenMixin {
         if (!(input instanceof ScheduleInstruction instruction) || instruction.getId().equals(ActorSteps.ID) || ActorStepsClient.offered()) {
             return;
         }
-        List<Pair<Identifier, Function<Identifier, ? extends ScheduleInstruction>>> types = AllSchedules.INSTRUCTION_TYPES;
+        List<Pair<Identifier, Function<Identifier, ? extends ScheduleInstruction>>> types = Schedule.INSTRUCTION_TYPES;
         int hidden = -1;
         for (int i = 0; i < types.size(); i++) {
             if (types.get(i).getFirst().equals(ActorSteps.ID)) {

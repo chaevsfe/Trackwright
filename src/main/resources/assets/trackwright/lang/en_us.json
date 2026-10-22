@@ -90,7 +90,7 @@
   "trackwright.guide.undo": "Press %s to undo your last track placement",
   "trackwright.key.lock_widest_turn": "Lock the widest turn",
   "trackwright.key.undo": "Undo the last track placement",
-  "key.category.trackwright.trackwright": "Create Fly: Trackwright",
+  "key.category.trackwright.trackwright": "Create: Trackwright",
   "trackwright.lock.on": "Widest turn locked",
   "trackwright.lock.off": "Widest turn unlocked",
   "trackwright.undo.done": "Undid your last track placement",

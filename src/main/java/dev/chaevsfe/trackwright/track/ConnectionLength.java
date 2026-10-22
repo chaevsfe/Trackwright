@@ -1,11 +1,11 @@
 package dev.chaevsfe.trackwright.track;
 
-import com.zurrtum.create.AllDataComponents;
-import com.zurrtum.create.content.trains.track.BezierConnection;
-import com.zurrtum.create.content.trains.track.TrackBlockEntity;
-import com.zurrtum.create.infrastructure.component.BezierTrackPointLocation;
-import com.zurrtum.create.infrastructure.config.AllConfigs;
-import com.zurrtum.create.infrastructure.config.CServer;
+import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.content.trains.track.BezierConnection;
+import com.simibubi.create.content.trains.track.BezierTrackPointLocation;
+import com.simibubi.create.content.trains.track.TrackBlockEntity;
+import com.simibubi.create.infrastructure.config.AllConfigs;
+import com.simibubi.create.infrastructure.config.CServer;
 import dev.chaevsfe.trackwright.config.Sides;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import net.minecraft.core.BlockPos;

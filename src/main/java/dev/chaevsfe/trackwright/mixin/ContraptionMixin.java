@@ -1,6 +1,6 @@
 package dev.chaevsfe.trackwright.mixin;
 
-import com.zurrtum.create.content.contraptions.Contraption;
+import com.simibubi.create.content.contraptions.Contraption;
 import dev.chaevsfe.trackwright.schedule.ActorSwitch;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;

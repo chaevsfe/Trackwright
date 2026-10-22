@@ -1,6 +1,6 @@
 package dev.chaevsfe.trackwright.track;
 
-import com.zurrtum.create.content.trains.track.ITrackBlock;
+import com.simibubi.create.content.trains.track.ITrackBlock;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import net.minecraft.core.BlockPos;

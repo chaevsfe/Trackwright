@@ -1,6 +1,6 @@
 package dev.chaevsfe.trackwright.undo;
 
-import com.zurrtum.create.infrastructure.component.ConnectingFrom;
+import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;

@@ -3,8 +3,8 @@ package dev.chaevsfe.trackwright.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.zurrtum.create.content.contraptions.behaviour.MovementContext;
-import com.zurrtum.create.content.kinetics.base.BlockBreakingMovementBehaviour;
+import com.simibubi.create.content.contraptions.behaviour.MovementContext;
+import com.simibubi.create.content.kinetics.base.BlockBreakingMovementBehaviour;
 import dev.chaevsfe.trackwright.actors.DrillFace;
 import dev.chaevsfe.trackwright.actors.TrainActors;
 import net.minecraft.core.BlockPos;
@@ -34,7 +34,7 @@ public abstract class BlockBreakingMovementBehaviourMixin {
 
     @WrapOperation(
         method = {"visitNewPosition", "tickBreaker"},
-        at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/content/kinetics/base/BlockBreakingMovementBehaviour;canBreak(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"),
+        at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/kinetics/base/BlockBreakingMovementBehaviour;canBreak(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"),
         require = 2,
         allow = 2
     )

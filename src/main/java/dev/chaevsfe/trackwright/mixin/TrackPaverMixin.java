@@ -2,7 +2,7 @@ package dev.chaevsfe.trackwright.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.zurrtum.create.content.trains.track.TrackPaver;
+import com.simibubi.create.content.trains.track.TrackPaver;
 import dev.chaevsfe.trackwright.undo.UndoRecorder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;

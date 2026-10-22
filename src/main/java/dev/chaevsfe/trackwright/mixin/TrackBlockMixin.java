@@ -2,7 +2,7 @@ package dev.chaevsfe.trackwright.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.zurrtum.create.content.trains.track.TrackBlock;
+import com.simibubi.create.content.trains.track.TrackBlock;
 import dev.chaevsfe.trackwright.track.PlacementRules;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.state.BlockState;

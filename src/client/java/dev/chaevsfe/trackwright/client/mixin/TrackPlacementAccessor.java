@@ -1,6 +1,6 @@
 package dev.chaevsfe.trackwright.client.mixin;
 
-import com.zurrtum.create.content.trains.track.TrackPlacement;
+import com.simibubi.create.content.trains.track.TrackPlacement;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;

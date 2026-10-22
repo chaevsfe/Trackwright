@@ -1,10 +1,10 @@
 package dev.chaevsfe.trackwright.track;
 
-import com.zurrtum.create.content.kinetics.deployer.DeployerPlayer;
-import com.zurrtum.create.content.trains.track.ITrackBlock;
-import com.zurrtum.create.content.trains.track.TrackBlock;
-import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
-import com.zurrtum.create.content.trains.track.TrackShape;
+import com.simibubi.create.content.kinetics.deployer.DeployerFakePlayer;
+import com.simibubi.create.content.trains.track.ITrackBlock;
+import com.simibubi.create.content.trains.track.TrackBlock;
+import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
+import com.simibubi.create.content.trains.track.TrackShape;
 import dev.chaevsfe.trackwright.config.BoreMode;
 import dev.chaevsfe.trackwright.config.Sides;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
@@ -87,7 +87,7 @@ public final class PlacementRules {
     }
 
     private static boolean holdsBoreTool(Player player) {
-        return !(player instanceof DeployerPlayer) && BlockMiner.isTool(player.getOffhandItem());
+        return !(player instanceof DeployerFakePlayer) && BlockMiner.isTool(player.getOffhandItem());
     }
 
     private static BoreAccess access(TrackwrightSettings settings, boolean tool, boolean boreAllowed) {

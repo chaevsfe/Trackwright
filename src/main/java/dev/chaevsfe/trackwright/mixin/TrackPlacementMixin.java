@@ -5,7 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
-import com.zurrtum.create.content.trains.track.TrackPlacement;
+import com.simibubi.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.track.ConnectionLength;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import dev.chaevsfe.trackwright.track.PlacementRules;
@@ -27,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class TrackPlacementMixin {
     @ModifyExpressionValue(
         method = "tryConnect",
-        at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/catnip/config/ConfigBase$ConfigInt;get()Ljava/lang/Object;")
+        at = @At(value = "INVOKE", target = "Lnet/createmod/catnip/config/ConfigBase$ConfigInt;get()Ljava/lang/Object;")
     )
     private static Object trackwright$longerConnections(Object value, @Local(argsOnly = true) Level level) {
         return ConnectionLength.forPlacement(value, level);
@@ -112,7 +112,7 @@ public abstract class TrackPlacementMixin {
         method = "tryConnect",
         at = @At(
             value = "INVOKE",
-            target = "Lcom/zurrtum/create/content/trains/track/TrackPlacement;placeTracks(Lnet/minecraft/world/level/Level;Lcom/zurrtum/create/content/trains/track/TrackPlacement$PlacementInfo;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;Z)Lcom/zurrtum/create/content/trains/track/TrackPlacement$PlacementInfo;"
+            target = "Lcom/simibubi/create/content/trains/track/TrackPlacement;placeTracks(Lnet/minecraft/world/level/Level;Lcom/simibubi/create/content/trains/track/TrackPlacement$PlacementInfo;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;Z)Lcom/simibubi/create/content/trains/track/TrackPlacement$PlacementInfo;"
         )
     )
     private static TrackPlacement.PlacementInfo trackwright$boreAndConvert(
@@ -159,7 +159,7 @@ public abstract class TrackPlacementMixin {
         method = "tryConnect",
         at = @At(
             value = "FIELD",
-            target = "Lcom/zurrtum/create/content/trains/track/TrackPlacement$PlacementInfo;valid:Z",
+            target = "Lcom/simibubi/create/content/trains/track/TrackPlacement$PlacementInfo;valid:Z",
             opcode = Opcodes.PUTFIELD,
             ordinal = 0,
             shift = At.Shift.AFTER

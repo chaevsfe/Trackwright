@@ -1,8 +1,8 @@
 package dev.chaevsfe.trackwright.client.guide;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.zurrtum.create.AllDataComponents;
-import com.zurrtum.create.infrastructure.packet.c2s.PlaceExtendedCurvePacket;
+import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.content.trains.track.PlaceExtendedCurvePacket;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;

@@ -2,7 +2,7 @@ package dev.chaevsfe.trackwright.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.zurrtum.create.content.trains.station.StationBlockEntity;
+import com.simibubi.create.content.trains.station.StationBlockEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;

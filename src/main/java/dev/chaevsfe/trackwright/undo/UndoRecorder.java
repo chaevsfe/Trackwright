@@ -1,10 +1,10 @@
 package dev.chaevsfe.trackwright.undo;
 
-import com.zurrtum.create.AllDataComponents;
-import com.zurrtum.create.content.kinetics.deployer.DeployerPlayer;
-import com.zurrtum.create.content.trains.track.ITrackBlock;
-import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
-import com.zurrtum.create.infrastructure.component.ConnectingFrom;
+import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.content.kinetics.deployer.DeployerFakePlayer;
+import com.simibubi.create.content.trains.track.ITrackBlock;
+import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
+import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -127,7 +127,7 @@ public final class UndoRecorder {
     }
 
     public static PlacementInfo record(Level level, Player player, ItemStack stack, Supplier<PlacementInfo> placement) {
-        if (!(level instanceof ServerLevel serverLevel) || !(player instanceof ServerPlayer serverPlayer) || player instanceof DeployerPlayer
+        if (!(level instanceof ServerLevel serverLevel) || !(player instanceof ServerPlayer serverPlayer) || player instanceof DeployerFakePlayer
             || session != null) {
             return placement.get();
         }

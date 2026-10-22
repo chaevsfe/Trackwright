@@ -2,11 +2,11 @@ package dev.chaevsfe.trackwright.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.zurrtum.create.catnip.data.Pair;
-import com.zurrtum.create.content.trains.track.BezierConnection;
-import com.zurrtum.create.content.trains.track.TrackBlockEntity;
+import com.simibubi.create.content.trains.track.BezierConnection;
+import com.simibubi.create.content.trains.track.TrackBlockEntity;
 import dev.chaevsfe.trackwright.track.LoadedColumns;
 import dev.chaevsfe.trackwright.undo.UndoRecorder;
+import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -20,7 +20,7 @@ import java.util.Map;
 public abstract class TrackBlockEntityMixin {
     @WrapOperation(
         method = "manageFakeTracksAlong",
-        at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/content/trains/track/BezierConnection;rasterise()Ljava/util/Map;")
+        at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains/track/BezierConnection;rasterise()Ljava/util/Map;")
     )
     private Map<Pair<Integer, Integer>, Double> trackwright$loadedColumnsOnly(
         BezierConnection connection,

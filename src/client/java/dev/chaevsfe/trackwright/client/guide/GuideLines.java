@@ -1,10 +1,10 @@
 package dev.chaevsfe.trackwright.client.guide;
 
-import com.zurrtum.create.content.trains.track.BezierConnection;
-import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
-import com.zurrtum.create.infrastructure.component.ConnectingFrom;
-import com.zurrtum.create.infrastructure.config.AllConfigs;
-import com.zurrtum.create.infrastructure.config.CServer;
+import com.simibubi.create.content.trains.track.BezierConnection;
+import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
+import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
+import com.simibubi.create.infrastructure.config.AllConfigs;
+import com.simibubi.create.infrastructure.config.CServer;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.track.BoreAccess;

@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "dev.chaevsfe.trackwright.client.mixin",
-  "compatibilityLevel": "JAVA_25",
+  "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8.3",
   "client": [
     "ScheduleScreenMixin",

@@ -1,6 +1,6 @@
 package dev.chaevsfe.trackwright.track;
 
-import com.zurrtum.create.catnip.data.Pair;
+import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.Level;

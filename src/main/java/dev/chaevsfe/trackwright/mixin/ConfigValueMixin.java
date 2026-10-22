@@ -5,7 +5,7 @@ import dev.chaevsfe.trackwright.track.ConnectionLength;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(targets = "com.zurrtum.create.catnip.config.ConfigBase$CValue")
+@Mixin(targets = "net.createmod.catnip.config.ConfigBase$CValue")
 public abstract class ConfigValueMixin {
     @ModifyReturnValue(method = "get", at = @At("RETURN"))
     private Object trackwright$reachAlongLongCurve(Object value) {

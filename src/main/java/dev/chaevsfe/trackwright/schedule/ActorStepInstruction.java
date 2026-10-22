@@ -1,8 +1,8 @@
 package dev.chaevsfe.trackwright.schedule;
 
-import com.zurrtum.create.content.trains.graph.DiscoveredPath;
-import com.zurrtum.create.content.trains.schedule.ScheduleRuntime;
-import com.zurrtum.create.content.trains.schedule.destination.ScheduleInstruction;
+import com.simibubi.create.content.trains.graph.DiscoveredPath;
+import com.simibubi.create.content.trains.schedule.ScheduleRuntime;
+import com.simibubi.create.content.trains.schedule.destination.ScheduleInstruction;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;

@@ -3,9 +3,9 @@ package dev.chaevsfe.trackwright.client.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.zurrtum.create.client.content.trains.track.TrackRenderer;
-import com.zurrtum.create.content.trains.track.BezierConnection;
-import com.zurrtum.create.content.trains.track.TrackBlockEntity;
+import com.simibubi.create.content.trains.track.BezierConnection;
+import com.simibubi.create.content.trains.track.TrackBlockEntity;
+import com.simibubi.create.content.trains.track.TrackRenderer;
 import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.client.track.TrackLight;
 import net.minecraft.core.BlockPos;
@@ -17,8 +17,8 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(TrackRenderer.class)
 public abstract class TrackRendererMixin {
     @WrapOperation(
-        method = "extractRenderState(Lcom/zurrtum/create/content/trains/track/TrackBlockEntity;Lcom/zurrtum/create/client/content/trains/track/TrackRenderer$TrackRenderState;FLnet/minecraft/world/phys/Vec3;Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V",
-        at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/content/trains/track/BezierConnection;isPrimary()Z")
+        method = "extractRenderState(Lcom/simibubi/create/content/trains/track/TrackBlockEntity;Lcom/simibubi/create/content/trains/track/TrackRenderer$TrackRenderState;FLnet/minecraft/world/phys/Vec3;Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V",
+        at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/trains/track/BezierConnection;isPrimary()Z")
     )
     private boolean trackwright$drawFromFarEnd(
         BezierConnection connection,
@@ -31,7 +31,7 @@ public abstract class TrackRendererMixin {
     }
 
     @WrapOperation(
-        method = "extractRenderState(Lcom/zurrtum/create/content/trains/track/TrackBlockEntity;Lcom/zurrtum/create/client/content/trains/track/TrackRenderer$TrackRenderState;FLnet/minecraft/world/phys/Vec3;Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V",
+        method = "extractRenderState(Lcom/simibubi/create/content/trains/track/TrackBlockEntity;Lcom/simibubi/create/content/trains/track/TrackRenderer$TrackRenderState;FLnet/minecraft/world/phys/Vec3;Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/util/LightCoordsUtil;getLightCoords(Lnet/minecraft/world/level/BlockAndLightGetter;Lnet/minecraft/core/BlockPos;)I")
     )
     private int trackwright$lightInsideSolidBlocks(BlockAndLightGetter level, BlockPos pos, Operation<Integer> original) {

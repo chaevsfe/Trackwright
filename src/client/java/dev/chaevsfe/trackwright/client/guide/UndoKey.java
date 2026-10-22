@@ -1,7 +1,7 @@
 package dev.chaevsfe.trackwright.client.guide;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.zurrtum.create.AllItemTags;
+import com.simibubi.create.AllTags.AllItemTags;
 import dev.chaevsfe.trackwright.network.UndoPayload;
 import dev.chaevsfe.trackwright.network.UndoStatePayload;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;

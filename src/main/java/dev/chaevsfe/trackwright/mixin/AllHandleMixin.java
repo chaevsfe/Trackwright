@@ -4,10 +4,10 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.zurrtum.create.AllHandle;
-import com.zurrtum.create.infrastructure.packet.c2s.CurvedTrackDestroyPacket;
-import com.zurrtum.create.infrastructure.packet.c2s.CurvedTrackSelectionPacket;
-import com.zurrtum.create.infrastructure.packet.c2s.ScheduleEditPacket;
+import com.simibubi.create.AllHandle;
+import com.simibubi.create.content.trains.schedule.ScheduleEditPacket;
+import com.simibubi.create.content.trains.track.CurvedTrackDestroyPacket;
+import com.simibubi.create.content.trains.track.CurvedTrackSelectionPacket;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
 import dev.chaevsfe.trackwright.track.ConnectionLength;
 import net.minecraft.core.BlockPos;
@@ -23,7 +23,7 @@ import java.util.function.Predicate;
 public abstract class AllHandleMixin {
     @WrapOperation(
         method = "onCurvedTrackDestroy",
-        at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/AllHandle;onBlockEntityConfiguration(Lnet/minecraft/server/network/ServerGamePacketListenerImpl;Lnet/minecraft/core/BlockPos;ILjava/util/function/Predicate;)V")
+        at = @At(value = "INVOKE", target = "Lcom/simibubi/create/AllHandle;onBlockEntityConfiguration(Lnet/minecraft/server/network/ServerGamePacketListenerImpl;Lnet/minecraft/core/BlockPos;ILjava/util/function/Predicate;)V")
     )
     private static void trackwright$reachAlongDestroyedCurve(
         ServerGamePacketListenerImpl listener,
@@ -38,7 +38,7 @@ public abstract class AllHandleMixin {
 
     @WrapOperation(
         method = "onCurvedTrackSelection",
-        at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/AllHandle;onBlockEntityConfiguration(Lnet/minecraft/server/network/ServerGamePacketListenerImpl;Lnet/minecraft/core/BlockPos;ILjava/util/function/Predicate;)V")
+        at = @At(value = "INVOKE", target = "Lcom/simibubi/create/AllHandle;onBlockEntityConfiguration(Lnet/minecraft/server/network/ServerGamePacketListenerImpl;Lnet/minecraft/core/BlockPos;ILjava/util/function/Predicate;)V")
     )
     private static void trackwright$reachAlongSelectedCurve(
         ServerGamePacketListenerImpl listener,

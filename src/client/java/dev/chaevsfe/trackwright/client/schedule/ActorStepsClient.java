@@ -1,6 +1,6 @@
 package dev.chaevsfe.trackwright.client.schedule;
 
-import com.zurrtum.create.client.AllScheduleRenders;
+import com.simibubi.create.AllScheduleRenders;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;

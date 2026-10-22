@@ -28,13 +28,13 @@ public final class TrackwrightClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         Trackwright.loadHookedClasses(
-            "com.zurrtum.create.client.content.trains.schedule.ScheduleScreen",
-            "com.zurrtum.create.client.content.trains.track.TrackPlacementClient",
-            "com.zurrtum.create.client.content.trains.track.TrackPlacementOverlay",
-            "com.zurrtum.create.client.content.trains.track.TrackRenderer",
-            "com.zurrtum.create.client.content.trains.track.TrackVisual",
-            "com.zurrtum.create.client.foundation.gui.widget.ScrollInput",
-            "com.zurrtum.create.content.trains.graph.TrackGraph",
+            "com.simibubi.create.content.trains.schedule.ScheduleScreen",
+            "com.simibubi.create.content.trains.track.TrackPlacement",
+            "com.simibubi.create.content.trains.track.TrackPlacementOverlay",
+            "com.simibubi.create.content.trains.track.TrackRenderer",
+            "com.simibubi.create.content.trains.track.TrackVisual",
+            "com.simibubi.create.foundation.gui.widget.ScrollInput",
+            "com.simibubi.create.content.trains.graph.TrackGraph",
             "net.minecraft.client.renderer.ScreenEffectRenderer"
         );
         ClientConfig.load();

@@ -34,3 +34,4 @@ libs
 .testclasspath.txt
 
 logs
+/run*/

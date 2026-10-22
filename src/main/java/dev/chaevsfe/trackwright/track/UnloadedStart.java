@@ -1,9 +1,9 @@
 package dev.chaevsfe.trackwright.track;
 
-import com.zurrtum.create.AllDataComponents;
-import com.zurrtum.create.content.trains.track.TrackBlock;
-import com.zurrtum.create.content.trains.track.TrackShape;
-import com.zurrtum.create.infrastructure.component.ConnectingFrom;
+import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.content.trains.track.TrackBlock;
+import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
+import com.simibubi.create.content.trains.track.TrackShape;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.item.BlockItem;

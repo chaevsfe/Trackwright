@@ -1,9 +1,9 @@
 package dev.chaevsfe.trackwright.track;
 
-import com.zurrtum.create.catnip.data.Pair;
-import com.zurrtum.create.content.trains.track.BezierConnection;
-import com.zurrtum.create.content.trains.track.ITrackBlock;
-import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
+import com.simibubi.create.content.trains.track.BezierConnection;
+import com.simibubi.create.content.trains.track.ITrackBlock;
+import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
+import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;

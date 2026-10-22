@@ -1,6 +1,6 @@
 package dev.chaevsfe.trackwright.client.mixin;
 
-import com.zurrtum.create.content.trains.track.TrackBlockItem;
+import com.simibubi.create.content.trains.track.TrackBlockItem;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.context.UseOnContext;
