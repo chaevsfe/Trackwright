@@ -325,19 +325,25 @@ public final class PlacementRules {
             return original.get();
         }
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
-            if (bore != null && !bore.cells().isEmpty()) {
-                UndoRecorder.beforeMining(serverLevel, serverPlayer, bore.cells());
-                BlockMiner.Outcome outcome = BlockMiner.mine(serverLevel, serverPlayer, bore.cells());
-                UndoRecorder.afterMining(serverLevel, serverPlayer);
-                if (outcome.stoppedAt() != null) {
-                    refundTracks(serverPlayer, info);
-                    extension.trackwright$setValid(false);
-                    return info.withMessage(Messages.BORE_STOPPED).tooJumbly();
+            boolean capturing = serverLevel.captureBlockSnapshots;
+            serverLevel.captureBlockSnapshots = false;
+            try {
+                if (bore != null && !bore.cells().isEmpty()) {
+                    UndoRecorder.beforeMining(serverLevel, serverPlayer, bore.cells());
+                    BlockMiner.Outcome outcome = BlockMiner.mine(serverLevel, serverPlayer, bore.cells());
+                    UndoRecorder.afterMining(serverLevel, serverPlayer);
+                    if (outcome.stoppedAt() != null) {
+                        refundTracks(serverPlayer, info);
+                        extension.trackwright$setValid(false);
+                        return info.withMessage(Messages.BORE_STOPPED).tooJumbly();
+                    }
                 }
-            }
-            if (extension.trackwright$converts()) {
-                UndoRecorder.notUndoable(serverLevel, UndoMessages.CONVERTED);
-                BridgeConversion.remove(serverLevel, serverPlayer, pos1, pos2);
+                if (extension.trackwright$converts()) {
+                    UndoRecorder.notUndoable(serverLevel, UndoMessages.CONVERTED);
+                    BridgeConversion.remove(serverLevel, serverPlayer, pos1, pos2);
+                }
+            } finally {
+                serverLevel.captureBlockSnapshots = capturing;
             }
         }
         return original.get();
