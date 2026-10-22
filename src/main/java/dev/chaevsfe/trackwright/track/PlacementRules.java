@@ -189,6 +189,10 @@ public final class PlacementRules {
                 return conversion;
             }
         }
+        BezierConnection bridge = extension.trackwright$bridged() ? extension.trackwright$curve() : null;
+        if (bridge != null && level instanceof ServerLevel serverLevel && !BridgePermission.allowed(serverLevel, player, bridge)) {
+            return Messages.BORE_PROTECTED;
+        }
         BorePlan bore = extension.trackwright$bore();
         if (bore == null && !extension.trackwright$bridged() && (curve || axis1.y != 0)) {
             String gap = decidePath(level, player, info, pos1, pos2, axis1, axis2);
