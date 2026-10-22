@@ -1,5 +1,6 @@
 package dev.chaevsfe.trackwright.track;
 
+import com.simibubi.create.AllTags.AllBlockTags;
 import com.simibubi.create.content.kinetics.deployer.DeployerFakePlayer;
 import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.ITrackBlock;
@@ -36,6 +37,7 @@ import java.util.function.Supplier;
 
 public final class PlacementRules {
     private static final int STACK = 64;
+    private static final String JUNCTION_START = "junction_start";
 
     private PlacementRules() {
     }
@@ -134,10 +136,29 @@ public final class PlacementRules {
     }
 
     public static @Nullable String refusal(Level level, Player player, PlacementInfo info, BlockPos pos1, BlockPos pos2, Vec3 axis1, Vec3 axis2) {
-        PlacementInfoExtension extension = (PlacementInfoExtension) info;
         if (Sides.forLevel(level) == null) {
             return null;
         }
+        String refusal = ownRefusal(level, player, info, pos1, pos2, axis1, axis2);
+        return refusal != null ? refusal : junctionRefusal(level, (PlacementInfoExtension) info);
+    }
+
+    private static @Nullable String junctionRefusal(Level level, PlacementInfoExtension extension) {
+        BezierConnection curve = extension.trackwright$curve();
+        if (curve == null) {
+            return null;
+        }
+        for (BlockPos end : List.of(curve.bePositions.getFirst(), curve.bePositions.getSecond())) {
+            BlockState state = level.getBlockState(end);
+            if ((state.getBlock() instanceof ITrackBlock || AllBlockTags.TRACKS.matches(state)) && !state.hasProperty(TrackBlock.HAS_BE)) {
+                return JUNCTION_START;
+            }
+        }
+        return null;
+    }
+
+    private static @Nullable String ownRefusal(Level level, Player player, PlacementInfo info, BlockPos pos1, BlockPos pos2, Vec3 axis1, Vec3 axis2) {
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
         StraightConnections.Line line1 = StraightConnections.line(pos1, axis1);
         if (extension.trackwright$bridged() && line1 != null) {
             Integer end = line1.stepOf(pos2);
