@@ -29,4 +29,8 @@ public interface PlacementInfoExtension {
     boolean trackwright$converts();
 
     void trackwright$setConverts(boolean converts);
+
+    @Nullable Gap trackwright$gap();
+
+    void trackwright$setGap(@Nullable Gap gap);
 }

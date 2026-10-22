@@ -10,6 +10,7 @@ import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.track.BoreAccess;
 import dev.chaevsfe.trackwright.track.BorePlan;
 import dev.chaevsfe.trackwright.track.ConnectionLength;
+import dev.chaevsfe.trackwright.track.Gap;
 import dev.chaevsfe.trackwright.track.Messages;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import dev.chaevsfe.trackwright.track.PlanGeometry;
@@ -124,6 +125,10 @@ public final class GuideLines {
                 ).withStyle(ChatFormatting.AQUA));
                 lines.add(Component.translatable("trackwright.guide.bridge_limits").withStyle(ChatFormatting.GRAY));
             }
+            Gap gap = extension.trackwright$gap();
+            if (gap != null) {
+                addGap(lines, gap);
+            }
             addBoreAccess(lines, extension);
             BorePlan bore = extension.trackwright$bore();
             if (bore != null) {
@@ -233,6 +238,14 @@ public final class GuideLines {
         }
     }
 
+    private static void addGap(List<Component> lines, Gap gap) {
+        int blocks = gap.cells().size();
+        lines.add(Component.translatable(blocks == 1 ? "trackwright.guide.gaps_one" : "trackwright.guide.gaps", white(Integer.toString(blocks)))
+            .withStyle(ChatFormatting.RED));
+        lines.add(Component.translatable("trackwright.guide.bore_problem", gap.state().getBlock().getName().withStyle(ChatFormatting.WHITE),
+            white(position(gap.pos()))).withStyle(ChatFormatting.RED));
+    }
+
     private static void addBore(List<Component> lines, BorePlan bore, ItemStack tool) {
         int blocks = bore.cells().size();
         boolean one = blocks == 1;
@@ -254,6 +267,9 @@ public final class GuideLines {
         if (problem != null && problem.refusal() != BlockMiner.Refusal.NOT_LOADED) {
             lines.add(Component.translatable("trackwright.guide.bore_problem", problem.state().getBlock().getName().withStyle(ChatFormatting.WHITE),
                 white(position(problem.pos()))).withStyle(ChatFormatting.RED));
+        }
+        if (bore.trackCells().isEmpty() && !bore.bodyCells().isEmpty()) {
+            lines.add(Component.translatable("trackwright.guide.bore_optional").withStyle(ChatFormatting.GRAY));
         }
     }
 

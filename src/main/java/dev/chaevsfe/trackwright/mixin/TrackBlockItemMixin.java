@@ -42,9 +42,17 @@ public abstract class TrackBlockItemMixin {
 
     @WrapOperation(
         method = "useOn",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;translatable(Ljava/lang/String;)Lnet/minecraft/network/chat/MutableComponent;")
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;translatable(Ljava/lang/String;)Lnet/minecraft/network/chat/MutableComponent;", ordinal = 2)
     )
-    private MutableComponent trackwright$fallbackForVanillaClients(String key, Operation<MutableComponent> original) {
+    private MutableComponent trackwright$fallbackForVanillaClients(
+        String key,
+        Operation<MutableComponent> original,
+        @Local(name = "info") TrackPlacement.PlacementInfo info
+    ) {
+        MutableComponent named = Messages.named(key, info);
+        if (named != null) {
+            return named;
+        }
         String fallback = Messages.fallback(key);
         return fallback != null ? Component.translatableWithFallback(key, fallback) : original.call(key);
     }
@@ -59,7 +67,7 @@ public abstract class TrackBlockItemMixin {
         Operation<Void> original,
         @Local(name = "info") TrackPlacement.PlacementInfo info
     ) {
-        original.call(player, message);
+        original.call(player, Messages.overlayFor(player, message, info));
         if (!info.valid && (Messages.isOwn(info.message) || ((PlacementInfoExtension) info).trackwright$bridged())) {
             Messages.repeatInChatWithoutTrackwright(player, message);
         }

@@ -1,9 +1,12 @@
 package dev.chaevsfe.trackwright.track;
 
+import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
@@ -25,6 +28,12 @@ public final class Messages {
     public static final String BORE_STOPPED = "trackwright.bore_stopped";
     public static final String CONVERT_POINTS = "trackwright.convert_points";
     public static final String CONVERT_TRAIN = "trackwright.convert_train";
+    public static final String GAP = "trackwright.gap";
+    public static final String GAP_AT = "trackwright.gap_at";
+    public static final String GAP_AT_BORE = "trackwright.gap_at_bore";
+    public static final String GAP_START = "trackwright.gap_start";
+    public static final String GAP_START_AT = "trackwright.gap_start_at";
+    public static final String GAP_START_AT_BORE = "trackwright.gap_start_at_bore";
 
     private static final String KEY_PREFIX = "create.track.";
     private static final Map<String, String> FALLBACKS = Map.ofEntries(
@@ -41,7 +50,13 @@ public final class Messages {
         Map.entry(KEY_PREFIX + BORE_FALLING, "Sand or gravel above the line would fall in"),
         Map.entry(KEY_PREFIX + BORE_STOPPED, "Mining stopped at a protected block, so no track was laid"),
         Map.entry(KEY_PREFIX + CONVERT_POINTS, "Remove the stations, signals and observers on this straight first"),
-        Map.entry(KEY_PREFIX + CONVERT_TRAIN, "A train is on this straight")
+        Map.entry(KEY_PREFIX + CONVERT_TRAIN, "A train is on this straight"),
+        Map.entry(KEY_PREFIX + GAP, "A block in the way would leave a gap in the track"),
+        Map.entry(KEY_PREFIX + GAP_AT, "%s at %s is in the way and would leave a gap in the track"),
+        Map.entry(KEY_PREFIX + GAP_AT_BORE, "%s at %s is in the way and would leave a gap in the track; hold a pickaxe in your off hand to mine through"),
+        Map.entry(KEY_PREFIX + GAP_START, "A block where the curve starts would be destroyed by the track"),
+        Map.entry(KEY_PREFIX + GAP_START_AT, "%s at %s would be destroyed where the curve starts"),
+        Map.entry(KEY_PREFIX + GAP_START_AT_BORE, "%s at %s would be destroyed where the curve starts; hold a pickaxe in your off hand to mine it")
     );
 
     private Messages() {
@@ -59,6 +74,38 @@ public final class Messages {
         if (player instanceof ServerPlayer serverPlayer && !TrackwrightNetwork.hasTrackwright(serverPlayer)) {
             serverPlayer.sendSystemMessage(message.copy().withStyle(ChatFormatting.RED));
         }
+    }
+
+    public static boolean isOwnOverlay(Component component) {
+        return component.getContents() instanceof TranslatableContents translatable && FALLBACKS.containsKey(translatable.getKey());
+    }
+
+    public static @Nullable MutableComponent named(String key, PlacementInfo info) {
+        return named(key, info, ((PlacementInfoExtension) info).trackwright$boreAccess() == BoreAccess.NO_TOOL);
+    }
+
+    public static Component overlayFor(Player player, Component message, PlacementInfo info) {
+        if (info.message != null && player instanceof ServerPlayer serverPlayer && TrackwrightNetwork.hasTrackwright(serverPlayer)) {
+            MutableComponent brief = named("create." + info.message, info, false);
+            if (brief != null) {
+                return brief;
+            }
+        }
+        return message;
+    }
+
+    private static @Nullable MutableComponent named(String key, PlacementInfo info, boolean hint) {
+        if (!(KEY_PREFIX + GAP).equals(key) && !(KEY_PREFIX + GAP_START).equals(key)) {
+            return null;
+        }
+        Gap gap = ((PlacementInfoExtension) info).trackwright$gap();
+        if (gap == null) {
+            return null;
+        }
+        String named = KEY_PREFIX + (gap.start() ? hint ? GAP_START_AT_BORE : GAP_START_AT : hint ? GAP_AT_BORE : GAP_AT);
+        BlockPos pos = gap.pos();
+        return Component.translatableWithFallback(named, FALLBACKS.get(named), gap.state().getBlock().getName(),
+            pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
     }
 
     public static MutableComponent overlay(String message) {

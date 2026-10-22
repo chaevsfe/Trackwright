@@ -3,6 +3,7 @@ package dev.chaevsfe.trackwright.mixin;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.track.BoreAccess;
 import dev.chaevsfe.trackwright.track.BorePlan;
+import dev.chaevsfe.trackwright.track.Gap;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import net.minecraft.core.BlockPos;
 import org.jspecify.annotations.Nullable;
@@ -25,6 +26,8 @@ public abstract class PlacementInfoMixin implements PlacementInfoExtension {
     private BoreAccess trackwright$boreAccess = BoreAccess.NONE;
     @Unique
     private boolean trackwright$converts;
+    @Unique
+    private @Nullable Gap trackwright$gap;
 
     @Override
     public boolean trackwright$bridged() {
@@ -84,5 +87,15 @@ public abstract class PlacementInfoMixin implements PlacementInfoExtension {
     @Override
     public void trackwright$setConverts(boolean converts) {
         trackwright$converts = converts;
+    }
+
+    @Override
+    public @Nullable Gap trackwright$gap() {
+        return trackwright$gap;
+    }
+
+    @Override
+    public void trackwright$setGap(@Nullable Gap gap) {
+        trackwright$gap = gap;
     }
 }
