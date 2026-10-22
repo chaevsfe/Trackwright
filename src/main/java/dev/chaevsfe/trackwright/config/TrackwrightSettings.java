@@ -8,6 +8,7 @@ public record TrackwrightSettings(
     int boreHeadroom,
     boolean boreLavaCheck,
     double boreMaxHardness,
+    boolean refuseBlockedTrackEnds,
     boolean protectTrackEquipment,
     boolean rollersSkipAirPaving,
     boolean rollersClearPowderSnow,
@@ -19,7 +20,7 @@ public record TrackwrightSettings(
     public static final int MAX_CONNECTION_LENGTH = 128;
     public static final int MAX_BORE_HEADROOM = 3;
     public static final TrackwrightSettings DEFAULTS = new TrackwrightSettings(
-        true, MAX_CONNECTION_LENGTH, true, BoreMode.SURVIVAL, 1, true, 0,
+        true, MAX_CONNECTION_LENGTH, true, BoreMode.SURVIVAL, 1, true, 0, true,
         true, true, false, false, true, true
     );
 

@@ -4,11 +4,13 @@ import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -31,9 +33,11 @@ public final class Messages {
     public static final String GAP = "trackwright.gap";
     public static final String GAP_AT = "trackwright.gap_at";
     public static final String GAP_AT_BORE = "trackwright.gap_at_bore";
+    public static final String GAP_BLOCK = "trackwright.gap_block";
     public static final String GAP_START = "trackwright.gap_start";
     public static final String GAP_START_AT = "trackwright.gap_start_at";
     public static final String GAP_START_AT_BORE = "trackwright.gap_start_at_bore";
+    public static final String GAP_START_BLOCK = "trackwright.gap_start_block";
 
     private static final String KEY_PREFIX = "create.track.";
     private static final Map<String, String> FALLBACKS = Map.ofEntries(
@@ -54,9 +58,11 @@ public final class Messages {
         Map.entry(KEY_PREFIX + GAP, "A block in the way would leave a gap in the track"),
         Map.entry(KEY_PREFIX + GAP_AT, "%s at %s is in the way and would leave a gap in the track"),
         Map.entry(KEY_PREFIX + GAP_AT_BORE, "%s at %s is in the way and would leave a gap in the track; hold a pickaxe in your off hand to mine through"),
+        Map.entry(KEY_PREFIX + GAP_BLOCK, "%s is in the way and would leave a gap in the track"),
         Map.entry(KEY_PREFIX + GAP_START, "A block where the curve starts would be destroyed by the track"),
         Map.entry(KEY_PREFIX + GAP_START_AT, "%s at %s would be destroyed where the curve starts"),
-        Map.entry(KEY_PREFIX + GAP_START_AT_BORE, "%s at %s would be destroyed where the curve starts; hold a pickaxe in your off hand to mine it")
+        Map.entry(KEY_PREFIX + GAP_START_AT_BORE, "%s at %s would be destroyed where the curve starts; hold a pickaxe in your off hand to mine it"),
+        Map.entry(KEY_PREFIX + GAP_START_BLOCK, "%s would be destroyed where the curve starts")
     );
 
     private Messages() {
@@ -81,31 +87,44 @@ public final class Messages {
     }
 
     public static @Nullable MutableComponent named(String key, PlacementInfo info) {
-        return named(key, info, ((PlacementInfoExtension) info).trackwright$boreAccess() == BoreAccess.NO_TOOL);
+        Gap gap = gapFor(key, info);
+        if (gap == null) {
+            return null;
+        }
+        return positioned(gap, ((PlacementInfoExtension) info).trackwright$boreAccess() == BoreAccess.NO_TOOL);
     }
 
     public static Component overlayFor(Player player, Component message, PlacementInfo info) {
         if (info.message != null && player instanceof ServerPlayer serverPlayer && TrackwrightNetwork.hasTrackwright(serverPlayer)) {
-            MutableComponent brief = named("create." + info.message, info, false);
-            if (brief != null) {
-                return brief;
+            Gap gap = gapFor("create." + info.message, info);
+            if (gap != null) {
+                if (!seenBy(serverPlayer, gap.pos())) {
+                    return positioned(gap, false);
+                }
+                String brief = KEY_PREFIX + (gap.start() ? GAP_START_BLOCK : GAP_BLOCK);
+                return Component.translatableWithFallback(brief, FALLBACKS.get(brief), gap.state().getBlock().getName());
             }
         }
         return message;
     }
 
-    private static @Nullable MutableComponent named(String key, PlacementInfo info, boolean hint) {
-        if (!(KEY_PREFIX + GAP).equals(key) && !(KEY_PREFIX + GAP_START).equals(key)) {
-            return null;
-        }
-        Gap gap = ((PlacementInfoExtension) info).trackwright$gap();
-        if (gap == null) {
-            return null;
-        }
+    private static MutableComponent positioned(Gap gap, boolean hint) {
         String named = KEY_PREFIX + (gap.start() ? hint ? GAP_START_AT_BORE : GAP_START_AT : hint ? GAP_AT_BORE : GAP_AT);
         BlockPos pos = gap.pos();
         return Component.translatableWithFallback(named, FALLBACKS.get(named), gap.state().getBlock().getName(),
             pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+    }
+
+    private static boolean seenBy(ServerPlayer player, BlockPos pos) {
+        return player.getChunkTrackingView().contains(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))
+            && !player.connection.chunkSender.isPending(ChunkPos.pack(pos));
+    }
+
+    private static @Nullable Gap gapFor(String key, PlacementInfo info) {
+        if (!(KEY_PREFIX + GAP).equals(key) && !(KEY_PREFIX + GAP_START).equals(key)) {
+            return null;
+        }
+        return ((PlacementInfoExtension) info).trackwright$gap();
     }
 
     public static MutableComponent overlay(String message) {

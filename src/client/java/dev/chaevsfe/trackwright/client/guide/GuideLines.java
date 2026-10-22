@@ -132,7 +132,7 @@ public final class GuideLines {
             addBoreAccess(lines, extension);
             BorePlan bore = extension.trackwright$bore();
             if (bore != null) {
-                addBore(lines, bore, tool);
+                addBore(lines, bore, tool, !info.valid || bore.problem() != null);
             }
             if (info.valid && extension.trackwright$converts()) {
                 lines.add(Component.translatable("trackwright.guide.convert").withStyle(ChatFormatting.AQUA));
@@ -246,23 +246,32 @@ public final class GuideLines {
             white(position(gap.pos()))).withStyle(ChatFormatting.RED));
     }
 
-    private static void addBore(List<Component> lines, BorePlan bore, ItemStack tool) {
+    private static void addBore(List<Component> lines, BorePlan bore, ItemStack tool, boolean refused) {
         int blocks = bore.cells().size();
         boolean one = blocks == 1;
         Component count = white(Integer.toString(blocks));
         Component toolName = tool.getHoverName().copy().withStyle(ChatFormatting.WHITE);
         if (bore.creative()) {
-            lines.add(Component.translatable(one ? "trackwright.guide.bore_creative_one" : "trackwright.guide.bore_creative", count)
-                .withStyle(ChatFormatting.GOLD));
+            String key = refused
+                ? one ? "trackwright.guide.bore_creative_would_one" : "trackwright.guide.bore_creative_would"
+                : one ? "trackwright.guide.bore_creative_one" : "trackwright.guide.bore_creative";
+            lines.add(Component.translatable(key, count).withStyle(ChatFormatting.GOLD));
         } else if (bore.usesLeft() < 0) {
-            lines.add(Component.translatable(one ? "trackwright.guide.bore_free_one" : "trackwright.guide.bore_free", count, toolName)
-                .withStyle(ChatFormatting.GOLD));
+            String key = refused
+                ? one ? "trackwright.guide.bore_free_would_one" : "trackwright.guide.bore_free_would"
+                : one ? "trackwright.guide.bore_free_one" : "trackwright.guide.bore_free";
+            lines.add(Component.translatable(key, count, toolName).withStyle(ChatFormatting.GOLD));
         } else {
-            lines.add(Component.translatable(one ? "trackwright.guide.bore_one" : "trackwright.guide.bore", count, toolName,
-                white(Integer.toString(bore.wear())), white(Integer.toString(bore.usesLeft()))).withStyle(ChatFormatting.GOLD));
+            String key = refused
+                ? one ? "trackwright.guide.bore_would_one" : "trackwright.guide.bore_would"
+                : one ? "trackwright.guide.bore_one" : "trackwright.guide.bore";
+            lines.add(Component.translatable(key, count, toolName, white(Integer.toString(bore.wear())), white(Integer.toString(bore.usesLeft())))
+                .withStyle(ChatFormatting.GOLD));
         }
-        lines.add(line(bore.creative() ? "trackwright.guide.bore_tunnel_creative" : "trackwright.guide.bore_tunnel",
-            Integer.toString(bore.headroom() + 1)));
+        String tunnel = bore.creative()
+            ? refused ? "trackwright.guide.bore_tunnel_creative_would" : "trackwright.guide.bore_tunnel_creative"
+            : refused ? "trackwright.guide.bore_tunnel_would" : "trackwright.guide.bore_tunnel";
+        lines.add(line(tunnel, Integer.toString(bore.headroom() + 1)));
         BlockMiner.Problem problem = bore.problem();
         if (problem != null && problem.refusal() != BlockMiner.Refusal.NOT_LOADED) {
             lines.add(Component.translatable("trackwright.guide.bore_problem", problem.state().getBlock().getName().withStyle(ChatFormatting.WHITE),

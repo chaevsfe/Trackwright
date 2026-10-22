@@ -15,6 +15,7 @@ public final class ServerConfig {
     public static final String BORE_HEADROOM = "boreHeadroom";
     public static final String BORE_LAVA_CHECK = "boreLavaCheck";
     public static final String BORE_MAX_HARDNESS = "boreMaxHardness";
+    public static final String REFUSE_BLOCKED_TRACK_ENDS = "refuseBlockedTrackEnds";
     public static final String PROTECT_TRACK_EQUIPMENT = "protectTrackEquipment";
     public static final String ROLLERS_SKIP_AIR_PAVING = "rollersSkipAirPaving";
     public static final String ROLLERS_CLEAR_POWDER_SNOW = "rollersClearPowderSnow";
@@ -46,9 +47,9 @@ public final class ServerConfig {
         synchronized (ServerConfig.class) {
             current = settings;
         }
-        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreHeadroom={}, boreLavaCheck={}, boreMaxHardness={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}",
+        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreHeadroom={}, boreLavaCheck={}, boreMaxHardness={}, refuseBlockedTrackEnds={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}",
             settings.straightThroughBlocks(), settings.maxConnectionLength(), settings.protectTrainPassengers(), settings.boreThroughBlocks(),
-            settings.boreHeadroom(), settings.boreLavaCheck(), settings.boreMaxHardness(), settings.protectTrackEquipment(),
+            settings.boreHeadroom(), settings.boreLavaCheck(), settings.boreMaxHardness(), settings.refuseBlockedTrackEnds(), settings.protectTrackEquipment(),
             settings.rollersSkipAirPaving(), settings.rollersClearPowderSnow(), settings.rollersIgnoreFluids(), settings.contraptionControlsSchedule(),
             settings.trainDrillsFullFace());
         return settings;
@@ -70,6 +71,7 @@ public final class ServerConfig {
         Integer headroom = JsonConfigFile.readInt(json, BORE_HEADROOM);
         Boolean lava = JsonConfigFile.readBoolean(json, BORE_LAVA_CHECK);
         Double hardness = JsonConfigFile.readDouble(json, BORE_MAX_HARDNESS);
+        Boolean refuseEnds = JsonConfigFile.readBoolean(json, REFUSE_BLOCKED_TRACK_ENDS);
         Boolean equipment = JsonConfigFile.readBoolean(json, PROTECT_TRACK_EQUIPMENT);
         Boolean airPaving = JsonConfigFile.readBoolean(json, ROLLERS_SKIP_AIR_PAVING);
         Boolean powderSnow = JsonConfigFile.readBoolean(json, ROLLERS_CLEAR_POWDER_SNOW);
@@ -119,6 +121,10 @@ public final class ServerConfig {
         } else if (hardness < 0) {
             Trackwright.LOGGER.warn("{} {} is below 0, using 0 (no limit)", BORE_MAX_HARDNESS, hardness);
         }
+        if (refuseEnds == null) {
+            refuseEnds = defaults.refuseBlockedTrackEnds();
+            complete = false;
+        }
         if (equipment == null) {
             equipment = defaults.protectTrackEquipment();
             complete = false;
@@ -143,7 +149,7 @@ public final class ServerConfig {
             drillFace = defaults.trainDrillsFullFace();
             complete = false;
         }
-        TrackwrightSettings settings = new TrackwrightSettings(straight, length, protect, bore, headroom, lava, hardness,
+        TrackwrightSettings settings = new TrackwrightSettings(straight, length, protect, bore, headroom, lava, hardness, refuseEnds,
             equipment, airPaving, powderSnow, fluids, controls, drillFace);
         if (contents.writable() && !complete) {
             JsonObject known = new JsonObject();
@@ -154,6 +160,7 @@ public final class ServerConfig {
             known.addProperty(BORE_HEADROOM, headroom);
             known.addProperty(BORE_LAVA_CHECK, settings.boreLavaCheck());
             known.addProperty(BORE_MAX_HARDNESS, hardness);
+            known.addProperty(REFUSE_BLOCKED_TRACK_ENDS, settings.refuseBlockedTrackEnds());
             known.addProperty(PROTECT_TRACK_EQUIPMENT, settings.protectTrackEquipment());
             known.addProperty(ROLLERS_SKIP_AIR_PAVING, settings.rollersSkipAirPaving());
             known.addProperty(ROLLERS_CLEAR_POWDER_SNOW, settings.rollersClearPowderSnow());
