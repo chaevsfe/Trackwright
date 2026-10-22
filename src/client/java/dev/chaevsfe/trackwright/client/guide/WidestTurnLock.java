@@ -3,7 +3,8 @@ package dev.chaevsfe.trackwright.client.guide;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.content.trains.track.PlaceExtendedCurvePacket;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import dev.chaevsfe.trackwright.client.TrackwrightClient;
+import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -21,8 +22,10 @@ public final class WidestTurnLock {
     private WidestTurnLock() {
     }
 
-    public static void register(KeyMapping.Category category) {
-        key = KeyMappingHelper.registerKeyMapping(new KeyMapping(KEY_NAME, InputConstants.UNKNOWN.getValue(), category));
+    public static KeyMapping create() {
+        KeyMapping mapping = new KeyMapping(KEY_NAME, InputConstants.UNKNOWN.getValue(), TrackwrightClient.KEY_CATEGORY);
+        key = mapping;
+        return mapping;
     }
 
     public static void tick(Minecraft mc) {
@@ -34,7 +37,7 @@ public final class WidestTurnLock {
             locked = !locked;
             LocalPlayer player = mc.player;
             if (player != null) {
-                player.sendOverlayMessage(Component.translatable(locked ? "trackwright.lock.on" : "trackwright.lock.off"));
+                player.displayClientMessage(Component.translatable(locked ? "trackwright.lock.on" : "trackwright.lock.off"), true);
                 ActionBarHold.start();
             }
         }
@@ -56,6 +59,6 @@ public final class WidestTurnLock {
             || Minecraft.getInstance().options.keySprint.isDown()) {
             return;
         }
-        player.connection.send(new PlaceExtendedCurvePacket(true, true));
+        CatnipServices.NETWORK.sendToServer(new PlaceExtendedCurvePacket(true, true));
     }
 }

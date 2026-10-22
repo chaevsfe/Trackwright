@@ -2,16 +2,18 @@ package dev.chaevsfe.trackwright.client.guide;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.simibubi.create.AllTags.AllItemTags;
+import dev.chaevsfe.trackwright.client.TrackwrightClient;
 import dev.chaevsfe.trackwright.network.UndoPayload;
 import dev.chaevsfe.trackwright.network.UndoStatePayload;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Util;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 public final class UndoKey {
@@ -25,8 +27,10 @@ public final class UndoKey {
     private UndoKey() {
     }
 
-    public static void register(KeyMapping.Category category) {
-        key = KeyMappingHelper.registerKeyMapping(new KeyMapping(KEY_NAME, InputConstants.KEY_U, category));
+    public static KeyMapping create() {
+        KeyMapping mapping = new KeyMapping(KEY_NAME, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, InputConstants.KEY_U, TrackwrightClient.KEY_CATEGORY);
+        key = mapping;
+        return mapping;
     }
 
     public static void tick(Minecraft mc) {
@@ -39,10 +43,11 @@ public final class UndoKey {
             if (player == null || !holdsTrack(player)) {
                 continue;
             }
-            if (ClientPlayNetworking.canSend(UndoPayload.TYPE)) {
-                ClientPlayNetworking.send(UndoPayload.request());
+            ClientPacketListener connection = mc.getConnection();
+            if (connection != null && connection.hasChannel(UndoPayload.TYPE)) {
+                PacketDistributor.sendToServer(UndoPayload.request());
             } else {
-                player.sendOverlayMessage(Component.translatable("trackwright.undo.unsupported").withStyle(ChatFormatting.RED));
+                player.displayClientMessage(Component.translatable("trackwright.undo.unsupported").withStyle(ChatFormatting.RED), true);
                 ActionBarHold.start();
             }
         }
@@ -71,6 +76,6 @@ public final class UndoKey {
     }
 
     private static boolean holdsTrack(LocalPlayer player) {
-        return player.getMainHandItem().is(AllItemTags.TRACKS) || player.getOffhandItem().is(AllItemTags.TRACKS);
+        return player.getMainHandItem().is(AllItemTags.TRACKS.tag) || player.getOffhandItem().is(AllItemTags.TRACKS.tag);
     }
 }

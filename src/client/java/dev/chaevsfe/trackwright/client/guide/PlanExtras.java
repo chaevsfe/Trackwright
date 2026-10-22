@@ -3,6 +3,7 @@ package dev.chaevsfe.trackwright.client.guide;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.simibubi.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.client.mixin.TrackPlacementAccessor;
+import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -59,8 +60,9 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
     public static PlanExtras of(Level level, Player player, BlockPos target, BlockState state, ItemStack stack, boolean maximise, PlacementInfo info) {
         boolean locked = WidestTurnLock.locked();
         boolean deep = AimHelp.deepChecksAllowed();
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
         Key key = new Key(target.immutable(), state, stack, maximise, locked, TrackPlacementAccessor.trackwright$hoveringAngle(),
-            deep, info.valid, info.message, info.end1Extent, info.end2Extent);
+            deep, extension.trackwright$valid(), extension.trackwright$message(), extension.trackwright$end1Extent(), extension.trackwright$end2Extent());
         PlanExtras previous = last;
         if (previous != null && key.equals(lastKey)) {
             return previous;
@@ -75,7 +77,8 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
     }
 
     private static @Nullable PlacementInfo otherShape(Level level, Player player, BlockPos target, BlockState state, ItemStack stack, boolean maximise, PlacementInfo info) {
-        if (info.curve == null || !info.valid) {
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        if (extension.trackwright$curve() == null || !extension.trackwright$valid()) {
             return null;
         }
         PlacementCache saved = PlacementCache.save();
@@ -88,8 +91,11 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
 
     public boolean shapeDependsOnWidest(PlacementInfo info) {
         PlacementInfo shape = other;
-        return shape != null
-            && GuideLines.geometryFinal(shape)
-            && (shape.end1Extent != info.end1Extent || shape.end2Extent != info.end2Extent);
+        if (shape == null || !GuideLines.geometryFinal(shape)) {
+            return false;
+        }
+        PlacementInfoExtension planned = (PlacementInfoExtension) info;
+        PlacementInfoExtension widest = (PlacementInfoExtension) shape;
+        return widest.trackwright$end1Extent() != planned.trackwright$end1Extent() || widest.trackwright$end2Extent() != planned.trackwright$end2Extent();
     }
 }

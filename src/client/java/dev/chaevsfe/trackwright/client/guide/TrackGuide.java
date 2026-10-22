@@ -6,7 +6,7 @@ import com.simibubi.create.AllTags.AllItemTags;
 import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.simibubi.create.content.trains.track.TrackPlacement;
-import dev.chaevsfe.trackwright.client.mixin.TrackPlacementClientAccessor;
+import dev.chaevsfe.trackwright.client.mixin.TrackPlacementAccessor;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.track.BorePlan;
 import dev.chaevsfe.trackwright.track.Gap;
@@ -58,7 +58,7 @@ public final class TrackGuide {
     public static void forgetPlan() {
         TrackPlacement.cached = null;
         PlanExtras.reset();
-        TrackPlacementClientAccessor.trackwright$setHintPos(null);
+        TrackPlacementAccessor.trackwright$setHintPos(null);
     }
 
     public static void reset() {
@@ -93,10 +93,10 @@ public final class TrackGuide {
     }
 
     private static void showThroughBlocks(PlacementInfo info) {
-        if (!info.valid) {
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        if (!extension.trackwright$valid()) {
             return;
         }
-        PlacementInfoExtension extension = (PlacementInfoExtension) info;
         if (!extension.trackwright$bridged() || extension.trackwright$bridgedCells().isEmpty()) {
             return;
         }
@@ -173,10 +173,10 @@ public final class TrackGuide {
 
     private static @Nullable ItemStack heldTrack(Player player) {
         ItemStack stack = player.getMainHandItem();
-        if (stack.is(AllItemTags.TRACKS)) {
+        if (stack.is(AllItemTags.TRACKS.tag)) {
             return stack;
         }
         stack = player.getOffhandItem();
-        return stack.is(AllItemTags.TRACKS) ? stack : null;
+        return stack.is(AllItemTags.TRACKS.tag) ? stack : null;
     }
 }

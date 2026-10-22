@@ -41,7 +41,8 @@ public final class TrackwrightNetwork {
     }
 
     public static boolean canSend(ServerPlayer player, CustomPacketPayload.Type<?> type) {
-        return !(player instanceof FakePlayer) && player.connection != null && player.connection.hasChannel(type);
+        return !(player instanceof FakePlayer) && player.connection != null && player.connection.getConnection().channel() != null
+            && player.connection.hasChannel(type);
     }
 
     public static boolean hasTrackwright(ServerPlayer player) {

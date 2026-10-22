@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(TrackPlacementOverlay.class)
 public abstract class TrackPlacementOverlayMixin {
     @ModifyExpressionValue(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;isDown()Z"))
-    private static boolean trackwright$lockedWidestTurn(boolean held) {
+    private boolean trackwright$lockedWidestTurn(boolean held) {
         return held || WidestTurnLock.locked();
     }
 }

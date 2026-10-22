@@ -1,6 +1,6 @@
 package dev.chaevsfe.trackwright.client.guide;
 
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 
 public final class ActionBarHold {
     private static final long HOLD_MILLIS = 3000;

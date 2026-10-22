@@ -3,8 +3,11 @@ package dev.chaevsfe.trackwright.client.track;
 import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.TrackBlockEntity;
 import dev.engine_room.flywheel.lib.visualization.VisualizationHelper;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.Level;
@@ -25,12 +28,20 @@ public final class FarEnd {
         return !level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(first.getX()), SectionPos.blockToSectionCoord(first.getZ()));
     }
 
-    public static boolean firstEndHidden(Level level, BezierConnection connection, Vec3 camera, int viewDistance) {
+    public static boolean firstEndHidden(Level level, BezierConnection connection) {
         if (firstEndUnloaded(level, connection)) {
             return true;
         }
+        BlockEntityRenderDispatcher dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
+        Camera view = dispatcher.camera;
+        BlockEntity drawn = level.getBlockEntity(connection.bePositions.getFirst());
+        BlockEntityRenderer<BlockEntity> renderer = view == null || drawn == null ? null : dispatcher.getRenderer(drawn);
+        if (renderer == null) {
+            return false;
+        }
+        Vec3 camera = view.getPosition();
         BlockPos first = connection.getKey();
-        if (!Vec3.atCenterOf(first).closerThan(camera, viewDistance)) {
+        if (!Vec3.atCenterOf(first).closerThan(camera, renderer.getViewDistance())) {
             return true;
         }
         int sure = Minecraft.getInstance().options.getEffectiveRenderDistance() - 1;

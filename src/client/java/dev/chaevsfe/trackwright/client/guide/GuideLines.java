@@ -79,7 +79,9 @@ public final class GuideLines {
     }
 
     public static boolean geometryFinal(PlacementInfo info) {
-        return info.valid || info.message != null && COST_KNOWN.contains(info.message);
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        String message = extension.trackwright$message();
+        return extension.trackwright$valid() || message != null && COST_KNOWN.contains(message);
     }
 
     public static List<Component> planned(ConnectingFrom from, BlockPos target, PlacementInfo info, PlanExtras extras, ItemStack tool) {
@@ -89,6 +91,9 @@ public final class GuideLines {
         lines.add(line("trackwright.guide.start", position(start)));
         boolean lockNamed = false;
         if (!start.equals(target)) {
+            PlacementInfoExtension extension = (PlacementInfoExtension) info;
+            boolean valid = extension.trackwright$valid();
+            String message = extension.trackwright$message();
             int dx = target.getX() - start.getX();
             int dy = target.getY() - start.getY();
             int dz = target.getZ() - start.getZ();
@@ -99,25 +104,24 @@ public final class GuideLines {
             if (limit != null) {
                 lines.add(line("trackwright.guide.reach", number(Math.sqrt(start.distSqr(target))), Integer.toString(limit)));
             }
-            if (info.valid || info.message != null && !BEFORE_GEOMETRY.contains(info.message)) {
+            if (valid || message != null && !BEFORE_GEOMETRY.contains(message)) {
                 addGeometry(lines, info, dx, dz);
             }
-            if (info.valid) {
-                PlanGeometry.Climb climb = PlanGeometry.climb(info.curve, dx, dy, dz);
+            if (valid) {
+                PlanGeometry.Climb climb = PlanGeometry.climb(extension.trackwright$curve(), dx, dy, dz);
                 boolean climbs = Math.abs(climb.rise()) >= 0.05;
                 if (climbs) {
                     addClimb(lines, climb);
                 }
                 lockNamed = addShape(lines, info, extras, climbs && inLine(info, dx, dz));
             }
-            if (info.valid || info.message != null && COST_KNOWN.contains(info.message)) {
+            if (valid || message != null && COST_KNOWN.contains(message)) {
                 lines.add(line("trackwright.guide.tracks", Integer.toString(info.requiredTracks)));
                 if (info.requiredPavement > 0) {
                     lines.add(line("trackwright.guide.paving", Integer.toString(info.requiredPavement)));
                 }
             }
-            PlacementInfoExtension extension = (PlacementInfoExtension) info;
-            if (info.valid && extension.trackwright$bridged()) {
+            if (valid && extension.trackwright$bridged()) {
                 int through = extension.trackwright$bridgedCells().size();
                 lines.add(Component.translatable(
                     through == 1 ? "trackwright.guide.through_blocks_one" : "trackwright.guide.through_blocks",
@@ -132,9 +136,9 @@ public final class GuideLines {
             addBoreAccess(lines, extension);
             BorePlan bore = extension.trackwright$bore();
             if (bore != null) {
-                addBore(lines, bore, tool, !info.valid || bore.problem() != null);
+                addBore(lines, bore, tool, !valid || bore.problem() != null);
             }
-            if (info.valid && extension.trackwright$converts()) {
+            if (valid && extension.trackwright$converts()) {
                 lines.add(Component.translatable("trackwright.guide.convert").withStyle(ChatFormatting.AQUA));
             }
             if (extension.trackwright$guessed()) {
@@ -156,10 +160,11 @@ public final class GuideLines {
     }
 
     private static void addGeometry(List<Component> lines, PlacementInfo info, int dx, int dz) {
-        double change = PlanGeometry.headingChange(info.axis1, info.axis2);
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        double change = PlanGeometry.headingChange(extension.trackwright$axis1(), extension.trackwright$axis2());
         if (!Double.isNaN(change)) {
             if (Math.abs(change) < 0.5) {
-                double sideways = PlanGeometry.sideways(info.axis1, dx, dz);
+                double sideways = PlanGeometry.sideways(extension.trackwright$axis1(), dx, dz);
                 if (Double.isNaN(sideways) || Math.abs(sideways) < 0.05) {
                     lines.add(Component.translatable("trackwright.guide.turn_none").withStyle(ChatFormatting.GRAY));
                 } else {
@@ -169,7 +174,7 @@ public final class GuideLines {
                 lines.add(line(change > 0 ? "trackwright.guide.turn_right" : "trackwright.guide.turn_left", number(Math.abs(change))));
             }
         }
-        BezierConnection curve = info.curve;
+        BezierConnection curve = extension.trackwright$curve();
         if (curve != null) {
             double radius = PlanGeometry.tightestRadius(curve);
             if (radius < STRAIGHT_RADIUS) {
@@ -179,11 +184,12 @@ public final class GuideLines {
     }
 
     private static boolean inLine(PlacementInfo info, int dx, int dz) {
-        double change = PlanGeometry.headingChange(info.axis1, info.axis2);
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        double change = PlanGeometry.headingChange(extension.trackwright$axis1(), extension.trackwright$axis2());
         if (!Double.isNaN(change) && Math.abs(change) >= 0.5) {
             return false;
         }
-        double sideways = PlanGeometry.sideways(info.axis1, dx, dz);
+        double sideways = PlanGeometry.sideways(extension.trackwright$axis1(), dx, dz);
         return Double.isNaN(sideways) || Math.abs(sideways) < 0.05;
     }
 
@@ -197,7 +203,8 @@ public final class GuideLines {
     }
 
     private static boolean addShape(List<Component> lines, PlacementInfo info, PlanExtras extras, boolean climbOnly) {
-        if (info.curve == null) {
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        if (extension.trackwright$curve() == null) {
             return false;
         }
         boolean depends = extras.shapeDependsOnWidest(info);
@@ -220,7 +227,7 @@ public final class GuideLines {
             lines.add(hold("trackwright.guide.hold_spread", "trackwright.guide.hold_spread_lock"));
             return false;
         }
-        lines.add(line("trackwright.guide.tightest_turn", Integer.toString(info.end1Extent), Integer.toString(info.end2Extent)));
+        lines.add(line("trackwright.guide.tightest_turn", Integer.toString(extension.trackwright$end1Extent()), Integer.toString(extension.trackwright$end2Extent())));
         lines.add(hold("trackwright.guide.hold_widest", "trackwright.guide.hold_widest_lock"));
         return false;
     }
@@ -309,24 +316,26 @@ public final class GuideLines {
     }
 
     private static @Nullable Component result(PlacementInfo info) {
-        if (info.valid) {
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        if (extension.trackwright$valid()) {
             return Component.translatable("create.track.valid_connection").withStyle(ChatFormatting.GREEN);
         }
-        if (info.message == null) {
+        String message = extension.trackwright$message();
+        if (message == null) {
             return null;
         }
-        if (COST_KNOWN.contains(info.message) && ((PlacementInfoExtension) info).trackwright$guessed()) {
+        if (COST_KNOWN.contains(message) && extension.trackwright$guessed()) {
             return Component.translatable("trackwright.guide.server_counts").withStyle(ChatFormatting.GRAY);
         }
-        String key = "create." + info.message;
+        String key = "create." + message;
         String fallback = Messages.fallback(key);
         MutableComponent text = fallback != null ? Component.translatableWithFallback(key, fallback) : Component.translatable(key);
-        return text.withStyle("track.second_point".equals(info.message) ? ChatFormatting.WHITE : ChatFormatting.RED);
+        return text.withStyle("track.second_point".equals(message) ? ChatFormatting.WHITE : ChatFormatting.RED);
     }
 
     public static @Nullable Integer connectionLimit() {
         CServer server = AllConfigs.server();
-        if (server == null) {
+        if (server == null || server.specification == null || !server.specification.isLoaded()) {
             return null;
         }
         return ConnectionLength.limit(server.trains.maxTrackPlacementLength.get(), RemoteSettings.get());

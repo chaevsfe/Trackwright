@@ -7,26 +7,64 @@ import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
 import dev.chaevsfe.trackwright.client.guide.UndoKey;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
-import dev.chaevsfe.trackwright.client.schedule.ActorStepsClient;
 import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.network.SettingsPayload;
-import dev.chaevsfe.trackwright.network.UndoStatePayload;
+import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.track.Messages;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.Identifier;
+import dev.chaevsfe.trackwright.track.PassengerProtection;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.ClientChatReceivedEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.neoforge.common.NeoForge;
 
-public final class TrackwrightClient implements ClientModInitializer {
-    @Override
-    public void onInitializeClient() {
+@Mod(value = Trackwright.MOD_ID, dist = Dist.CLIENT)
+public final class TrackwrightClient {
+    public static final String KEY_CATEGORY = "key.category.trackwright.trackwright";
+    public static final ResourceLocation GUIDE_LAYER = ResourceLocation.fromNamespaceAndPath(Trackwright.MOD_ID, "track_guide");
+
+    public TrackwrightClient(IEventBus modBus) {
+        ClientConfig.load();
+        TrackwrightNetwork.receiveOnClient(TrackwrightClient::receiveSettings, UndoKey::receive);
+        modBus.addListener(FMLClientSetupEvent.class, event -> event.enqueueWork(TrackwrightClient::loadHookedClasses));
+        modBus.addListener(RegisterKeyMappingsEvent.class, event -> {
+            event.register(WidestTurnLock.create());
+            event.register(UndoKey.create());
+        });
+        modBus.addListener(RegisterGuiLayersEvent.class, event -> event.registerBelow(VanillaGuiLayers.CHAT, GUIDE_LAYER, TrackGuideHud::render));
+        IEventBus game = NeoForge.EVENT_BUS;
+        game.addListener(ClientPlayerNetworkEvent.LoggingIn.class, event -> reset());
+        game.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> reset());
+        game.addListener(EventPriority.LOWEST, false, ClientChatReceivedEvent.System.class, event -> {
+            if (event.isOverlay() && Messages.isOwnOverlay(event.getMessage())) {
+                ActionBarHold.start();
+            }
+        });
+        game.addListener(ClientTickEvent.Post.class, event -> {
+            Minecraft mc = Minecraft.getInstance();
+            FarEnd.refresh(mc);
+            WidestTurnLock.tick(mc);
+            UndoKey.tick(mc);
+        });
+        game.addListener(RenderBlockScreenEffectEvent.class, event -> {
+            if (event.getOverlayType() == RenderBlockScreenEffectEvent.OverlayType.BLOCK && PassengerProtection.isProtectedOnClient(event.getPlayer())) {
+                event.setCanceled(true);
+            }
+        });
+    }
+
+    private static void loadHookedClasses() {
         Trackwright.loadHookedClasses(
             "com.simibubi.create.content.trains.schedule.ScheduleScreen",
             "com.simibubi.create.content.trains.track.TrackPlacement",
@@ -35,44 +73,17 @@ public final class TrackwrightClient implements ClientModInitializer {
             "com.simibubi.create.content.trains.track.TrackVisual",
             "com.simibubi.create.foundation.gui.widget.ScrollInput",
             "com.simibubi.create.content.trains.graph.TrackGraph",
-            "net.minecraft.client.renderer.ScreenEffectRenderer"
+            "net.minecraft.client.multiplayer.ClientChunkCache",
+            "net.minecraft.world.level.chunk.LevelChunk"
         );
-        ClientConfig.load();
-        ActorStepsClient.register();
-        KeyMapping.Category category = KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "trackwright"));
-        WidestTurnLock.register(category);
-        UndoKey.register(category);
-        ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> receiveSettings(payload));
-        ClientPlayNetworking.registerGlobalReceiver(UndoStatePayload.TYPE, (payload, context) -> UndoKey.receive(payload));
-        ClientPlayConnectionEvents.INIT.register((handler, client) -> {
-            RemoteSettings.clear();
-            UndoKey.reset();
-            ActionBarHold.reset();
-            TrackGuide.reset();
-            FarEnd.reset();
-        });
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            RemoteSettings.clear();
-            UndoKey.reset();
-            ActionBarHold.reset();
-            TrackGuide.reset();
-            FarEnd.reset();
-        });
-        ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
-            if (overlay && Messages.isOwnOverlay(message)) {
-                ActionBarHold.start();
-            }
-        });
-        ClientBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> FarEnd.endChanged(blockEntity));
-        ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) -> FarEnd.endChanged(blockEntity));
-        ClientTickEvents.END_CLIENT_TICK.register(FarEnd::refresh);
-        ClientTickEvents.END_CLIENT_TICK.register(WidestTurnLock::tick);
-        ClientTickEvents.END_CLIENT_TICK.register(UndoKey::tick);
-        HudElementRegistry.attachElementBefore(
-            VanillaHudElements.CHAT,
-            Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "track_guide"),
-            TrackGuideHud::extract
-        );
+    }
+
+    private static void reset() {
+        RemoteSettings.clear();
+        UndoKey.reset();
+        ActionBarHold.reset();
+        TrackGuide.reset();
+        FarEnd.reset();
     }
 
     private static void receiveSettings(SettingsPayload payload) {

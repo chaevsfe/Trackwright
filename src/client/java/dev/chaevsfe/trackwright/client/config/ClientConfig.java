@@ -3,7 +3,7 @@ package dev.chaevsfe.trackwright.client.config;
 import com.google.gson.JsonObject;
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.config.JsonConfigFile;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 
 import java.nio.file.Path;
 
@@ -24,7 +24,7 @@ public final class ClientConfig {
     }
 
     public static void load() {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        Path path = FMLPaths.CONFIGDIR.get().resolve(FILE_NAME);
         JsonConfigFile.Contents contents = JsonConfigFile.read(path);
         JsonObject json = contents.json();
         ClientSettings defaults = ClientSettings.DEFAULTS;

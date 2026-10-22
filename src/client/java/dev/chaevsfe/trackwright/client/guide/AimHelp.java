@@ -84,10 +84,10 @@ public final class AimHelp {
 
     static boolean holdsSelection(LocalPlayer player) {
         ItemStack stack = player.getMainHandItem();
-        if (!stack.is(AllItemTags.TRACKS)) {
+        if (!stack.is(AllItemTags.TRACKS.tag)) {
             stack = player.getOffhandItem();
         }
-        return stack.is(AllItemTags.TRACKS) && stack.has(AllDataComponents.TRACK_CONNECTING_FROM);
+        return stack.is(AllItemTags.TRACKS.tag) && stack.has(AllDataComponents.TRACK_CONNECTING_FROM);
     }
 
     private static BlockHitResult groundUnderPlant(Level level, BlockHitResult hit) {

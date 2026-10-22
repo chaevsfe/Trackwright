@@ -8,6 +8,7 @@ import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.simibubi.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
+import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import net.createmod.catnip.outliner.Outliner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -51,16 +52,17 @@ public record HeightColumn(BlockPos aimed, List<Entry> entries, @Nullable Intege
             return null;
         }
         ConnectingFrom from = stack.get(AllDataComponents.TRACK_CONNECTING_FROM);
-        if (from == null || GuideLines.geometryFinal(info) || info.message != null && GuideLines.beforeGeometry(info.message)) {
+        String message = ((PlacementInfoExtension) info).trackwright$message();
+        if (from == null || GuideLines.geometryFinal(info) || message != null && GuideLines.beforeGeometry(message)) {
             return null;
         }
-        boolean heightMessage = info.message != null && HEIGHT_MESSAGES.contains(info.message);
+        boolean heightMessage = message != null && HEIGHT_MESSAGES.contains(message);
         if (from.pos().getY() == target.getY() && !heightMessage) {
             return null;
         }
         InteractionHand hand = player.getMainHandItem() == stack ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-        int lowest = Math.max(target.getY() - SPAN, level.getMinY());
-        int highest = Math.min(target.getY() + SPAN, level.getMaxY());
+        int lowest = Math.max(target.getY() - SPAN, level.getMinBuildHeight());
+        int highest = Math.min(target.getY() + SPAN, level.getMaxBuildHeight() - 1);
         List<Entry> entries = new ArrayList<>();
         PlacementCache saved = PlacementCache.save();
         try {

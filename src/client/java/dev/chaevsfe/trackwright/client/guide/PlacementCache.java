@@ -11,8 +11,8 @@ public record PlacementCache(@Nullable PlacementInfo cached, @Nullable BlockPos 
     public static PlacementCache save() {
         return new PlacementCache(
             TrackPlacement.cached,
-            TrackPlacement.hoveringPos,
-            TrackPlacement.hoveringMaxed,
+            TrackPlacementAccessor.trackwright$hoveringPos(),
+            TrackPlacementAccessor.trackwright$hoveringMaxed(),
             TrackPlacementAccessor.trackwright$hoveringAngle(),
             TrackPlacementAccessor.trackwright$lastItem()
         );
@@ -20,8 +20,8 @@ public record PlacementCache(@Nullable PlacementInfo cached, @Nullable BlockPos 
 
     public void restore() {
         TrackPlacement.cached = cached;
-        TrackPlacement.hoveringPos = hoveringPos;
-        TrackPlacement.hoveringMaxed = hoveringMaxed;
+        TrackPlacementAccessor.trackwright$setHoveringPos(hoveringPos);
+        TrackPlacementAccessor.trackwright$setHoveringMaxed(hoveringMaxed);
         TrackPlacementAccessor.trackwright$setHoveringAngle(hoveringAngle);
         TrackPlacementAccessor.trackwright$setLastItem(lastItem);
     }

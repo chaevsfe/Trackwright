@@ -5,6 +5,7 @@ import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.trains.graph.DiscoveredPath;
 import com.simibubi.create.content.trains.schedule.ScheduleRuntime;
 import com.simibubi.create.content.trains.schedule.destination.ScheduleInstruction;
+import com.simibubi.create.foundation.gui.ModularGuiLineBuilder;
 import dev.chaevsfe.trackwright.TagReads;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import net.createmod.catnip.data.Pair;
@@ -14,6 +15,8 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -111,6 +114,17 @@ public final class ActorStepInstruction extends ScheduleInstruction {
             Component.translatable("trackwright.schedule.contraption_controls.slot"),
             Component.translatable("trackwright.schedule.contraption_controls.slot_1").withStyle(ChatFormatting.GRAY),
             Component.translatable("trackwright.schedule.contraption_controls.slot_2").withStyle(ChatFormatting.DARK_GRAY)
+        );
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void initConfigurationWidgets(ModularGuiLineBuilder builder) {
+        builder.addSelectionScrollInput(
+            0, 60, (scroll, label) -> scroll.forOptions(ImmutableList.of(
+                Component.translatable("trackwright.schedule.contraption_controls.turn_on"),
+                Component.translatable("trackwright.schedule.contraption_controls.turn_off")
+            )).titled(Component.translatable("trackwright.schedule.contraption_controls.mode")), MODE
         );
     }
 

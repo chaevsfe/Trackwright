@@ -3,7 +3,8 @@ package dev.chaevsfe.trackwright.client.guide;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
@@ -19,15 +20,17 @@ public final class TrackGuideHud {
     private static final int LINE_HEIGHT = 10;
     private static final int CROSSHAIR_CLEARANCE = 12;
     private static final int MIN_WIDTH = 80;
-    private static final int ACTION_BAR_CLEARANCE = 76;
+    private static final int ACTION_BAR_LOWEST = 68;
+    private static final int ACTION_BAR_ABOVE_BARS = 68 - 59;
+    private static final int ACTION_BAR_GAP = 8;
 
     private TrackGuideHud() {
     }
 
-    public static void extract(GuiGraphicsExtractor graphics, DeltaTracker delta) {
+    public static void render(GuiGraphics graphics, DeltaTracker delta) {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
-        if (player == null || mc.level == null || player.isSpectator() || mc.gui.hud.isHidden() || mc.getDebugOverlay().showDebugScreen()) {
+        if (player == null || mc.level == null || player.isSpectator() || mc.options.hideGui || mc.getDebugOverlay().showDebugScreen()) {
             return;
         }
         List<Component> lines = TrackGuide.linesFor(player);
@@ -46,11 +49,15 @@ public final class TrackGuideHud {
             width = Math.max(width, font.width(row));
         }
         int height = rows.size() * LINE_HEIGHT;
-        int y = Math.max(PADDING + 1, Math.min((graphics.guiHeight() - height) / 2, graphics.guiHeight() - height - ACTION_BAR_CLEARANCE));
+        int y = Math.max(PADDING + 1, Math.min((graphics.guiHeight() - height) / 2, graphics.guiHeight() - height - actionBarClearance(mc.gui)));
         graphics.fill(x - PADDING, y - PADDING, x + width + PADDING, y + height + PADDING - 2, BACKGROUND);
         for (FormattedCharSequence row : rows) {
-            graphics.text(font, row, x, y, TEXT, true);
+            graphics.drawString(font, row, x, y, TEXT, true);
             y += LINE_HEIGHT;
         }
+    }
+
+    private static int actionBarClearance(Gui gui) {
+        return Math.max(Math.max(gui.leftHeight, gui.rightHeight) + ACTION_BAR_ABOVE_BARS, ACTION_BAR_LOWEST) + ACTION_BAR_GAP;
     }
 }

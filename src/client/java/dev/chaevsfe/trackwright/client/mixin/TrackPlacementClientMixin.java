@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
@@ -34,16 +33,16 @@ import java.util.function.Predicate;
 @Mixin(TrackPlacement.class)
 public abstract class TrackPlacementClientMixin {
     @Inject(method = "clientTick", at = @At("HEAD"))
-    private static void trackwright$forgetLastPlan(Minecraft mc, CallbackInfo ci) {
-        TrackGuide.beginTick(mc);
+    private static void trackwright$forgetLastPlan(CallbackInfo ci) {
+        TrackGuide.beginTick(Minecraft.getInstance());
     }
 
     @ModifyExpressionValue(
         method = "clientTick",
         at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;hitResult:Lnet/minecraft/world/phys/HitResult;", opcode = Opcodes.GETFIELD)
     )
-    private static @Nullable HitResult trackwright$aim(@Nullable HitResult hit, @Local(argsOnly = true) Minecraft mc) {
-        return AimHelp.aim(mc, hit);
+    private static @Nullable HitResult trackwright$aim(@Nullable HitResult hit) {
+        return AimHelp.aim(Minecraft.getInstance(), hit);
     }
 
     @ModifyExpressionValue(
@@ -69,9 +68,9 @@ public abstract class TrackPlacementClientMixin {
 
     @WrapWithCondition(
         method = "clientTick",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;sendOverlayMessage(Lnet/minecraft/network/chat/Component;)V")
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;displayClientMessage(Lnet/minecraft/network/chat/Component;Z)V")
     )
-    private static boolean trackwright$keepTrackwrightMessage(LocalPlayer player, Component message) {
+    private static boolean trackwright$keepTrackwrightMessage(LocalPlayer player, Component message, boolean actionBar) {
         return !ActionBarHold.active();
     }
 
