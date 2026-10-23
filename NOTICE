@@ -24,13 +24,18 @@ Builds on
 Every class in this mod is this project's own. It changes Create's track
 placement and train behaviour at runtime through mixins and redistributes no
 Create class, texture or translation. Create's own text is referenced by
-translation key only.
+translation key only. It also uses the libraries Create ships with it
+(Flywheel, Ponder and Catnip, Registrate) through their public types and
+bundles none of them.
 
 Icon
 ----
 The mod icon (assets/trackwright/icon.png) shows Create's standard track,
-rendered from Create's own track model and textures, which are the Create
-team's art. The settings gear and the background are this project's own.
+rendered from the track model and textures that Create Fly ships, which are
+the Create team's art and practically identical to Create's own. The
+settings gear is this project's own, and so is the blue background: a
+drawing made by this project's own script after the look of Create's mod
+icon, with no pixels taken from it.
 
 Credits
 -------
@@ -41,4 +46,11 @@ Credits
 Dependencies (not bundled)
 --------------------------
 - Create, MIT
-- NeoForge, LGPL-3.0
+- NeoForge, LGPL-2.1
+
+Works with (optional, not bundled, not required, not compiled against)
+----------------------------------------------------------------------
+- Create: Steam 'n' Rails 1.21.1, the NeoForge port by PoppyBlossom,
+  Chameleon538 and gblfxt, LGPL-3.0: the placement guide, undo and bore
+  mode work with its tracks and gauges. Trackwright contains none of its
+  code and needs it neither to build nor to run.
