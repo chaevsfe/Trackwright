@@ -8,6 +8,7 @@ import dev.chaevsfe.trackwright.undo.UndoCommand;
 import dev.chaevsfe.trackwright.undo.UndoJournal;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -15,6 +16,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -46,6 +48,7 @@ public final class Trackwright {
                 TrackwrightNetwork.sendTo(player);
             }
         });
+        game.addListener(EventPriority.LOWEST, true, BlockEvent.EntityPlaceEvent.class, UndoJournal::placeEventPosted);
         game.addListener(PlayerEvent.PlayerLoggedOutEvent.class, event -> UndoJournal.forget(event.getEntity().getUUID()));
         game.addListener(PlayerEvent.PlayerChangedDimensionEvent.class, event -> {
             if (event.getEntity() instanceof ServerPlayer player) {

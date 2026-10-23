@@ -2,17 +2,21 @@ package dev.chaevsfe.trackwright.undo;
 
 import com.simibubi.create.content.trains.track.TrackBlock;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
+import dev.chaevsfe.trackwright.track.BridgePermission;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.util.BlockSnapshot;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -24,6 +28,7 @@ public final class UndoJournal {
 
     private static final Map<UUID, Deque<PlacementRecord>> JOURNALS = new HashMap<>();
     private static final Map<UUID, Integer> LAST_REQUEST = new HashMap<>();
+    private static final Map<UUID, PlacementRecord> AWAITING_PLACE_EVENT = new HashMap<>();
 
     private UndoJournal() {
     }
@@ -35,6 +40,30 @@ public final class UndoJournal {
             journal.removeLast();
         }
         sendState(player);
+    }
+
+    static void awaitPlaceEvent(ServerPlayer player, PlacementRecord record) {
+        AWAITING_PLACE_EVENT.put(player.getUUID(), record);
+    }
+
+    public static void placeEventPosted(BlockEvent.EntityPlaceEvent event) {
+        if (AWAITING_PLACE_EVENT.isEmpty() || BridgePermission.planned(event) || !(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        PlacementRecord record = AWAITING_PLACE_EVENT.remove(player.getUUID());
+        if (record == null || !event.isCanceled()) {
+            return;
+        }
+        List<BlockSnapshot> snapshots = event instanceof BlockEvent.EntityMultiPlaceEvent multi
+            ? multi.getReplacedBlockSnapshots()
+            : List.of(event.getBlockSnapshot());
+        for (BlockSnapshot snapshot : snapshots) {
+            PlacementRecord.Cell cell = record.cells.get(snapshot.getPos());
+            if (cell != null && cell.placed()) {
+                remove(player, record);
+                return;
+            }
+        }
     }
 
     static @Nullable PlacementRecord newest(ServerPlayer player) {
@@ -74,11 +103,13 @@ public final class UndoJournal {
     public static void forget(UUID player) {
         JOURNALS.remove(player);
         LAST_REQUEST.remove(player);
+        AWAITING_PLACE_EVENT.remove(player);
     }
 
     public static void clearAll() {
         JOURNALS.clear();
         LAST_REQUEST.clear();
+        AWAITING_PLACE_EVENT.clear();
     }
 
     public static boolean acceptRequest(ServerPlayer player) {
@@ -96,6 +127,7 @@ public final class UndoJournal {
     }
 
     public static void tick(MinecraftServer server) {
+        AWAITING_PLACE_EVENT.clear();
         if (JOURNALS.isEmpty()) {
             return;
         }

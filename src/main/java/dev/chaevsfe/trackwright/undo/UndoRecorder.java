@@ -144,6 +144,9 @@ public final class UndoRecorder {
             PlacementRecord record = started.finish();
             if (record != null) {
                 UndoJournal.push(serverPlayer, record);
+                if (serverLevel.captureBlockSnapshots) {
+                    UndoJournal.awaitPlaceEvent(serverPlayer, record);
+                }
             }
         }
         return info;

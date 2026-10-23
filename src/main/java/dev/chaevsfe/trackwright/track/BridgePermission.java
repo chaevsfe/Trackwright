@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.Event;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.BlockSnapshot;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -68,6 +69,10 @@ public final class BridgePermission {
             }
         }
         return true;
+    }
+
+    public static boolean planned(Event event) {
+        return event instanceof PlannedPlace || event instanceof PlannedCell;
     }
 
     private static BlockState fakeTrack(ServerLevel level, BlockPos pos) {
