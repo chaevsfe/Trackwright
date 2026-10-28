@@ -10,18 +10,18 @@ import com.zurrtum.create.infrastructure.packet.c2s.CurvedTrackSelectionPacket;
 import com.zurrtum.create.infrastructure.packet.c2s.ScheduleEditPacket;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
 import dev.chaevsfe.trackwright.track.ConnectionLength;
+import dev.chaevsfe.trackwright.track.TrackItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.function.Predicate;
-import dev.chaevsfe.trackwright.track.TrackItems;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 
 @Mixin(AllHandle.class)
 public abstract class AllHandleMixin {
