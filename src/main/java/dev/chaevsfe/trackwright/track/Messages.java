@@ -1,6 +1,7 @@
 package dev.chaevsfe.trackwright.track;
 
 import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
+import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -25,6 +26,7 @@ public final class Messages {
     public static final String BORE_WRONG_TOOL = "trackwright.bore_wrong_tool";
     public static final String BORE_TOOL_WORN = "trackwright.bore_tool_worn";
     public static final String BORE_PROTECTED = "trackwright.bore_protected";
+    public static final String BORE_PROTECTED_AT = "trackwright.bore_protected_at";
     public static final String BORE_LAVA = "trackwright.bore_lava";
     public static final String BORE_FALLING = "trackwright.bore_falling";
     public static final String BORE_STOPPED = "trackwright.bore_stopped";
@@ -50,6 +52,7 @@ public final class Messages {
         Map.entry(KEY_PREFIX + BORE_WRONG_TOOL, "The off-hand tool cannot mine every block in the way"),
         Map.entry(KEY_PREFIX + BORE_TOOL_WORN, "The off-hand tool would break before the end"),
         Map.entry(KEY_PREFIX + BORE_PROTECTED, "Part of the line is protected"),
+        Map.entry(KEY_PREFIX + BORE_PROTECTED_AT, "%s at %s is protected"),
         Map.entry(KEY_PREFIX + BORE_LAVA, "Mining this would let lava in"),
         Map.entry(KEY_PREFIX + BORE_FALLING, "Sand or gravel above the line would fall in"),
         Map.entry(KEY_PREFIX + BORE_STOPPED, "Mining stopped at a protected block, so no track was laid"),
@@ -87,6 +90,10 @@ public final class Messages {
     }
 
     public static @Nullable MutableComponent named(String key, PlacementInfo info) {
+        MutableComponent protectedCell = protectedCell(key, info);
+        if (protectedCell != null) {
+            return protectedCell;
+        }
         Gap gap = gapFor(key, info);
         if (gap == null) {
             return null;
@@ -106,6 +113,21 @@ public final class Messages {
             }
         }
         return message;
+    }
+
+    private static @Nullable MutableComponent protectedCell(String key, PlacementInfo info) {
+        if (!(KEY_PREFIX + BORE_PROTECTED).equals(key)) {
+            return null;
+        }
+        BorePlan bore = ((PlacementInfoExtension) info).trackwright$bore();
+        BlockMiner.Problem problem = bore == null ? null : bore.problem();
+        if (problem == null || problem.refusal() != BlockMiner.Refusal.PROTECTED) {
+            return null;
+        }
+        String named = KEY_PREFIX + BORE_PROTECTED_AT;
+        BlockPos pos = problem.pos();
+        return Component.translatableWithFallback(named, FALLBACKS.get(named), problem.state().getBlock().getName(),
+            pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
     }
 
     private static MutableComponent positioned(Gap gap, boolean hint) {
