@@ -22,11 +22,17 @@ public final class FarEnd {
     }
 
     public static boolean firstEndUnloaded(Level level, BezierConnection connection) {
+        if (level != Minecraft.getInstance().level) {
+            return false;
+        }
         BlockPos first = connection.getKey();
         return !level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(first.getX()), SectionPos.blockToSectionCoord(first.getZ()));
     }
 
     public static boolean firstEndHidden(Level level, BezierConnection connection, Vec3 camera, int viewDistance) {
+        if (level != Minecraft.getInstance().level) {
+            return false;
+        }
         if (firstEndUnloaded(level, connection)) {
             return true;
         }
