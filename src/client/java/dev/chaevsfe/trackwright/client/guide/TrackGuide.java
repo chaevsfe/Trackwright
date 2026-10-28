@@ -1,7 +1,6 @@
 package dev.chaevsfe.trackwright.client.guide;
 
 import com.zurrtum.create.AllDataComponents;
-import com.zurrtum.create.AllItemTags;
 import com.zurrtum.create.client.AllSpecialTextures;
 import com.zurrtum.create.client.catnip.outliner.Outliner;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
@@ -12,6 +11,7 @@ import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.track.BorePlan;
 import dev.chaevsfe.trackwright.track.Gap;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
+import dev.chaevsfe.trackwright.track.TrackItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -173,10 +173,10 @@ public final class TrackGuide {
 
     private static @Nullable ItemStack heldTrack(Player player) {
         ItemStack stack = player.getMainHandItem();
-        if (stack.is(AllItemTags.TRACKS)) {
+        if (TrackItems.isTrack(stack)) {
             return stack;
         }
         stack = player.getOffhandItem();
-        return stack.is(AllItemTags.TRACKS) ? stack : null;
+        return TrackItems.isTrack(stack) ? stack : null;
     }
 }

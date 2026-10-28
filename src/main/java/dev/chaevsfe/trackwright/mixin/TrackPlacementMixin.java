@@ -22,6 +22,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import dev.chaevsfe.trackwright.track.TrackItems;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 
 @Mixin(TrackPlacement.class)
 public abstract class TrackPlacementMixin {
@@ -181,5 +184,10 @@ public abstract class TrackPlacementMixin {
             info.valid = false;
             cir.setReturnValue(info.withMessage(refusal).tooJumbly());
         }
+    }
+
+    @WrapOperation(method = "tryConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/tags/TagKey;)Z"))
+    private static boolean trackwright$countTracksByBlockTag(ItemStack stack, TagKey<Item> tag, Operation<Boolean> original) {
+        return TrackItems.is(stack, tag, original.call(stack, tag));
     }
 }

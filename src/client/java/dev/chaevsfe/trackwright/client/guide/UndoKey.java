@@ -1,9 +1,9 @@
 package dev.chaevsfe.trackwright.client.guide;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.zurrtum.create.AllItemTags;
 import dev.chaevsfe.trackwright.network.UndoPayload;
 import dev.chaevsfe.trackwright.network.UndoStatePayload;
+import dev.chaevsfe.trackwright.track.TrackItems;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
@@ -71,6 +71,6 @@ public final class UndoKey {
     }
 
     private static boolean holdsTrack(LocalPlayer player) {
-        return player.getMainHandItem().is(AllItemTags.TRACKS) || player.getOffhandItem().is(AllItemTags.TRACKS);
+        return TrackItems.isTrack(player.getMainHandItem()) || TrackItems.isTrack(player.getOffhandItem());
     }
 }

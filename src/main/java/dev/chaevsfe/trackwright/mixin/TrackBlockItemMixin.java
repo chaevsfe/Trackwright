@@ -7,11 +7,14 @@ import com.zurrtum.create.content.trains.track.TrackBlockItem;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.track.Messages;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
+import dev.chaevsfe.trackwright.track.TrackItems;
 import dev.chaevsfe.trackwright.undo.UndoRecorder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -71,5 +74,10 @@ public abstract class TrackBlockItemMixin {
         if (!info.valid && (Messages.isOwn(info.message) || ((PlacementInfoExtension) info).trackwright$bridged())) {
             Messages.repeatInChatWithoutTrackwright(player, message);
         }
+    }
+
+    @WrapOperation(method = "useOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/tags/TagKey;)Z"))
+    private boolean trackwright$clearSelectionByBlockTag(ItemStack stack, TagKey<Item> tag, Operation<Boolean> original) {
+        return TrackItems.is(stack, tag, original.call(stack, tag));
     }
 }

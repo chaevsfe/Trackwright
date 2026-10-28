@@ -18,6 +18,10 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.function.Predicate;
+import dev.chaevsfe.trackwright.track.TrackItems;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 @Mixin(AllHandle.class)
 public abstract class AllHandleMixin {
@@ -78,5 +82,10 @@ public abstract class AllHandleMixin {
         } finally {
             ConnectionLength.exitCurveReach(previous);
         }
+    }
+
+    @WrapOperation(method = "onPlaceExtendedCurve", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/tags/TagKey;)Z"))
+    private static boolean trackwright$extendCurveByBlockTag(ItemStack stack, TagKey<Item> tag, Operation<Boolean> original) {
+        return TrackItems.is(stack, tag, original.call(stack, tag));
     }
 }
