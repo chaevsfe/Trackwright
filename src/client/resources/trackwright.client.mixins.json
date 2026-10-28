@@ -8,6 +8,8 @@
     "ScheduleScreenMixin",
     "ScreenEffectRendererMixin",
     "ScrollInputAccessor",
+    "ScrollValueRendererAccessor",
+    "ScrollValueRendererMixin",
     "TrackBlockItemClientMixin",
     "TrackGraphMixin",
     "TrackPlacementAccessor",
@@ -15,7 +17,8 @@
     "TrackPlacementClientMixin",
     "TrackPlacementOverlayMixin",
     "TrackRendererMixin",
-    "TrackVisualMixin"
+    "TrackVisualMixin",
+    "ValueSettingsInputHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

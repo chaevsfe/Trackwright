@@ -7,11 +7,16 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.zurrtum.create.AllHandle;
 import com.zurrtum.create.infrastructure.packet.c2s.CurvedTrackDestroyPacket;
 import com.zurrtum.create.infrastructure.packet.c2s.CurvedTrackSelectionPacket;
+import com.zurrtum.create.foundation.blockEntity.behaviour.ValueSettingsHandleBehaviour;
+import com.zurrtum.create.foundation.blockEntity.behaviour.scrollValue.ServerScrollValueBehaviour;
 import com.zurrtum.create.infrastructure.packet.c2s.ScheduleEditPacket;
+import com.zurrtum.create.infrastructure.packet.c2s.ValueSettingsPacket;
+import dev.chaevsfe.trackwright.actors.RollerTerrainBehaviour;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
 import dev.chaevsfe.trackwright.track.ConnectionLength;
 import dev.chaevsfe.trackwright.track.TrackItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -60,6 +65,22 @@ public abstract class AllHandleMixin {
         if (!ActorSteps.refuseEdit(listener.player)) {
             original.call(listener, packet);
         }
+    }
+
+    @WrapMethod(method = "handleValueSettings")
+    private static boolean trackwright$rollerTerrainBox(
+        ServerPlayer player,
+        ValueSettingsHandleBehaviour behaviour,
+        ValueSettingsPacket packet,
+        Operation<Boolean> original
+    ) {
+        if (packet.behaviourIndex() == RollerTerrainBehaviour.NET_ID && behaviour instanceof ServerScrollValueBehaviour scroll) {
+            RollerTerrainBehaviour terrain = scroll.blockEntity.getBehaviour(RollerTerrainBehaviour.TYPE);
+            if (terrain != null) {
+                return original.call(player, terrain, packet);
+            }
+        }
+        return original.call(player, behaviour, packet);
     }
 
     @Unique
