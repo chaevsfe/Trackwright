@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_25",
   "minVersion": "0.8.3",
   "client": [
+    "LevelExtractorMixin",
     "ScheduleScreenMixin",
     "ScreenEffectRendererMixin",
     "ScrollInputAccessor",
