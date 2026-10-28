@@ -124,5 +124,8 @@
   "trackwright.schedule.contraption_controls.slot_1": "Place a drill, roller, harvester or other actor here",
   "trackwright.schedule.contraption_controls.slot_2": "Leave it empty to switch every actor on the train",
   "trackwright.schedule.contraption_controls.server_off": "Turned off on this server, so trains skip this step",
-  "trackwright.schedule.needs_trackwright": "This schedule has Trackwright steps, so it can only be changed with Trackwright installed"
+  "trackwright.schedule.needs_trackwright": "This schedule has Trackwright steps, so it can only be changed with Trackwright installed",
+  "trackwright.roller.terrain": "Terrain",
+  "trackwright.roller.terrain.everything": "Everything",
+  "trackwright.roller.terrain.reshape": "Reshape: filter block only"
 }

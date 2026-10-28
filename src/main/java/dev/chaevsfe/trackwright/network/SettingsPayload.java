@@ -12,7 +12,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
 public record SettingsPayload(int version, CompoundTag fields) implements CustomPacketPayload {
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
     public static final Type<SettingsPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "settings"));
     public static final StreamCodec<ByteBuf, SettingsPayload> STREAM_CODEC = StreamCodec.composite(
         ByteBufCodecs.VAR_INT, SettingsPayload::version,
@@ -36,6 +36,8 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
         fields.putBoolean(ServerConfig.ROLLERS_IGNORE_FLUIDS, settings.rollersIgnoreFluids());
         fields.putBoolean(ServerConfig.CONTRAPTION_CONTROLS_SCHEDULE, settings.contraptionControlsSchedule());
         fields.putBoolean(ServerConfig.TRAIN_DRILLS_FULL_FACE, settings.trainDrillsFullFace());
+        fields.putBoolean(ServerConfig.ROLLERS_NEED_GROUND, settings.rollersNeedGround());
+        fields.putBoolean(ServerConfig.ROLLER_RESHAPE, settings.rollerReshape());
         return new SettingsPayload(VERSION, fields);
     }
 
@@ -54,7 +56,9 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
             fields.getBooleanOr(ServerConfig.ROLLERS_CLEAR_POWDER_SNOW, false),
             fields.getBooleanOr(ServerConfig.ROLLERS_IGNORE_FLUIDS, false),
             fields.getBooleanOr(ServerConfig.CONTRAPTION_CONTROLS_SCHEDULE, false),
-            fields.getBooleanOr(ServerConfig.TRAIN_DRILLS_FULL_FACE, false)
+            fields.getBooleanOr(ServerConfig.TRAIN_DRILLS_FULL_FACE, false),
+            fields.getBooleanOr(ServerConfig.ROLLERS_NEED_GROUND, false),
+            fields.getBooleanOr(ServerConfig.ROLLER_RESHAPE, false)
         );
     }
 

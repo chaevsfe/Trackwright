@@ -1,6 +1,9 @@
 package dev.chaevsfe.trackwright.client;
 
 import dev.chaevsfe.trackwright.Trackwright;
+import com.zurrtum.create.AllBlockEntityTypes;
+import com.zurrtum.create.client.AllBlockEntityBehaviours;
+import dev.chaevsfe.trackwright.client.actors.RollerTerrainScroll;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
@@ -30,6 +33,8 @@ public final class TrackwrightClient implements ClientModInitializer {
     public void onInitializeClient() {
         Trackwright.loadHookedClasses(
             "com.zurrtum.create.client.content.trains.schedule.ScheduleScreen",
+            "com.zurrtum.create.client.foundation.blockEntity.behaviour.ValueSettingsInputHandler",
+            "com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.ScrollValueRenderer",
             "com.zurrtum.create.client.content.trains.track.TrackPlacementClient",
             "com.zurrtum.create.client.content.trains.track.TrackPlacementOverlay",
             "com.zurrtum.create.client.content.trains.track.TrackRenderer",
@@ -40,6 +45,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             "net.minecraft.client.renderer.ScreenEffectRenderer"
         );
         ClientConfig.load();
+        AllBlockEntityBehaviours.add(AllBlockEntityTypes.MECHANICAL_ROLLER, RollerTerrainScroll::new);
         ActorStepsClient.register();
         KeyMapping.Category category = KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "trackwright"));
         WidestTurnLock.register(category);

@@ -25,6 +25,7 @@ public final class Trackwright implements ModInitializer {
             "com.zurrtum.create.AllHandle",
             "com.zurrtum.create.catnip.config.ConfigBase$CValue",
             "com.zurrtum.create.content.contraptions.Contraption",
+            "com.zurrtum.create.content.contraptions.actors.roller.RollerBlockEntity",
             "com.zurrtum.create.content.contraptions.actors.roller.RollerMovementBehaviour",
             "com.zurrtum.create.content.contraptions.actors.seat.SeatMovementBehaviour",
             "com.zurrtum.create.content.kinetics.base.BlockBreakingMovementBehaviour",

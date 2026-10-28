@@ -13,6 +13,7 @@
     "LivingEntityMixin",
     "NavigationMixin",
     "PlacementInfoMixin",
+    "RollerBlockEntityMixin",
     "RollerMovementBehaviourMixin",
     "SeatMovementBehaviourMixin",
     "ServerGamePacketListenerImplMixin",
