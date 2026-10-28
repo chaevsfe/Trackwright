@@ -5,6 +5,7 @@ import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.zurrtum.create.infrastructure.component.ConnectingFrom;
 import com.zurrtum.create.infrastructure.config.AllConfigs;
 import com.zurrtum.create.infrastructure.config.CServer;
+import dev.chaevsfe.trackwright.config.BoreProfile;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.track.BoreAccess;
@@ -268,10 +269,9 @@ public final class GuideLines {
             lines.add(Component.translatable(key, count, toolName, white(Integer.toString(bore.wear())), white(Integer.toString(bore.usesLeft())))
                 .withStyle(ChatFormatting.GOLD));
         }
-        String tunnel = bore.creative()
-            ? refused ? "trackwright.guide.bore_tunnel_creative_would" : "trackwright.guide.bore_tunnel_creative"
-            : refused ? "trackwright.guide.bore_tunnel_would" : "trackwright.guide.bore_tunnel";
-        lines.add(line(tunnel, Integer.toString(bore.headroom() + 1)));
+        if (!bore.creative()) {
+            lines.add(Component.translatable(refused ? "trackwright.guide.bore_tunnel_would" : "trackwright.guide.bore_tunnel").withStyle(ChatFormatting.GRAY));
+        }
         BlockMiner.Problem problem = bore.problem();
         if (problem != null && problem.refusal() != BlockMiner.Refusal.NOT_LOADED) {
             lines.add(Component.translatable("trackwright.guide.bore_problem", problem.state().getBlock().getName().withStyle(ChatFormatting.WHITE),
@@ -280,6 +280,11 @@ public final class GuideLines {
         if (bore.trackCells().isEmpty() && !bore.bodyCells().isEmpty()) {
             lines.add(Component.translatable("trackwright.guide.bore_optional").withStyle(ChatFormatting.GRAY));
         }
+    }
+
+    public static Component profileLine(BoreProfile profile) {
+        return line("trackwright.guide.bore_profile", Integer.toString(profile.width()), Integer.toString(profile.height()),
+            Integer.toString(profile.left()), Integer.toString(profile.right()), Integer.toString(profile.up()));
     }
 
     private static Component white(String text) {

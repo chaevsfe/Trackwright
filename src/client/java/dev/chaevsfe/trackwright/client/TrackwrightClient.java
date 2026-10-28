@@ -6,6 +6,7 @@ import com.zurrtum.create.client.AllBlockEntityBehaviours;
 import dev.chaevsfe.trackwright.client.actors.RollerTerrainScroll;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
+import dev.chaevsfe.trackwright.client.guide.BoreShaping;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
 import dev.chaevsfe.trackwright.client.guide.UndoKey;
@@ -15,6 +16,7 @@ import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.network.SettingsPayload;
 import dev.chaevsfe.trackwright.network.UndoStatePayload;
+import dev.chaevsfe.trackwright.track.BoreProfiles;
 import dev.chaevsfe.trackwright.track.Messages;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
@@ -42,6 +44,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             "com.zurrtum.create.client.foundation.gui.widget.ScrollInput",
             "com.zurrtum.create.content.trains.graph.TrackGraph",
             "net.minecraft.client.renderer.extract.LevelExtractor",
+            "net.minecraft.client.MouseHandler",
             "net.minecraft.client.renderer.ScreenEffectRenderer"
         );
         ClientConfig.load();
@@ -50,6 +53,8 @@ public final class TrackwrightClient implements ClientModInitializer {
         KeyMapping.Category category = KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "trackwright"));
         WidestTurnLock.register(category);
         UndoKey.register(category);
+        BoreShaping.register(category);
+        BoreProfiles.setClientSource(BoreShaping::request);
         ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> receiveSettings(payload));
         ClientPlayNetworking.registerGlobalReceiver(UndoStatePayload.TYPE, (payload, context) -> UndoKey.receive(payload));
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
@@ -58,6 +63,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             ActionBarHold.reset();
             TrackGuide.reset();
             FarEnd.reset();
+            BoreShaping.reset();
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             RemoteSettings.clear();
@@ -65,6 +71,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             ActionBarHold.reset();
             TrackGuide.reset();
             FarEnd.reset();
+            BoreShaping.reset();
         });
         ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
             if (overlay && Messages.isOwnOverlay(message)) {
@@ -77,6 +84,7 @@ public final class TrackwrightClient implements ClientModInitializer {
         UseBlockCallback.EVENT.register(WidestTurnLock::beforeBlockUse);
         ClientTickEvents.END_CLIENT_TICK.register(WidestTurnLock::tick);
         ClientTickEvents.END_CLIENT_TICK.register(UndoKey::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(BoreShaping::tick);
         HudElementRegistry.attachElementBefore(
             VanillaHudElements.CHAT,
             Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "track_guide"),

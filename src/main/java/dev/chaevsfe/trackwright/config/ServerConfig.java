@@ -13,6 +13,12 @@ public final class ServerConfig {
     public static final String PROTECT_TRAIN_PASSENGERS = "protectTrainPassengers";
     public static final String BORE_THROUGH_BLOCKS = "boreThroughBlocks";
     public static final String BORE_HEADROOM = "boreHeadroom";
+    public static final String BORE_WIDTH_MAX = "boreWidthMax";
+    public static final String BORE_HEADROOM_MAX = "boreHeadroomMax";
+    public static final String BORE_PROFILE_DEFAULT = "boreProfileDefault";
+    public static final String LEFT = "left";
+    public static final String RIGHT = "right";
+    public static final String UP = "up";
     public static final String BORE_LAVA_CHECK = "boreLavaCheck";
     public static final String BORE_MAX_HARDNESS = "boreMaxHardness";
     public static final String REFUSE_BLOCKED_TRACK_ENDS = "refuseBlockedTrackEnds";
@@ -49,9 +55,9 @@ public final class ServerConfig {
         synchronized (ServerConfig.class) {
             current = settings;
         }
-        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreHeadroom={}, boreLavaCheck={}, boreMaxHardness={}, refuseBlockedTrackEnds={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}, rollersNeedGround={}, rollerReshape={}",
+        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreWidthMax={}, boreHeadroomMax={}, boreProfileDefault={}, boreLavaCheck={}, boreMaxHardness={}, refuseBlockedTrackEnds={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}, rollersNeedGround={}, rollerReshape={}",
             settings.straightThroughBlocks(), settings.maxConnectionLength(), settings.protectTrainPassengers(), settings.boreThroughBlocks(),
-            settings.boreHeadroom(), settings.boreLavaCheck(), settings.boreMaxHardness(), settings.refuseBlockedTrackEnds(), settings.protectTrackEquipment(),
+            settings.boreWidthMax(), settings.boreHeadroomMax(), settings.boreProfileDefault(), settings.boreLavaCheck(), settings.boreMaxHardness(), settings.refuseBlockedTrackEnds(), settings.protectTrackEquipment(),
             settings.rollersSkipAirPaving(), settings.rollersClearPowderSnow(), settings.rollersIgnoreFluids(), settings.contraptionControlsSchedule(),
             settings.trainDrillsFullFace(), settings.rollersNeedGround(), settings.rollerReshape());
         return settings;
@@ -71,6 +77,9 @@ public final class ServerConfig {
         Boolean protect = JsonConfigFile.readBoolean(json, PROTECT_TRAIN_PASSENGERS);
         String boreText = JsonConfigFile.readString(json, BORE_THROUGH_BLOCKS);
         Integer headroom = JsonConfigFile.readInt(json, BORE_HEADROOM);
+        Integer widthMax = JsonConfigFile.readInt(json, BORE_WIDTH_MAX);
+        Integer headroomMax = JsonConfigFile.readInt(json, BORE_HEADROOM_MAX);
+        JsonObject profileJson = json.get(BORE_PROFILE_DEFAULT) instanceof JsonObject object ? object : null;
         Boolean lava = JsonConfigFile.readBoolean(json, BORE_LAVA_CHECK);
         Double hardness = JsonConfigFile.readDouble(json, BORE_MAX_HARDNESS);
         Boolean refuseEnds = JsonConfigFile.readBoolean(json, REFUSE_BLOCKED_TRACK_ENDS);
@@ -108,12 +117,40 @@ public final class ServerConfig {
                 bore = BoreMode.OFF;
             }
         }
-        if (headroom == null) {
-            headroom = defaults.boreHeadroom();
+        if (widthMax == null) {
+            widthMax = defaults.boreWidthMax();
             complete = false;
-        } else if (headroom != TrackwrightSettings.clampHeadroom(headroom)) {
-            Trackwright.LOGGER.warn("{} {} is outside 0..{}, using {}", BORE_HEADROOM, headroom, TrackwrightSettings.MAX_BORE_HEADROOM,
-                TrackwrightSettings.clampHeadroom(headroom));
+        } else if (widthMax != TrackwrightSettings.clampWidthMax(widthMax)) {
+            Trackwright.LOGGER.warn("{} {} is outside 1..{}, using {}", BORE_WIDTH_MAX, widthMax, TrackwrightSettings.MAX_BORE_WIDTH,
+                TrackwrightSettings.clampWidthMax(widthMax));
+        }
+        if (headroomMax == null) {
+            headroomMax = defaults.boreHeadroomMax();
+            complete = false;
+        } else if (headroomMax != TrackwrightSettings.clampHeadroom(headroomMax)) {
+            Trackwright.LOGGER.warn("{} {} is outside 0..{}, using {}", BORE_HEADROOM_MAX, headroomMax, TrackwrightSettings.MAX_BORE_HEADROOM,
+                TrackwrightSettings.clampHeadroom(headroomMax));
+        }
+        BoreProfile profile = profileJson == null ? null : readProfile(profileJson, defaults.boreProfileDefault());
+        boolean migrated = false;
+        if (profile == null || !complete(profileJson)) {
+            complete = false;
+        }
+        if (profile == null) {
+            BoreProfile base = defaults.boreProfileDefault();
+            if (headroom != null && headroom != TrackwrightSettings.LEGACY_HEADROOM_DEFAULT) {
+                profile = base.withUp(headroom);
+                migrated = true;
+                Trackwright.LOGGER.info("{} {} from an older config becomes the default up extent of {}", BORE_HEADROOM, headroom, BORE_PROFILE_DEFAULT);
+            } else {
+                profile = base;
+                migrated = headroom != null;
+            }
+        }
+        BoreProfile clamped = profile.clamp(TrackwrightSettings.clampWidthMax(widthMax), TrackwrightSettings.clampHeadroom(headroomMax));
+        if (!clamped.equals(profile)) {
+            Trackwright.LOGGER.warn("{} {} does not fit {} {} and {} {}, using {}", BORE_PROFILE_DEFAULT, profile, BORE_WIDTH_MAX, widthMax,
+                BORE_HEADROOM_MAX, headroomMax, clamped);
         }
         if (lava == null) {
             lava = defaults.boreLavaCheck();
@@ -161,7 +198,7 @@ public final class ServerConfig {
             reshape = defaults.rollerReshape();
             complete = false;
         }
-        TrackwrightSettings settings = new TrackwrightSettings(straight, length, protect, bore, headroom, lava, hardness, refuseEnds,
+        TrackwrightSettings settings = new TrackwrightSettings(straight, length, protect, bore, widthMax, headroomMax, profile, lava, hardness, refuseEnds,
             equipment, airPaving, powderSnow, fluids, controls, drillFace, needGround, reshape);
         if (contents.writable() && !complete) {
             JsonObject known = new JsonObject();
@@ -169,7 +206,13 @@ public final class ServerConfig {
             known.addProperty(MAX_CONNECTION_LENGTH, length);
             known.addProperty(PROTECT_TRAIN_PASSENGERS, settings.protectTrainPassengers());
             known.addProperty(BORE_THROUGH_BLOCKS, boreText != null ? boreText : settings.boreThroughBlocks().id());
-            known.addProperty(BORE_HEADROOM, headroom);
+            known.addProperty(BORE_WIDTH_MAX, widthMax);
+            known.addProperty(BORE_HEADROOM_MAX, headroomMax);
+            JsonObject profileOut = new JsonObject();
+            profileOut.addProperty(LEFT, profile.left());
+            profileOut.addProperty(RIGHT, profile.right());
+            profileOut.addProperty(UP, profile.up());
+            known.add(BORE_PROFILE_DEFAULT, profileOut);
             known.addProperty(BORE_LAVA_CHECK, settings.boreLavaCheck());
             known.addProperty(BORE_MAX_HARDNESS, hardness);
             known.addProperty(REFUSE_BLOCKED_TRACK_ENDS, settings.refuseBlockedTrackEnds());
@@ -181,8 +224,24 @@ public final class ServerConfig {
             known.addProperty(TRAIN_DRILLS_FULL_FACE, settings.trainDrillsFullFace());
             known.addProperty(ROLLERS_NEED_GROUND, settings.rollersNeedGround());
             known.addProperty(ROLLER_RESHAPE, settings.rollerReshape());
-            JsonConfigFile.write(path, known, json);
+            JsonObject existing = json;
+            if (migrated) {
+                existing = json.deepCopy();
+                existing.remove(BORE_HEADROOM);
+            }
+            JsonConfigFile.write(path, known, existing);
         }
         return settings;
+    }
+
+    private static boolean complete(JsonObject profile) {
+        return JsonConfigFile.readInt(profile, LEFT) != null && JsonConfigFile.readInt(profile, RIGHT) != null && JsonConfigFile.readInt(profile, UP) != null;
+    }
+
+    private static BoreProfile readProfile(JsonObject profile, BoreProfile defaults) {
+        Integer left = JsonConfigFile.readInt(profile, LEFT);
+        Integer right = JsonConfigFile.readInt(profile, RIGHT);
+        Integer up = JsonConfigFile.readInt(profile, UP);
+        return new BoreProfile(left != null ? left : defaults.left(), right != null ? right : defaults.right(), up != null ? up : defaults.up());
     }
 }

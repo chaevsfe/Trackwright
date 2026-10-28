@@ -59,7 +59,7 @@ public abstract class TrackPlacementMixin {
         if (!flat || !skipCurve.get()) {
             return flat;
         }
-        PlacementRules.Straight straight = PlacementRules.decideStraight(level, player, pos1, state2, axis1, axis2, info.end1Extent);
+        PlacementRules.Straight straight = PlacementRules.decideStraight(level, player, info, pos1, state2, axis1, axis2, info.end1Extent);
         PlacementInfoExtension extension = (PlacementInfoExtension) info;
         extension.trackwright$setBoreAccess(straight.access());
         if (straight.unseen()) {
