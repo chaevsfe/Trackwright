@@ -1,11 +1,11 @@
 package dev.chaevsfe.trackwright.client.guide;
 
 import com.zurrtum.create.AllDataComponents;
-import com.zurrtum.create.AllItemTags;
 import com.zurrtum.create.content.trains.track.ITrackBlock;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.config.ClientSettings;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
+import dev.chaevsfe.trackwright.track.TrackItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -84,10 +84,10 @@ public final class AimHelp {
 
     static boolean holdsSelection(LocalPlayer player) {
         ItemStack stack = player.getMainHandItem();
-        if (!stack.is(AllItemTags.TRACKS)) {
+        if (!TrackItems.isTrack(stack)) {
             stack = player.getOffhandItem();
         }
-        return stack.is(AllItemTags.TRACKS) && stack.has(AllDataComponents.TRACK_CONNECTING_FROM);
+        return TrackItems.isTrack(stack) && stack.has(AllDataComponents.TRACK_CONNECTING_FROM);
     }
 
     private static BlockHitResult groundUnderPlant(Level level, BlockHitResult hit) {

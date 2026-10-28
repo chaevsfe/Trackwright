@@ -31,6 +31,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.Predicate;
+import dev.chaevsfe.trackwright.track.TrackItems;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 
 @Mixin(TrackPlacementClient.class)
 public abstract class TrackPlacementClientMixin {
@@ -97,5 +100,15 @@ public abstract class TrackPlacementClientMixin {
         TrackPlacement.PlacementInfo info = original.call(level, player, target, state, stack, girder, maximiseTurn);
         TrackGuide.capture(level, player, target, state, stack, maximiseTurn, info);
         return info;
+    }
+
+    @WrapOperation(method = "clientTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/tags/TagKey;)Z"))
+    private static boolean trackwright$previewByBlockTag(ItemStack stack, TagKey<Item> tag, Operation<Boolean> original) {
+        return TrackItems.is(stack, tag, original.call(stack, tag));
+    }
+
+    @WrapOperation(method = "sendExtenderPacket", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/tags/TagKey;)Z"))
+    private static boolean trackwright$extenderByBlockTag(ItemStack stack, TagKey<Item> tag, Operation<Boolean> original) {
+        return TrackItems.is(stack, tag, original.call(stack, tag));
     }
 }
