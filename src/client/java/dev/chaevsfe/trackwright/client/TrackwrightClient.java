@@ -82,6 +82,7 @@ public final class TrackwrightClient implements ClientModInitializer {
         ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) -> FarEnd.endUnloaded(blockEntity));
         ClientTickEvents.END_CLIENT_TICK.register(FarEnd::refresh);
         UseBlockCallback.EVENT.register(WidestTurnLock::beforeBlockUse);
+        UseBlockCallback.EVENT.register(BoreShaping::beforeBlockUse);
         ClientTickEvents.END_CLIENT_TICK.register(WidestTurnLock::tick);
         ClientTickEvents.END_CLIENT_TICK.register(UndoKey::tick);
         ClientTickEvents.END_CLIENT_TICK.register(BoreShaping::tick);

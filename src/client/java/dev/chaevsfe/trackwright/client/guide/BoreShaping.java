@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright.client.guide;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.zurrtum.create.AllDataComponents;
+import com.zurrtum.create.content.trains.track.ITrackBlock;
 import com.zurrtum.create.content.trains.track.TrackMaterial;
 import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.zurrtum.create.infrastructure.component.ConnectingFrom;
@@ -18,11 +19,15 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -87,11 +92,25 @@ public final class BoreShaping {
     }
 
     public static void beforeUse(UseOnContext context) {
-        if (!context.getLevel().isClientSide() || context.getHand() != InteractionHand.MAIN_HAND
-            || !context.getItemInHand().has(AllDataComponents.TRACK_CONNECTING_FROM) || !ClientPlayNetworking.canSend(PlacementPayload.TYPE)) {
-            return;
+        if (wanted(context.getLevel(), context.getHand(), context.getItemInHand()) && !onTrackBlock(context.getLevel(), context.getClickedPos())) {
+            ClientPlayNetworking.send(PlacementPayload.of(shaped));
         }
-        ClientPlayNetworking.send(PlacementPayload.of(shaped));
+    }
+
+    public static InteractionResult beforeBlockUse(Player player, Level level, InteractionHand hand, BlockHitResult hit) {
+        if (player instanceof LocalPlayer && wanted(level, hand, player.getItemInHand(hand)) && onTrackBlock(level, hit.getBlockPos())) {
+            ClientPlayNetworking.send(PlacementPayload.of(shaped));
+        }
+        return InteractionResult.PASS;
+    }
+
+    private static boolean wanted(Level level, InteractionHand hand, ItemStack stack) {
+        return level.isClientSide() && hand == InteractionHand.MAIN_HAND && stack.has(AllDataComponents.TRACK_CONNECTING_FROM)
+            && ClientPlayNetworking.canSend(PlacementPayload.TYPE);
+    }
+
+    private static boolean onTrackBlock(Level level, BlockPos pos) {
+        return level.getBlockState(pos).getBlock() instanceof ITrackBlock;
     }
 
     public static @Nullable ItemStack heldTrack(Player player) {
