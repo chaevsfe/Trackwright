@@ -5,16 +5,22 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
+import com.zurrtum.create.content.trains.track.BezierConnection;
 import com.zurrtum.create.content.trains.track.TrackPlacement;
+import dev.chaevsfe.trackwright.track.BridgePaving;
 import dev.chaevsfe.trackwright.track.ConnectionLength;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import dev.chaevsfe.trackwright.track.PlacementRules;
+import dev.chaevsfe.trackwright.track.TrackItems;
 import dev.chaevsfe.trackwright.track.UnloadedStart;
 import dev.chaevsfe.trackwright.undo.UndoRecorder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.objectweb.asm.Opcodes;
@@ -22,9 +28,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import dev.chaevsfe.trackwright.track.TrackItems;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
+
+import java.util.Set;
 
 @Mixin(TrackPlacement.class)
 public abstract class TrackPlacementMixin {
@@ -189,5 +194,24 @@ public abstract class TrackPlacementMixin {
     @WrapOperation(method = "tryConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/tags/TagKey;)Z"))
     private static boolean trackwright$countTracksByBlockTag(ItemStack stack, TagKey<Item> tag, Operation<Boolean> original) {
         return TrackItems.is(stack, tag, original.call(stack, tag));
+    }
+
+    @WrapOperation(
+        method = "paveTracks",
+        at = @At(
+            value = "INVOKE",
+            target = "Lcom/zurrtum/create/content/trains/track/TrackPaver;paveCurve(Lnet/minecraft/world/level/Level;Lcom/zurrtum/create/content/trains/track/BezierConnection;Lnet/minecraft/world/level/block/Block;ZLjava/util/Set;)I"
+        )
+    )
+    private static int trackwright$paveBridgeOncePerBlock(
+        Level level,
+        BezierConnection curve,
+        Block block,
+        boolean simulate,
+        Set<BlockPos> visited,
+        Operation<Integer> original,
+        @Local(argsOnly = true) TrackPlacement.PlacementInfo info
+    ) {
+        return BridgePaving.itemsNeeded(info, block, original.call(level, curve, block, simulate, visited));
     }
 }
