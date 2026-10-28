@@ -3,6 +3,7 @@ package dev.chaevsfe.trackwright;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
+import dev.chaevsfe.trackwright.track.BoreProfiles;
 import dev.chaevsfe.trackwright.track.PassengerResync;
 import dev.chaevsfe.trackwright.undo.UndoCommand;
 import dev.chaevsfe.trackwright.undo.UndoJournal;
@@ -51,6 +52,8 @@ public final class Trackwright implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(UndoJournal::tick);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> UndoJournal.clearAll());
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> UndoJournal.forget(handler.player.getUUID()));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> BoreProfiles.forget(handler.player.getUUID()));
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> BoreProfiles.clearAll());
         ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> UndoJournal.clear(player));
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> UndoCommand.register(dispatcher));
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
