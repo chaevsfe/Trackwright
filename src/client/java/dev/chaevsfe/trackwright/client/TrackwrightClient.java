@@ -36,6 +36,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             "com.zurrtum.create.client.content.trains.track.TrackVisual",
             "com.zurrtum.create.client.foundation.gui.widget.ScrollInput",
             "com.zurrtum.create.content.trains.graph.TrackGraph",
+            "net.minecraft.client.renderer.extract.LevelExtractor",
             "net.minecraft.client.renderer.ScreenEffectRenderer"
         );
         ClientConfig.load();
