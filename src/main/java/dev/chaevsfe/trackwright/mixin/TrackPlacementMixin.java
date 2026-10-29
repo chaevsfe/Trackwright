@@ -57,7 +57,7 @@ public abstract class TrackPlacementMixin {
             return flat;
         }
         PlacementInfoExtension extension = (PlacementInfoExtension) info;
-        PlacementRules.Straight straight = PlacementRules.decideStraight(level, player, pos1, state2, axis1, axis2, extension.trackwright$end1Extent());
+        PlacementRules.Straight straight = PlacementRules.decideStraight(level, player, info, pos1, state2, axis1, axis2, extension.trackwright$end1Extent());
         extension.trackwright$setBoreAccess(straight.access());
         if (straight.unseen()) {
             extension.trackwright$setGuessed(true);

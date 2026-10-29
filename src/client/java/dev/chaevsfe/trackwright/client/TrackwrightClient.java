@@ -5,6 +5,7 @@ import dev.chaevsfe.trackwright.actors.RollerTerrainBehaviour;
 import dev.chaevsfe.trackwright.client.actors.RollerTerrainSlot;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
+import dev.chaevsfe.trackwright.client.guide.BoreShaping;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
 import dev.chaevsfe.trackwright.client.guide.UndoKey;
@@ -13,6 +14,7 @@ import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.network.SettingsPayload;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
+import dev.chaevsfe.trackwright.track.BoreProfiles;
 import dev.chaevsfe.trackwright.track.Messages;
 import dev.chaevsfe.trackwright.track.PassengerProtection;
 import net.minecraft.client.Minecraft;
@@ -25,6 +27,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientChatReceivedEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
@@ -40,11 +43,13 @@ public final class TrackwrightClient {
     public TrackwrightClient(IEventBus modBus) {
         ClientConfig.load();
         RollerTerrainBehaviour.slots(RollerTerrainSlot::new);
+        BoreProfiles.setClientSource(BoreShaping::request);
         TrackwrightNetwork.receiveOnClient(TrackwrightClient::receiveSettings, UndoKey::receive);
         modBus.addListener(FMLClientSetupEvent.class, event -> event.enqueueWork(TrackwrightClient::loadHookedClasses));
         modBus.addListener(RegisterKeyMappingsEvent.class, event -> {
             event.register(WidestTurnLock.create());
             event.register(UndoKey.create());
+            event.register(BoreShaping.create());
         });
         modBus.addListener(RegisterGuiLayersEvent.class, event -> event.registerBelow(VanillaGuiLayers.CHAT, GUIDE_LAYER, TrackGuideHud::render));
         IEventBus game = NeoForge.EVENT_BUS;
@@ -60,8 +65,14 @@ public final class TrackwrightClient {
             FarEnd.refresh(mc);
             WidestTurnLock.tick(mc);
             UndoKey.tick(mc);
+            BoreShaping.tick(mc);
         });
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, WidestTurnLock::beforeBlockUse);
+        game.addListener(InputEvent.MouseScrollingEvent.class, event -> {
+            if (BoreShaping.onScroll((int) Math.signum(event.getScrollDeltaY()))) {
+                event.setCanceled(true);
+            }
+        });
         game.addListener(RenderBlockScreenEffectEvent.class, event -> {
             if (event.getOverlayType() == RenderBlockScreenEffectEvent.OverlayType.BLOCK && PassengerProtection.isProtectedOnClient(event.getPlayer())) {
                 event.setCanceled(true);
@@ -91,6 +102,7 @@ public final class TrackwrightClient {
         ActionBarHold.reset();
         TrackGuide.reset();
         FarEnd.reset();
+        BoreShaping.reset();
     }
 
     private static void receiveSettings(SettingsPayload payload) {

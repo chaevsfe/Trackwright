@@ -8,11 +8,13 @@ import com.simibubi.create.content.trains.track.TrackBlock;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.simibubi.create.content.trains.track.TrackShape;
 import dev.chaevsfe.trackwright.config.BoreMode;
+import dev.chaevsfe.trackwright.config.BoreProfile;
 import dev.chaevsfe.trackwright.config.Sides;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.undo.UndoMessages;
 import dev.chaevsfe.trackwright.undo.UndoRecorder;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
@@ -99,7 +101,8 @@ public final class PlacementRules {
             : boreAllowed ? BoreAccess.NO_TOOL : BoreAccess.NONE;
     }
 
-    public static Straight decideStraight(Level level, Player player, BlockPos pos1, BlockState end2, Vec3 axis1, Vec3 axis2, int cells) {
+    public static Straight decideStraight(Level level, Player player, PlacementInfo info, BlockPos pos1, BlockState end2, Vec3 axis1, Vec3 axis2,
+                                          int cells) {
         TrackwrightSettings settings = Sides.forLevel(level);
         if (settings == null || cells < 3) {
             return Straight.KEEP;
@@ -127,7 +130,14 @@ public final class PlacementRules {
         List<BlockPos> blocked = new ArrayList<>(scan.blocked.keySet());
         BoreAccess access = access(settings, tool, boreAllowed);
         if (bore) {
-            return new Straight(false, scan.unseen, blocked, BorePlan.of(level, player, path, new HashSet<>(blocked), Set.of(), scan.unloaded, scan.unseen, settings), access);
+            BlockPos pos2 = line.at(cells - 1);
+            BoreProfile profile = BoreProfiles.resolve(level, player, info.trackMaterial, settings);
+            if (BridgeConversion.existing(level, pos1, pos2) != null) {
+                profile = new BoreProfile(0, 0, profile.up());
+            }
+            BoreBand.Line seeds = new BoreBand.Builder().cell(pos1).cells(path).cell(pos2).centre(pos1).centre(pos2).build();
+            BorePlan plan = BorePlan.of(level, player, path, new HashSet<>(blocked), Set.of(), seeds, profile, scan.unloaded, scan.unseen, settings);
+            return new Straight(false, scan.unseen, blocked, plan, access);
         }
         if (bridges && !scan.trackInside) {
             return new Straight(true, scan.unseen, blocked, null, access);
@@ -246,7 +256,7 @@ public final class PlacementRules {
                 return null;
             }
             Gap gap = Gap.of(endScan.blocked, ends.starts());
-            if (access == BoreAccess.NO_TOOL && !boreCouldClear(level, info, ends, pos1, pos2, endScan, settings)) {
+            if (access == BoreAccess.NO_TOOL && !boreCouldClear(level, player, info, ends, pos1, pos2, endScan, settings)) {
                 access = BoreAccess.NONE;
             }
             extension.trackwright$setBoreAccess(access);
@@ -261,7 +271,9 @@ public final class PlacementRules {
             return null;
         }
         extension.trackwright$setBoreAccess(BoreAccess.ALLOWED);
-        BorePlan plan = BorePlan.of(level, player, route.path(), route.blocked(), route.bodyCells(), route.unloaded(), route.unseen(), settings);
+        BoreProfile profile = BoreProfiles.resolve(level, player, info.trackMaterial, settings);
+        BorePlan plan = BorePlan.of(level, player, route.path(), route.blocked(), route.bodyCells(), route.seeds(), profile, route.unloaded(),
+            route.unseen(), settings);
         extension.trackwright$setBore(plan);
         if (plan.guessed()) {
             extension.trackwright$setGuessed(true);
@@ -269,8 +281,23 @@ public final class PlacementRules {
         return null;
     }
 
-    private record Route(List<BlockPos> path, Set<BlockPos> blocked, Set<BlockPos> bodyCells, @Nullable BlockPos unloaded, boolean unseen,
-                         boolean bodyClear) {
+    private record Route(List<BlockPos> path, Set<BlockPos> blocked, Set<BlockPos> bodyCells, BoreBand.Line seeds, @Nullable BlockPos unloaded,
+                         boolean unseen, boolean bodyClear) {
+    }
+
+    private static void curvePoints(BoreBand.Builder builder, BezierConnection curve, BlockPos pos1) {
+        Vec3 start = curve.starts.getFirst();
+        Vec3 end = curve.starts.getSecond();
+        double handle = curve.getHandleLength();
+        Vec3 control1 = start.add(curve.axes.getFirst().scale(handle));
+        Vec3 control2 = end.add(curve.axes.getSecond().scale(handle));
+        Vec3 centre = Vec3.atCenterOf(pos1);
+        boolean reversed = start.distanceToSqr(centre) > end.distanceToSqr(centre);
+        int samples = Math.max(8, (int) Math.ceil(curve.getLength() * 4));
+        for (int i = 0; i <= samples; i++) {
+            float t = i / (float) samples;
+            builder.point(VecHelper.bezier(start, end, control1, control2, reversed ? 1 - t : t));
+        }
     }
 
     private static Route route(Level level, PlacementInfo info, PathCells.Ends ends, BlockPos pos1, BlockPos pos2, PathScan endScan) {
@@ -302,11 +329,18 @@ public final class PlacementRules {
         Set<BlockPos> bodyCells = new HashSet<>(body.cells());
         bodyCells.addAll(beds);
         BlockPos unloaded = endScan.unloaded != null ? endScan.unloaded : bodyScan.unloaded;
-        return new Route(path, blocked, bodyCells, unloaded, endScan.unseen || bodyScan.unseen, bodyScan.blocked.isEmpty());
+        BoreBand.Builder line = new BoreBand.Builder().cell(pos1).cells(ends.first()).cells(body.cells()).cells(ends.second().reversed()).cell(pos2);
+        line.centre(pos1);
+        if (curve != null) {
+            curvePoints(line, curve, pos1);
+        }
+        line.centre(pos2);
+        BoreBand.Line seeds = line.build();
+        return new Route(path, blocked, bodyCells, seeds, unloaded, endScan.unseen || bodyScan.unseen, bodyScan.blocked.isEmpty());
     }
 
-    private static boolean boreCouldClear(Level level, PlacementInfo info, PathCells.Ends ends, BlockPos pos1, BlockPos pos2, PathScan endScan,
-                                          TrackwrightSettings settings) {
+    private static boolean boreCouldClear(Level level, Player player, PlacementInfo info, PathCells.Ends ends, BlockPos pos1, BlockPos pos2,
+                                          PathScan endScan, TrackwrightSettings settings) {
         if (endScan.unseen || endScan.unloaded != null) {
             return false;
         }
@@ -314,7 +348,9 @@ public final class PlacementRules {
         if (route.unseen() || route.unloaded() != null) {
             return false;
         }
-        BorePlan plan = BorePlan.of(level, ItemStack.EMPTY, true, route.path(), route.blocked(), route.bodyCells(), null, false, settings);
+        BoreProfile profile = BoreProfiles.resolve(level, player, info.trackMaterial, settings);
+        BorePlan plan = BorePlan.of(level, ItemStack.EMPTY, true, route.path(), route.blocked(), route.bodyCells(), route.seeds(), profile, null, false,
+            settings);
         if (plan.guessed() || plan.problem() != null) {
             return false;
         }

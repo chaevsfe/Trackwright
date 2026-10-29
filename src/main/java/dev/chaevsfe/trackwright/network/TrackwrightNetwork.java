@@ -1,6 +1,7 @@
 package dev.chaevsfe.trackwright.network;
 
 import dev.chaevsfe.trackwright.config.ServerConfig;
+import dev.chaevsfe.trackwright.track.BoreProfiles;
 import dev.chaevsfe.trackwright.undo.TrackUndo;
 import dev.chaevsfe.trackwright.undo.UndoJournal;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -28,6 +29,11 @@ public final class TrackwrightNetwork {
         PayloadRegistrar registrar = event.registrar(PROTOCOL).optional();
         registrar.playToClient(SettingsPayload.TYPE, SettingsPayload.STREAM_CODEC, (payload, context) -> settingsReceiver.accept(payload));
         registrar.playToClient(UndoStatePayload.TYPE, UndoStatePayload.STREAM_CODEC, (payload, context) -> undoStateReceiver.accept(payload));
+        registrar.playToServer(PlacementPayload.TYPE, PlacementPayload.STREAM_CODEC, (payload, context) -> {
+            if (context.player() instanceof ServerPlayer player) {
+                BoreProfiles.receive(player, payload.request());
+            }
+        });
         registrar.playToServer(UndoPayload.TYPE, UndoPayload.STREAM_CODEC, (payload, context) -> {
             if (context.player() instanceof ServerPlayer player && UndoJournal.acceptRequest(player)) {
                 TrackUndo.undoAndTell(player);

@@ -3,6 +3,7 @@ package dev.chaevsfe.trackwright;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
+import dev.chaevsfe.trackwright.track.BoreProfiles;
 import dev.chaevsfe.trackwright.track.PassengerResync;
 import dev.chaevsfe.trackwright.undo.UndoCommand;
 import dev.chaevsfe.trackwright.undo.UndoJournal;
@@ -38,6 +39,7 @@ public final class Trackwright {
         game.addListener(ServerStoppedEvent.class, event -> {
             PassengerResync.clear();
             UndoJournal.clearAll();
+            BoreProfiles.clearAll();
         });
         game.addListener(ServerTickEvent.Post.class, event -> {
             PassengerResync.tick(event.getServer());
@@ -49,7 +51,10 @@ public final class Trackwright {
             }
         });
         game.addListener(EventPriority.LOWEST, true, BlockEvent.EntityPlaceEvent.class, UndoJournal::placeEventPosted);
-        game.addListener(PlayerEvent.PlayerLoggedOutEvent.class, event -> UndoJournal.forget(event.getEntity().getUUID()));
+        game.addListener(PlayerEvent.PlayerLoggedOutEvent.class, event -> {
+            UndoJournal.forget(event.getEntity().getUUID());
+            BoreProfiles.forget(event.getEntity().getUUID());
+        });
         game.addListener(PlayerEvent.PlayerChangedDimensionEvent.class, event -> {
             if (event.getEntity() instanceof ServerPlayer player) {
                 UndoJournal.clear(player);

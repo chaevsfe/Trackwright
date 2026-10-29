@@ -3,10 +3,12 @@ package dev.chaevsfe.trackwright.network;
 import dev.chaevsfe.trackwright.TagReads;
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.config.BoreMode;
+import dev.chaevsfe.trackwright.config.BoreProfile;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -28,6 +30,9 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
         fields.putBoolean(ServerConfig.PROTECT_TRAIN_PASSENGERS, settings.protectTrainPassengers());
         fields.putString(ServerConfig.BORE_THROUGH_BLOCKS, settings.boreThroughBlocks().id());
         fields.putInt(ServerConfig.BORE_HEADROOM, settings.boreHeadroom());
+        fields.putInt(ServerConfig.BORE_WIDTH_MAX, settings.boreWidthMax());
+        fields.putInt(ServerConfig.BORE_HEADROOM_MAX, settings.boreHeadroomMax());
+        fields.put(ServerConfig.BORE_PROFILE_DEFAULT, profileTag(settings.boreProfileDefault()));
         fields.putBoolean(ServerConfig.BORE_LAVA_CHECK, settings.boreLavaCheck());
         fields.putDouble(ServerConfig.BORE_MAX_HARDNESS, settings.boreMaxHardness());
         fields.putBoolean(ServerConfig.REFUSE_BLOCKED_TRACK_ENDS, settings.refuseBlockedTrackEnds());
@@ -42,13 +47,32 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
         return new SettingsPayload(VERSION, fields);
     }
 
+    public static CompoundTag profileTag(BoreProfile profile) {
+        CompoundTag tag = new CompoundTag();
+        tag.putInt(ServerConfig.LEFT, profile.left());
+        tag.putInt(ServerConfig.RIGHT, profile.right());
+        tag.putInt(ServerConfig.UP, profile.up());
+        return tag;
+    }
+
+    public boolean shapesBore() {
+        return fields.contains(ServerConfig.BORE_PROFILE_DEFAULT, Tag.TAG_COMPOUND);
+    }
+
     public TrackwrightSettings settings() {
+        int headroom = TagReads.intOr(fields, ServerConfig.BORE_HEADROOM, 0);
+        CompoundTag profile = fields.contains(ServerConfig.BORE_PROFILE_DEFAULT, Tag.TAG_COMPOUND) ? fields.getCompound(ServerConfig.BORE_PROFILE_DEFAULT) : null;
+        BoreProfile defaultProfile = profile == null
+            ? new BoreProfile(0, 0, headroom)
+            : new BoreProfile(TagReads.intOr(profile, ServerConfig.LEFT, 0), TagReads.intOr(profile, ServerConfig.RIGHT, 0), TagReads.intOr(profile, ServerConfig.UP, headroom));
         return new TrackwrightSettings(
             TagReads.booleanOr(fields, ServerConfig.STRAIGHT_THROUGH_BLOCKS, false),
             TagReads.intOr(fields, ServerConfig.MAX_CONNECTION_LENGTH, TrackwrightSettings.MIN_CONNECTION_LENGTH),
             TagReads.booleanOr(fields, ServerConfig.PROTECT_TRAIN_PASSENGERS, false),
             BoreMode.byId(TagReads.stringOr(fields, ServerConfig.BORE_THROUGH_BLOCKS, BoreMode.OFF.id())),
-            TagReads.intOr(fields, ServerConfig.BORE_HEADROOM, 0),
+            TagReads.intOr(fields, ServerConfig.BORE_WIDTH_MAX, defaultProfile.width()),
+            TagReads.intOr(fields, ServerConfig.BORE_HEADROOM_MAX, defaultProfile.up()),
+            defaultProfile,
             TagReads.booleanOr(fields, ServerConfig.BORE_LAVA_CHECK, false),
             TagReads.doubleOr(fields, ServerConfig.BORE_MAX_HARDNESS, 0),
             TagReads.booleanOr(fields, ServerConfig.REFUSE_BLOCKED_TRACK_ENDS, false),
