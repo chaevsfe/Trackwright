@@ -24,6 +24,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -196,6 +197,11 @@ public final class TrackUndo {
 
     private static void apply(ServerLevel level, ServerPlayer player, PlacementRecord record) {
         List<BlockPos> restored = restored(level, record);
+        Set<BlockPos> ends = new LinkedHashSet<>();
+        for (Map.Entry<BlockPos, Set<BlockPos>> entry : record.newCurves.entrySet()) {
+            ends.add(entry.getKey());
+            ends.addAll(entry.getValue());
+        }
         for (Map.Entry<BlockPos, Set<BlockPos>> entry : record.newCurves.entrySet()) {
             BlockPos pos = entry.getKey();
             if (!(level.getBlockEntity(pos) instanceof TrackBlockEntity track)) {
@@ -223,9 +229,6 @@ public final class TrackUndo {
                     continue;
                 }
                 level.setBlock(pos, cell.before, Block.UPDATE_ALL);
-                if (now.getBlock() instanceof ITrackBlock) {
-                    TrackPropagator.onRailRemoved(level, pos, now);
-                }
             }
         }
         for (BlockPos pos : restored) {
@@ -256,6 +259,12 @@ public final class TrackUndo {
                 if (level.getBlockState(pos) != cell.before) {
                     off++;
                 }
+            }
+        }
+        for (BlockPos pos : ends) {
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() instanceof ITrackBlock) {
+                TrackPropagator.onRailAdded(level, pos, state);
             }
         }
         if (off > 0) {
