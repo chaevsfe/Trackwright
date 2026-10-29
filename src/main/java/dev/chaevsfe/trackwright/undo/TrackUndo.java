@@ -26,6 +26,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -200,6 +201,10 @@ public final class TrackUndo {
 
     private static void apply(ServerLevel level, ServerPlayer player, PlacementRecord record) {
         List<BlockPos> restored = restored(level, record);
+        if (record.from != null) {
+            BlockPos start = record.from.pos();
+            restored.sort(Comparator.comparingDouble(pos -> pos.distSqr(start)));
+        }
         Set<BlockPos> ends = new LinkedHashSet<>();
         for (Map.Entry<BlockPos, Set<BlockPos>> entry : record.newCurves.entrySet()) {
             ends.add(entry.getKey());
