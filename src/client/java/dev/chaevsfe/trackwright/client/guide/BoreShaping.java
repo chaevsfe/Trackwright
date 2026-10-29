@@ -3,6 +3,7 @@ package dev.chaevsfe.trackwright.client.guide;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.AllTags.AllBlockTags;
+import com.simibubi.create.content.trains.track.ITrackBlock;
 import com.simibubi.create.content.trains.track.TrackMaterial;
 import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
@@ -19,13 +20,16 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
@@ -91,16 +95,30 @@ public final class BoreShaping {
     }
 
     public static void beforeUse(UseOnContext context) {
-        if (!context.getLevel().isClientSide() || context.getHand() != InteractionHand.MAIN_HAND
-            || !context.getItemInHand().has(AllDataComponents.TRACK_CONNECTING_FROM) || !canSend()) {
-            return;
+        if (wanted(context.getLevel(), context.getHand(), context.getItemInHand()) && !onTrackBlock(context.getLevel(), context.getClickedPos())) {
+            PacketDistributor.sendToServer(PlacementPayload.of(shaped));
         }
-        PacketDistributor.sendToServer(PlacementPayload.of(shaped));
+    }
+
+    public static void beforeBlockUse(PlayerInteractEvent.RightClickBlock event) {
+        if (event.getEntity() instanceof LocalPlayer && wanted(event.getLevel(), event.getHand(), event.getItemStack())
+            && onTrackBlock(event.getLevel(), event.getPos())) {
+            PacketDistributor.sendToServer(PlacementPayload.of(shaped));
+        }
+    }
+
+    private static boolean wanted(Level level, InteractionHand hand, ItemStack stack) {
+        return level.isClientSide() && hand == InteractionHand.MAIN_HAND && stack.has(AllDataComponents.TRACK_CONNECTING_FROM)
+            && canSend();
     }
 
     private static boolean canSend() {
         ClientPacketListener connection = Minecraft.getInstance().getConnection();
         return connection != null && connection.hasChannel(PlacementPayload.TYPE);
+    }
+
+    private static boolean onTrackBlock(Level level, BlockPos pos) {
+        return level.getBlockState(pos).getBlock() instanceof ITrackBlock;
     }
 
     public static @Nullable ItemStack heldTrack(Player player) {
