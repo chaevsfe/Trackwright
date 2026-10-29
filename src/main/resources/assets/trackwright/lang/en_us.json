@@ -8,6 +8,7 @@
   "create.track.trackwright.bore_wrong_tool": "The off-hand tool cannot mine every block in the way",
   "create.track.trackwright.bore_tool_worn": "The off-hand tool would break before the end",
   "create.track.trackwright.bore_protected": "Part of the line is protected",
+  "create.track.trackwright.bore_protected_at": "%s at %s is protected",
   "create.track.trackwright.bore_lava": "Mining this would let lava in",
   "create.track.trackwright.bore_falling": "Sand or gravel above the line would fall in",
   "create.track.trackwright.bore_stopped": "Mining stopped at a protected block, so no track was laid",
