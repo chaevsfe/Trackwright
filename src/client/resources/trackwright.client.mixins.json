@@ -6,6 +6,7 @@
   "client": [
     "ClientChunkCacheMixin",
     "LevelChunkMixin",
+    "LevelRendererMixin",
     "ScheduleScreenMixin",
     "ScrollInputAccessor",
     "TrackBlockItemClientMixin",

@@ -3,23 +3,27 @@ package dev.chaevsfe.trackwright.client.track;
 import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.TrackBlockEntity;
 import dev.engine_room.flywheel.lib.visualization.VisualizationHelper;
-import net.minecraft.client.Camera;
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class FarEnd {
     private static final Set<BlockPos> STALE = new HashSet<>();
     private static final Set<BlockPos> LOADED = new HashSet<>();
+    private static final Set<BlockPos> VISUALS = ConcurrentHashMap.newKeySet();
+    private static final Queue<BlockPos> VISUALS_CHANGED = new ConcurrentLinkedQueue<>();
+    private static final Long2LongOpenHashMap DRAWN = new Long2LongOpenHashMap();
+    private static long frame;
 
     private FarEnd() {
     }
@@ -32,6 +36,13 @@ public final class FarEnd {
         return !level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(first.getX()), SectionPos.blockToSectionCoord(first.getZ()));
     }
 
+    public static boolean firstEndWithoutVisual(Level level, BezierConnection connection) {
+        if (level != Minecraft.getInstance().level) {
+            return false;
+        }
+        return firstEndUnloaded(level, connection) || !VISUALS.contains(connection.getKey());
+    }
+
     public static boolean firstEndHidden(Level level, BezierConnection connection) {
         if (level != Minecraft.getInstance().level) {
             return false;
@@ -39,27 +50,39 @@ public final class FarEnd {
         if (firstEndUnloaded(level, connection)) {
             return true;
         }
-        BlockEntityRenderDispatcher dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-        Camera view = dispatcher.camera;
-        BlockEntity drawn = level.getBlockEntity(connection.bePositions.getFirst());
-        BlockEntityRenderer<BlockEntity> renderer = view == null || drawn == null ? null : dispatcher.getRenderer(drawn);
-        if (renderer == null) {
-            return false;
+        return DRAWN.getOrDefault(connection.getKey().asLong(), Long.MIN_VALUE) < frame - 1;
+    }
+
+    public static void beginFrame() {
+        frame++;
+    }
+
+    public static void drawn(TrackBlockEntity track) {
+        if (track.getLevel() == Minecraft.getInstance().level) {
+            DRAWN.put(track.getBlockPos().asLong(), frame);
         }
-        Vec3 camera = view.getPosition();
-        BlockPos first = connection.getKey();
-        if (!Vec3.atCenterOf(first).closerThan(camera, renderer.getViewDistance())) {
-            return true;
+    }
+
+    public static void visualCreated(TrackBlockEntity track) {
+        if (track.getLevel() == Minecraft.getInstance().level) {
+            BlockPos pos = track.getBlockPos().immutable();
+            VISUALS.add(pos);
+            VISUALS_CHANGED.add(pos);
         }
-        int sure = Minecraft.getInstance().options.getEffectiveRenderDistance() - 1;
-        long dx = SectionPos.blockToSectionCoord(first.getX()) - SectionPos.posToSectionCoord(camera.x);
-        long dz = SectionPos.blockToSectionCoord(first.getZ()) - SectionPos.posToSectionCoord(camera.z);
-        return dx * dx + dz * dz >= (long) sure * sure;
+    }
+
+    public static void visualDeleted(TrackBlockEntity track) {
+        if (track.getLevel() == Minecraft.getInstance().level) {
+            BlockPos pos = track.getBlockPos().immutable();
+            VISUALS.remove(pos);
+            VISUALS_CHANGED.add(pos);
+        }
     }
 
     public static void endUnloaded(BlockEntity blockEntity) {
         if (blockEntity instanceof TrackBlockEntity track) {
             STALE.addAll(track.getConnections().keySet());
+            DRAWN.remove(track.getBlockPos().asLong());
         }
     }
 
@@ -70,6 +93,10 @@ public final class FarEnd {
     }
 
     public static void refresh(Minecraft mc) {
+        BlockPos changed;
+        while ((changed = VISUALS_CHANGED.poll()) != null) {
+            LOADED.add(changed);
+        }
         if (STALE.isEmpty() && LOADED.isEmpty()) {
             return;
         }
@@ -93,5 +120,8 @@ public final class FarEnd {
     public static void reset() {
         STALE.clear();
         LOADED.clear();
+        VISUALS.clear();
+        VISUALS_CHANGED.clear();
+        DRAWN.clear();
     }
 }
