@@ -73,6 +73,7 @@ public final class TrackwrightClient {
             "com.simibubi.create.content.trains.track.TrackPlacementOverlay",
             "com.simibubi.create.content.trains.track.TrackRenderer",
             "com.simibubi.create.content.trains.track.TrackVisual",
+            "dev.engine_room.flywheel.lib.visual.AbstractVisual",
             "com.simibubi.create.foundation.gui.widget.ScrollInput",
             "com.simibubi.create.content.trains.graph.TrackGraph",
             "net.minecraft.client.renderer.LevelRenderer",
