@@ -14,14 +14,16 @@ public record TrackwrightSettings(
     boolean rollersClearPowderSnow,
     boolean rollersIgnoreFluids,
     boolean contraptionControlsSchedule,
-    boolean trainDrillsFullFace
+    boolean trainDrillsFullFace,
+    boolean rollersNeedGround,
+    boolean rollerReshape
 ) {
     public static final int MIN_CONNECTION_LENGTH = 16;
     public static final int MAX_CONNECTION_LENGTH = 128;
     public static final int MAX_BORE_HEADROOM = 3;
     public static final TrackwrightSettings DEFAULTS = new TrackwrightSettings(
         true, MAX_CONNECTION_LENGTH, true, BoreMode.SURVIVAL, 1, true, 0, true,
-        true, true, false, false, true, true
+        true, true, false, false, true, true, false, true
     );
 
     public TrackwrightSettings {

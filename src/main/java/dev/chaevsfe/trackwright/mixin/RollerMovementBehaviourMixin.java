@@ -5,20 +5,29 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.content.contraptions.actors.roller.RollerMovementBehaviour;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
+import dev.chaevsfe.trackwright.actors.RollerRules;
 import dev.chaevsfe.trackwright.actors.TrainActors;
+import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(RollerMovementBehaviour.class)
 public abstract class RollerMovementBehaviourMixin {
+    @Unique
+    private boolean trackwright$skipColumn;
+
     @Shadow
     protected abstract BlockState getStateToPaveWith(MovementContext context);
+
+    @Shadow
+    protected abstract BlockState getStateToPaveWithAsSlab(MovementContext context);
 
     @WrapOperation(
         method = "testBreakerTarget",
@@ -32,7 +41,8 @@ public abstract class RollerMovementBehaviourMixin {
         Operation<Boolean> original,
         @Local(argsOnly = true) MovementContext context
     ) {
-        return TrainActors.canBreak(behaviour, context, level, pos, state, original.call(behaviour, level, pos, state));
+        return TrainActors.canBreak(behaviour, context, level, pos, state, original.call(behaviour, level, pos, state))
+            && RollerRules.reshapeMayBreak(context, state, getStateToPaveWith(context), getStateToPaveWithAsSlab(context));
     }
 
     @Inject(method = "triggerPaver", at = @At("HEAD"), cancellable = true)
@@ -40,6 +50,33 @@ public abstract class RollerMovementBehaviourMixin {
         if (TrainActors.skipsTunnelPaving(context) && getStateToPaveWith(context).isAir()) {
             ci.cancel();
         }
+    }
+
+    @Inject(method = "triggerPaver", at = @At("HEAD"))
+    private void trackwright$forgetColumn(MovementContext context, BlockPos pos, CallbackInfo ci) {
+        trackwright$skipColumn = false;
+    }
+
+    @Inject(
+        method = "triggerPaver",
+        at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/actors/roller/RollerMovementBehaviour;tryFill(Lcom/simibubi/create/content/contraptions/behaviour/MovementContext;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lcom/simibubi/create/content/contraptions/actors/roller/RollerMovementBehaviour$PaveResult;"),
+        require = 2,
+        allow = 2
+    )
+    private void trackwright$needsGround(
+        MovementContext context,
+        BlockPos pos,
+        CallbackInfo ci,
+        @Local(name = "currentPos") Pair<BlockPos, Boolean> currentPos,
+        @Local(name = "yOffset") int depth,
+        @Local(name = "stateToPaveWith") BlockState paveWith
+    ) {
+        trackwright$skipColumn = RollerRules.skipsForGround(context, currentPos.getFirst(), depth, paveWith);
+    }
+
+    @Inject(method = "triggerPaver", at = @At("RETURN"))
+    private void trackwright$columnDone(MovementContext context, BlockPos pos, CallbackInfo ci) {
+        trackwright$skipColumn = false;
     }
 
     @WrapOperation(
@@ -53,6 +90,7 @@ public abstract class RollerMovementBehaviourMixin {
         @Local(argsOnly = true) MovementContext context,
         @Local(argsOnly = true) BlockState toPlace
     ) {
-        return original.call(level, pos) && !TrainActors.leavesFluid(context, level, pos, toPlace);
+        return !trackwright$skipColumn && original.call(level, pos) && !TrainActors.leavesFluid(context, level, pos, toPlace)
+            && !RollerRules.reshapeRefusesPaving(context, level, pos, toPlace);
     }
 }

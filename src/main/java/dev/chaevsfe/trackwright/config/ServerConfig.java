@@ -22,6 +22,8 @@ public final class ServerConfig {
     public static final String ROLLERS_IGNORE_FLUIDS = "rollersIgnoreFluids";
     public static final String CONTRAPTION_CONTROLS_SCHEDULE = "contraptionControlsSchedule";
     public static final String TRAIN_DRILLS_FULL_FACE = "trainDrillsFullFace";
+    public static final String ROLLERS_NEED_GROUND = "rollersNeedGround";
+    public static final String ROLLER_RESHAPE = "rollerReshape";
 
     private static volatile TrackwrightSettings current;
 
@@ -47,11 +49,11 @@ public final class ServerConfig {
         synchronized (ServerConfig.class) {
             current = settings;
         }
-        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreHeadroom={}, boreLavaCheck={}, boreMaxHardness={}, refuseBlockedTrackEnds={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}",
+        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreHeadroom={}, boreLavaCheck={}, boreMaxHardness={}, refuseBlockedTrackEnds={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}, rollersNeedGround={}, rollerReshape={}",
             settings.straightThroughBlocks(), settings.maxConnectionLength(), settings.protectTrainPassengers(), settings.boreThroughBlocks(),
             settings.boreHeadroom(), settings.boreLavaCheck(), settings.boreMaxHardness(), settings.refuseBlockedTrackEnds(), settings.protectTrackEquipment(),
             settings.rollersSkipAirPaving(), settings.rollersClearPowderSnow(), settings.rollersIgnoreFluids(), settings.contraptionControlsSchedule(),
-            settings.trainDrillsFullFace());
+            settings.trainDrillsFullFace(), settings.rollersNeedGround(), settings.rollerReshape());
         return settings;
     }
 
@@ -78,6 +80,8 @@ public final class ServerConfig {
         Boolean fluids = JsonConfigFile.readBoolean(json, ROLLERS_IGNORE_FLUIDS);
         Boolean controls = JsonConfigFile.readBoolean(json, CONTRAPTION_CONTROLS_SCHEDULE);
         Boolean drillFace = JsonConfigFile.readBoolean(json, TRAIN_DRILLS_FULL_FACE);
+        Boolean needGround = JsonConfigFile.readBoolean(json, ROLLERS_NEED_GROUND);
+        Boolean reshape = JsonConfigFile.readBoolean(json, ROLLER_RESHAPE);
         if (straight == null) {
             straight = defaults.straightThroughBlocks();
             complete = false;
@@ -149,8 +153,16 @@ public final class ServerConfig {
             drillFace = defaults.trainDrillsFullFace();
             complete = false;
         }
+        if (needGround == null) {
+            needGround = defaults.rollersNeedGround();
+            complete = false;
+        }
+        if (reshape == null) {
+            reshape = defaults.rollerReshape();
+            complete = false;
+        }
         TrackwrightSettings settings = new TrackwrightSettings(straight, length, protect, bore, headroom, lava, hardness, refuseEnds,
-            equipment, airPaving, powderSnow, fluids, controls, drillFace);
+            equipment, airPaving, powderSnow, fluids, controls, drillFace, needGround, reshape);
         if (contents.writable() && !complete) {
             JsonObject known = new JsonObject();
             known.addProperty(STRAIGHT_THROUGH_BLOCKS, settings.straightThroughBlocks());
@@ -167,6 +179,8 @@ public final class ServerConfig {
             known.addProperty(ROLLERS_IGNORE_FLUIDS, settings.rollersIgnoreFluids());
             known.addProperty(CONTRAPTION_CONTROLS_SCHEDULE, settings.contraptionControlsSchedule());
             known.addProperty(TRAIN_DRILLS_FULL_FACE, settings.trainDrillsFullFace());
+            known.addProperty(ROLLERS_NEED_GROUND, settings.rollersNeedGround());
+            known.addProperty(ROLLER_RESHAPE, settings.rollerReshape());
             JsonConfigFile.write(path, known, json);
         }
         return settings;

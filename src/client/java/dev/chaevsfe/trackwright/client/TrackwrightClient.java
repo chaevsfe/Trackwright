@@ -1,6 +1,8 @@
 package dev.chaevsfe.trackwright.client;
 
 import dev.chaevsfe.trackwright.Trackwright;
+import dev.chaevsfe.trackwright.actors.RollerTerrainBehaviour;
+import dev.chaevsfe.trackwright.client.actors.RollerTerrainSlot;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
@@ -37,6 +39,7 @@ public final class TrackwrightClient {
 
     public TrackwrightClient(IEventBus modBus) {
         ClientConfig.load();
+        RollerTerrainBehaviour.slots(RollerTerrainSlot::new);
         TrackwrightNetwork.receiveOnClient(TrackwrightClient::receiveSettings, UndoKey::receive);
         modBus.addListener(FMLClientSetupEvent.class, event -> event.enqueueWork(TrackwrightClient::loadHookedClasses));
         modBus.addListener(RegisterKeyMappingsEvent.class, event -> {

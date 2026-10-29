@@ -14,6 +14,7 @@
     "LivingEntityMixin",
     "NavigationMixin",
     "PlacementInfoMixin",
+    "RollerBlockEntityMixin",
     "RollerMovementBehaviourMixin",
     "ScheduleEditPacketMixin",
     "SeatMovementBehaviourMixin",
