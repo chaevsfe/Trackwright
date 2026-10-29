@@ -114,7 +114,8 @@ public record BorePlan(
                         }
                         continue;
                     }
-                    if (BlockMiner.needsMining(level.getBlockState(pos))) {
+                    BlockState state = level.getBlockState(pos);
+                    if (BlockMiner.needsMining(state) && (column.equals(seed) || !standsBeside(level, pos, state))) {
                         BlockPos cell = pos.immutable();
                         band.add(cell);
                         all.add(cell);
@@ -147,5 +148,10 @@ public record BorePlan(
             problem = BlockMiner.checkSurroundings(level, all, rules);
         }
         return new BorePlan(new ArrayList<>(all), track, bodyMined, band, profile, wear, left, creative, problem, guessed);
+    }
+
+    private static boolean standsBeside(Level level, BlockPos pos, BlockState state) {
+        return state.getBlock() instanceof ITrackBlock || state.hasBlockEntity() || state.is(BlockMiner.IMMUNE)
+            || state.getDestroySpeed(level, pos) < 0;
     }
 }
