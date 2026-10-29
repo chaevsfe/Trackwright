@@ -70,7 +70,8 @@ public final class TrackwrightClient {
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, WidestTurnLock::beforeBlockUse);
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, BoreShaping::beforeBlockUse);
         game.addListener(InputEvent.MouseScrollingEvent.class, event -> {
-            if (BoreShaping.onScroll((int) Math.signum(event.getScrollDeltaY()))) {
+            double wheel = event.getScrollDeltaY() != 0 ? event.getScrollDeltaY() : -event.getScrollDeltaX();
+            if (BoreShaping.onScroll((int) Math.signum(wheel))) {
                 event.setCanceled(true);
             }
         });
