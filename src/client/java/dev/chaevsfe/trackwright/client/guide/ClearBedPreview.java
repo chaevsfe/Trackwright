@@ -27,6 +27,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -104,7 +105,14 @@ public final class ClearBedPreview {
         aimed = null;
         lines = List.of();
         LocalPlayer player = mc.player;
-        if (player == null || mc.level == null || player.isSpectator() || !BlockMiner.isTool(player.getMainHandItem())) {
+        if (player == null || mc.level == null || player.isSpectator()) {
+            plan = null;
+            return;
+        }
+        TrackwrightSettings settings = RemoteSettings.get();
+        boolean served = settings != null && ClientPlayNetworking.canSend(ClearBedPayload.TYPE);
+        ItemStack tool = player.getMainHandItem();
+        if (!BlockMiner.isTool(tool) && (served || !diggerTool(tool))) {
             plan = null;
             return;
         }
@@ -118,8 +126,7 @@ public final class ClearBedPreview {
             plan = null;
             return;
         }
-        TrackwrightSettings settings = RemoteSettings.get();
-        if (settings == null || !ClientPlayNetworking.canSend(ClearBedPayload.TYPE)) {
+        if (!served) {
             plan = null;
             if (player.isShiftKeyDown()) {
                 lines = List.of(SettingMessages.component(SettingMessages.CLEAR_NEEDS_SERVER).withStyle(ChatFormatting.GRAY));
@@ -137,7 +144,6 @@ public final class ClearBedPreview {
             lines = List.of(title(), Messages.overlay(Messages.BORE_SYMMETRY).withStyle(ChatFormatting.RED));
             return;
         }
-        ItemStack tool = player.getMainHandItem();
         BoreProfile profile = profile(player, target, settings);
         PlanKey key = new PlanKey(target.track(), target.target(), target.connection(), profile, tool.getItem(), tool.getDamageValue(), player.isCreative());
         ClearBedPlan current = plan;
@@ -171,6 +177,10 @@ public final class ClearBedPreview {
 
     private static BoreProfile profile(LocalPlayer player, Target target, TrackwrightSettings settings) {
         return BoreProfiles.resolve(player.level(), player, target.connection().getMaterial(), settings);
+    }
+
+    private static boolean diggerTool(ItemStack stack) {
+        return stack.is(ItemTags.PICKAXES) || stack.is(ItemTags.SHOVELS) || stack.is(ItemTags.AXES) || stack.is(ItemTags.HOES);
     }
 
     private static @Nullable Target target(Minecraft mc, LocalPlayer player, @Nullable BezierPointSelection curve) {
