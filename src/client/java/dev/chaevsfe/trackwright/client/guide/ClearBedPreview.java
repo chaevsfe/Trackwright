@@ -15,6 +15,7 @@ import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.network.ClearBedPayload;
 import dev.chaevsfe.trackwright.track.BorePlan;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
+import dev.chaevsfe.trackwright.track.ClearBed;
 import dev.chaevsfe.trackwright.track.ClearBedPlan;
 import dev.chaevsfe.trackwright.track.ClearMessages;
 import net.createmod.catnip.outliner.Outliner;
@@ -72,7 +73,7 @@ public final class ClearBedPreview {
     }
 
     public static boolean beforeUseItem(Minecraft mc, LocalPlayer player, @Nullable BezierPointSelection curve) {
-        if (!player.isShiftKeyDown() || !BlockMiner.isTool(player.getMainHandItem())) {
+        if (!player.isShiftKeyDown() || !BlockMiner.isTool(player.getMainHandItem()) || ClearBed.placesOffHand(player)) {
             return false;
         }
         Target target = target(mc, player, curve);
@@ -111,7 +112,7 @@ public final class ClearBedPreview {
             return;
         }
         aimed = target;
-        if (!player.isShiftKeyDown() && !BoreShaping.held()) {
+        if (!player.isShiftKeyDown() && !BoreShaping.held() || ClearBed.placesOffHand(player)) {
             plan = null;
             return;
         }

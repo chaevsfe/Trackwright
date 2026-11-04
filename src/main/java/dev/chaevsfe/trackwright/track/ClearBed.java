@@ -26,6 +26,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -104,7 +105,7 @@ public final class ClearBed {
             Handled last = HANDLED.get(player.getUUID());
             return last != null && now - last.tick() <= 1 && last.pos().equals(pos) ? InteractionResult.FAIL : InteractionResult.PASS;
         }
-        if (!player.isShiftKeyDown() || !BlockMiner.isTool(player.getMainHandItem())
+        if (!player.isShiftKeyDown() || !BlockMiner.isTool(player.getMainHandItem()) || placesOffHand(player)
             || !(level.getBlockState(pos).getBlock() instanceof ITrackBlock)
             || !(level.getBlockEntity(pos) instanceof TrackBlockEntity track) || track.getConnections().isEmpty()) {
             return InteractionResult.PASS;
@@ -128,6 +129,10 @@ public final class ClearBed {
         }
         click(serverPlayer, serverLevel, track, connection, null, -1, settings);
         return InteractionResult.SUCCESS;
+    }
+
+    public static boolean placesOffHand(Player player) {
+        return player.getOffhandItem().getItem() instanceof BlockItem;
     }
 
     public static void request(ServerPlayer player, ClearBedPayload payload) {
