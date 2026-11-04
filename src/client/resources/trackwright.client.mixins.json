@@ -6,6 +6,7 @@
   "client": [
     "AbstractVisualMixin",
     "LevelExtractorMixin",
+    "MinecraftUseItemMixin",
     "MouseHandlerMixin",
     "ScheduleScreenMixin",
     "ScreenEffectRendererMixin",
