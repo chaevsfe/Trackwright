@@ -46,7 +46,9 @@ public final class TrackwrightClient implements ClientModInitializer {
             "com.zurrtum.create.content.trains.graph.TrackGraph",
             "net.minecraft.client.renderer.extract.LevelExtractor",
             "net.minecraft.client.MouseHandler",
-            "net.minecraft.client.renderer.ScreenEffectRenderer"
+            "net.minecraft.client.renderer.ScreenEffectRenderer",
+            "net.minecraft.client.Minecraft",
+            "com.zurrtum.create.client.content.contraptions.ContraptionHandlerClient"
         );
         ClientConfig.load();
         AllBlockEntityBehaviours.add(AllBlockEntityTypes.MECHANICAL_ROLLER, RollerTerrainScroll::new);
