@@ -228,7 +228,7 @@ public final class RadiusLock {
 
     public static PlacementInfo forGuide(Level level, LocalPlayer player, BlockPos target, BlockState state, ItemStack stack, boolean maximise,
                                          PlacementInfo info) {
-        if (!on) {
+        if (!on || stack != player.getMainHandItem()) {
             last = null;
             return info;
         }
