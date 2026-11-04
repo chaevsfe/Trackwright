@@ -6,6 +6,7 @@ import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import dev.chaevsfe.trackwright.markers.Markers;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -16,6 +17,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +85,7 @@ public record BorePlan(
         Map<BlockPos, List<BlockPos>> beds = new HashMap<>();
         List<BlockPos> loose = new ArrayList<>();
         Set<BlockPos> seeds = new HashSet<>(line.cells());
+        Set<BlockPos> side = new HashSet<>();
         for (BlockPos base : path) {
             if (seeds.contains(base)) {
                 continue;
@@ -128,6 +131,9 @@ public record BorePlan(
                         BlockPos cell = pos.immutable();
                         band.add(cell);
                         all.add(cell);
+                        if (!column.equals(seed)) {
+                            side.add(cell);
+                        }
                     }
                 }
             }
@@ -154,6 +160,8 @@ public record BorePlan(
             bodyMined.removeAll(skipped);
             band.removeAll(skipped);
         }
+        Held held = holdUp(level, all, side, clearing, kept, track, bodyMined, band);
+        guessed |= held.guessed();
         int left = creative ? -1 : BlockMiner.usesLeft(tool);
         int wear = 0;
         for (BlockPos pos : all) {
@@ -171,9 +179,99 @@ public record BorePlan(
             }
         }
         if (problem == null) {
+            problem = held.problem();
+        }
+        if (problem == null) {
             problem = BlockMiner.checkSurroundings(level, all, rules);
         }
         return new BorePlan(new ArrayList<>(all), track, bodyMined, band, profile, wear, left, creative, problem, guessed, kept);
+    }
+
+    private record Held(BlockMiner.@Nullable Problem problem, boolean guessed) {
+    }
+
+    private static Held holdUp(Level level, Set<BlockPos> all, Set<BlockPos> side, boolean clearing, List<BlockPos> kept,
+                               List<BlockPos> track, List<BlockPos> bodyMined, List<BlockPos> band) {
+        Map<BlockPos, BlockState> leaning = new LinkedHashMap<>();
+        Set<BlockPos> seen = new HashSet<>();
+        boolean guessed = false;
+        MinedView first = new MinedView(level, all);
+        for (BlockPos pos : all) {
+            for (Direction direction : Direction.values()) {
+                BlockPos next = pos.relative(direction);
+                if (all.contains(next) || !seen.add(next) || !level.isLoaded(next)) {
+                    continue;
+                }
+                BlockState state = level.getBlockState(next);
+                if (state.isAir() || !state.canSurvive(level, next)) {
+                    continue;
+                }
+                if (BlockMiner.kept(level, next, state)) {
+                    leaning.put(next, state);
+                } else if (clearing && !Markers.isKnown(level, next) && !state.canSurvive(first, next)) {
+                    guessed = true;
+                }
+            }
+        }
+        boolean changed = !leaning.isEmpty();
+        while (changed) {
+            changed = false;
+            MinedView view = new MinedView(level, all);
+            for (Map.Entry<BlockPos, BlockState> entry : leaning.entrySet()) {
+                BlockPos pos = entry.getKey();
+                BlockState state = entry.getValue();
+                if (state.canSurvive(view, pos)) {
+                    continue;
+                }
+                List<BlockPos> under = new ArrayList<>();
+                for (Direction direction : Direction.values()) {
+                    BlockPos next = pos.relative(direction);
+                    if (all.contains(next)) {
+                        under.add(next.immutable());
+                    }
+                }
+                if (under.isEmpty() || !state.canSurvive(view.restoring(under), pos)) {
+                    continue;
+                }
+                List<BlockPos> movable = clearing ? under : under.stream().filter(side::contains).toList();
+                List<BlockPos> stand = null;
+                for (BlockPos cell : movable) {
+                    if (state.canSurvive(view.restoring(List.of(cell)), pos)) {
+                        stand = List.of(cell);
+                        break;
+                    }
+                }
+                if (stand == null && !movable.isEmpty() && state.canSurvive(view.restoring(movable), pos)) {
+                    stand = movable;
+                }
+                if (stand == null) {
+                    if (clearing) {
+                        stand = under;
+                    } else {
+                        return new Held(new BlockMiner.Problem(leaningRefusal(level, pos, state), pos, state), guessed);
+                    }
+                }
+                all.removeAll(stand);
+                track.removeAll(stand);
+                bodyMined.removeAll(stand);
+                band.removeAll(stand);
+                if (clearing) {
+                    kept.addAll(stand);
+                }
+                changed = true;
+            }
+        }
+        return new Held(null, guessed);
+    }
+
+    private static BlockMiner.Refusal leaningRefusal(Level level, BlockPos pos, BlockState state) {
+        if (Markers.isProtected(level, pos)) {
+            return BlockMiner.Refusal.MARKED;
+        }
+        if (state.hasBlockEntity()) {
+            return BlockMiner.Refusal.BLOCK_ENTITY;
+        }
+        return state.getDestroySpeed(level, pos) < 0 ? BlockMiner.Refusal.UNBREAKABLE : BlockMiner.Refusal.IMMUNE;
     }
 
     private static boolean standsBeside(Level level, BlockPos pos, BlockState state) {
