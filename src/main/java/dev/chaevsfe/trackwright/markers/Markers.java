@@ -23,7 +23,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionSet;
@@ -55,7 +54,6 @@ public final class Markers {
     public static final int BOX_CAP = 32768;
 
     private static final int HOLD_REPEAT = 6;
-    private static final Map<ResourceKey<Level>, Long> GENERATIONS = new ConcurrentHashMap<>();
     private static final Map<UUID, Handled> HANDLED = new ConcurrentHashMap<>();
     private static volatile @Nullable BiPredicate<Level, BlockPos> clientSource;
     private static volatile @Nullable BiPredicate<Level, BlockPos> clientCoverage;
@@ -77,7 +75,6 @@ public final class Markers {
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             MarkerSync.clearAll();
             HANDLED.clear();
-            GENERATIONS.clear();
         });
     }
 
@@ -158,14 +155,7 @@ public final class Markers {
             chunk.markUnsaved();
             changed += delta;
         }
-        if (changed > 0) {
-            GENERATIONS.merge(level.dimension(), 1L, Long::sum);
-        }
         return changed;
-    }
-
-    public static long generation(ResourceKey<Level> dimension) {
-        return GENERATIONS.getOrDefault(dimension, 0L);
     }
 
     public static boolean isMarkerTool(ItemStack stack) {
