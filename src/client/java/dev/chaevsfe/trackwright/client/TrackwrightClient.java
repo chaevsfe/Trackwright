@@ -7,6 +7,7 @@ import dev.chaevsfe.trackwright.client.actors.RollerTerrainScroll;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.BoreShaping;
+import dev.chaevsfe.trackwright.client.guide.RadiusLock;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
 import dev.chaevsfe.trackwright.client.guide.UndoKey;
@@ -55,6 +56,7 @@ public final class TrackwrightClient implements ClientModInitializer {
         ActorStepsClient.register();
         KeyMapping.Category category = KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "trackwright"));
         WidestTurnLock.register(category);
+        RadiusLock.register(category);
         UndoKey.register(category);
         BoreShaping.register(category);
         BoreProfiles.setClientSource(BoreShaping::request);
@@ -67,6 +69,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             TrackGuide.reset();
             FarEnd.reset();
             BoreShaping.reset();
+            RadiusLock.reset();
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             RemoteSettings.clear();
@@ -75,6 +78,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             TrackGuide.reset();
             FarEnd.reset();
             BoreShaping.reset();
+            RadiusLock.reset();
         });
         ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
             if (overlay && Messages.isOwnOverlay(message)) {
@@ -87,6 +91,7 @@ public final class TrackwrightClient implements ClientModInitializer {
         UseBlockCallback.EVENT.register(WidestTurnLock::beforeBlockUse);
         UseBlockCallback.EVENT.register(BoreShaping::beforeBlockUse);
         ClientTickEvents.END_CLIENT_TICK.register(WidestTurnLock::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(RadiusLock::tick);
         ClientTickEvents.END_CLIENT_TICK.register(UndoKey::tick);
         ClientTickEvents.END_CLIENT_TICK.register(BoreShaping::tick);
         HudElementRegistry.attachElementBefore(
