@@ -98,7 +98,8 @@ public final class TrackwrightClient {
             "com.simibubi.create.content.trains.graph.TrackGraph",
             "net.minecraft.client.renderer.LevelRenderer",
             "net.minecraft.client.multiplayer.ClientChunkCache",
-            "net.minecraft.world.level.chunk.LevelChunk"
+            "net.minecraft.world.level.chunk.LevelChunk",
+            "com.simibubi.create.content.contraptions.ContraptionHandlerClient"
         );
     }
 

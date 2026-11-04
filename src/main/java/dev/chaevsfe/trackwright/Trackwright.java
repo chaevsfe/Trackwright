@@ -72,9 +72,11 @@ public final class Trackwright {
     private static void setUp() {
         loadHookedClasses(
             "com.simibubi.create.content.contraptions.Contraption",
+            "com.simibubi.create.content.contraptions.ContraptionCollider",
             "com.simibubi.create.content.contraptions.actors.roller.RollerBlockEntity",
             "com.simibubi.create.content.contraptions.actors.roller.RollerMovementBehaviour",
             "com.simibubi.create.content.contraptions.actors.seat.SeatMovementBehaviour",
+            "com.simibubi.create.content.kinetics.base.BlockBreakingKineticBlockEntity",
             "com.simibubi.create.content.kinetics.base.BlockBreakingMovementBehaviour",
             "com.simibubi.create.content.trains.entity.Carriage",
             "com.simibubi.create.content.trains.entity.CarriageContraptionEntity",
