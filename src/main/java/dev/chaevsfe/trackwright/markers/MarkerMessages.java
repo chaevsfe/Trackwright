@@ -14,22 +14,30 @@ public final class MarkerMessages {
     public static final String BOX_TOO_BIG = "trackwright.marker.box_too_big";
     public static final String COUNT_TOO_BIG = "trackwright.marker.count_too_big";
     public static final String DONE_MARK = "trackwright.marker.done_mark";
+    public static final String DONE_MARK_ONE = "trackwright.marker.done_mark_one";
     public static final String DONE_UNMARK = "trackwright.marker.done_unmark";
+    public static final String DONE_UNMARK_ONE = "trackwright.marker.done_unmark_one";
     public static final String COUNT = "trackwright.marker.count";
+    public static final String COUNT_ONE = "trackwright.marker.count_one";
     public static final String COUNT_OFF = "trackwright.marker.count_off";
+    public static final String COUNT_OFF_ONE = "trackwright.marker.count_off_one";
     public static final String TOOLTIP = "trackwright.marker.tooltip";
 
-    private static final Map<String, String> FALLBACKS = Map.of(
-        MARKED, "Marked: contraptions will not break this block",
-        UNMARKED, "Unmarked: contraptions may break this block again",
-        PROTECTED, "You may not mark blocks here",
-        BOX_TOO_BIG, "That box holds %1$s blocks; the most is %2$s",
-        COUNT_TOO_BIG, "That box spans %1$s chunks; the most is %2$s",
-        DONE_MARK, "Marked %1$s blocks (%2$s skipped: protected or not loaded)",
-        DONE_UNMARK, "Unmarked %1$s blocks (%2$s skipped: protected or not loaded)",
-        COUNT, "%1$s marked blocks in that box",
-        COUNT_OFF, "%1$s marked blocks in that box; markers are off on this server, so contraptions ignore them",
-        TOOLTIP, "Sneak + right-click: mark a block contraptions will not break"
+    private static final Map<String, String> FALLBACKS = Map.ofEntries(
+        Map.entry(MARKED, "Marked: contraptions will not break this block"),
+        Map.entry(UNMARKED, "Unmarked: contraptions may break this block again"),
+        Map.entry(PROTECTED, "You may not mark blocks here"),
+        Map.entry(BOX_TOO_BIG, "That box holds %1$s blocks; the most is %2$s"),
+        Map.entry(COUNT_TOO_BIG, "That box spans %1$s chunks; the most is %2$s"),
+        Map.entry(DONE_MARK, "Marked %1$s blocks (%2$s skipped: protected or not loaded)"),
+        Map.entry(DONE_MARK_ONE, "Marked %1$s block (%2$s skipped: protected or not loaded)"),
+        Map.entry(DONE_UNMARK, "Unmarked %1$s blocks (%2$s skipped: protected or not loaded)"),
+        Map.entry(DONE_UNMARK_ONE, "Unmarked %1$s block (%2$s skipped: protected or not loaded)"),
+        Map.entry(COUNT, "%1$s marked blocks in that box"),
+        Map.entry(COUNT_ONE, "%1$s marked block in that box"),
+        Map.entry(COUNT_OFF, "%1$s marked blocks in that box; markers are off on this server, so contraptions ignore them"),
+        Map.entry(COUNT_OFF_ONE, "%1$s marked block in that box; markers are off on this server, so contraptions ignore them"),
+        Map.entry(TOOLTIP, "Sneak + right-click: mark a block contraptions will not break")
     );
 
     private MarkerMessages() {
@@ -41,6 +49,13 @@ public final class MarkerMessages {
             return args.length == 0 ? SettingMessages.component(key) : Component.translatable(key, args);
         }
         return Component.translatableWithFallback(key, fallback, args);
+    }
+
+    public static MutableComponent counted(String key, String oneKey, int count, Object... more) {
+        Object[] args = new Object[more.length + 1];
+        args[0] = count;
+        System.arraycopy(more, 0, args, 1, more.length);
+        return text(count == 1 ? oneKey : key, args);
     }
 
     public static MutableComponent refusal(String key, Object... args) {
