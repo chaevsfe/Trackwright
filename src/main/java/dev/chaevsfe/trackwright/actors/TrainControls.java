@@ -10,6 +10,7 @@ import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.trains.entity.Carriage;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
 import com.simibubi.create.content.trains.entity.Train;
+import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.config.SettingMessages;
 import dev.chaevsfe.trackwright.network.TrainControlPayload;
@@ -49,11 +50,17 @@ public final class TrainControls {
     private static final double CLICK_REACH_EXTRA = 10;
     private static final double NO_SIGHT_PENALTY = 3;
     private static final Map<UUID, Integer> LAST_PRESS = new ConcurrentHashMap<>();
+    private static volatile boolean warnedNewer;
 
     private TrainControls() {
     }
 
     public static Result receive(ServerPlayer player, TrainControlPayload payload) {
+        if (payload.version() > TrainControlPayload.VERSION && !warnedNewer) {
+            warnedNewer = true;
+            Trackwright.LOGGER.info("A client sends train control format {} and this server reads format {}; only the fields both know are used",
+                payload.version(), TrainControlPayload.VERSION);
+        }
         Result result = press(player, payload);
         Component message = refusal(result);
         if (message != null) {
