@@ -22,6 +22,7 @@ public final class Messages {
     public static final String BORE_UNBREAKABLE = "trackwright.bore_unbreakable";
     public static final String BORE_BLOCK_ENTITY = "trackwright.bore_block_entity";
     public static final String BORE_IMMUNE = "trackwright.bore_immune";
+    public static final String BORE_MARKED = "trackwright.bore_marked";
     public static final String BORE_TOO_HARD = "trackwright.bore_too_hard";
     public static final String BORE_WRONG_TOOL = "trackwright.bore_wrong_tool";
     public static final String BORE_TOOL_WORN = "trackwright.bore_tool_worn";
@@ -49,6 +50,7 @@ public final class Messages {
         Map.entry(KEY_PREFIX + BORE_UNBREAKABLE, "An unbreakable block is in the way"),
         Map.entry(KEY_PREFIX + BORE_BLOCK_ENTITY, "A container or machine is in the way"),
         Map.entry(KEY_PREFIX + BORE_IMMUNE, "A block in the way may not be mined"),
+        Map.entry(KEY_PREFIX + BORE_MARKED, "A marked block is in the way"),
         Map.entry(KEY_PREFIX + BORE_TOO_HARD, "A block in the way is too hard to mine on this server"),
         Map.entry(KEY_PREFIX + BORE_WRONG_TOOL, "The off-hand tool cannot mine every block in the way"),
         Map.entry(KEY_PREFIX + BORE_TOOL_WORN, "The off-hand tool would break before the end"),

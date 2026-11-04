@@ -58,6 +58,7 @@ public final class Markers {
 
     private static final Map<ResourceKey<Level>, Long> GENERATIONS = new ConcurrentHashMap<>();
     private static volatile @Nullable BiPredicate<Level, BlockPos> clientSource;
+    private static volatile @Nullable BiPredicate<Level, BlockPos> clientCoverage;
 
     private Markers() {
     }
@@ -76,6 +77,22 @@ public final class Markers {
 
     public static void setClientSource(BiPredicate<Level, BlockPos> source) {
         clientSource = source;
+    }
+
+    public static void setClientCoverage(BiPredicate<Level, BlockPos> coverage) {
+        clientCoverage = coverage;
+    }
+
+    public static boolean isKnown(Level level, BlockPos pos) {
+        if (!level.isClientSide()) {
+            return true;
+        }
+        TrackwrightSettings settings = Sides.forLevel(level);
+        if (settings == null || !settings.unbreakableMarkers().enabled()) {
+            return true;
+        }
+        BiPredicate<Level, BlockPos> coverage = clientCoverage;
+        return coverage != null && coverage.test(level, pos);
     }
 
     public static boolean isProtected(Level level, BlockPos pos) {

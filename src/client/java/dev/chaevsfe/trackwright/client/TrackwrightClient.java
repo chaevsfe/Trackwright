@@ -53,6 +53,7 @@ public final class TrackwrightClient {
         BoreProfiles.setClientSource(BoreShaping::request);
         TrackwrightNetwork.receiveOnClient(TrackwrightClient::receiveSettings, UndoKey::receive);
         Markers.setClientSource(ClientMarkers::contains);
+        Markers.setClientCoverage(ClientMarkers::covers);
         TrackwrightNetwork.receiveMarkersOnClient(ClientMarkers::receive);
         modBus.addListener(FMLClientSetupEvent.class, event -> event.enqueueWork(TrackwrightClient::loadHookedClasses));
         modBus.addListener(RegisterKeyMappingsEvent.class, event -> {

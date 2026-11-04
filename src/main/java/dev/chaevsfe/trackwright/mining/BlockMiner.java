@@ -7,6 +7,7 @@ import com.simibubi.create.content.trains.track.FakeTrackBlock;
 import com.simibubi.create.content.trains.track.ITrackBlock;
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.actors.TrainActors;
+import dev.chaevsfe.trackwright.markers.Markers;
 import dev.chaevsfe.trackwright.track.Messages;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -52,6 +53,7 @@ public final class BlockMiner {
         UNBREAKABLE(Messages.BORE_UNBREAKABLE),
         BLOCK_ENTITY(Messages.BORE_BLOCK_ENTITY),
         IMMUNE(Messages.BORE_IMMUNE),
+        MARKED(Messages.BORE_MARKED),
         TOO_HARD(Messages.BORE_TOO_HARD),
         WRONG_TOOL(Messages.BORE_WRONG_TOOL),
         TOOL_WORN(Messages.BORE_TOOL_WORN),
@@ -94,7 +96,7 @@ public final class BlockMiner {
     public static boolean kept(Level level, BlockPos pos, BlockState state) {
         return state.getBlock() instanceof ITrackBlock || state.getBlock() instanceof FakeTrackBlock || state.hasBlockEntity()
             || state.getDestroySpeed(level, pos) < 0 || state.is(IMMUNE) || AllBlockTags.NON_BREAKABLE.matches(state)
-            || TrainActors.isTrackEquipment(level, pos, state);
+            || TrainActors.isTrackEquipment(level, pos, state) || Markers.isProtected(level, pos);
     }
 
     public static boolean symmetryWandInHotbar(Player player) {
@@ -119,6 +121,9 @@ public final class BlockMiner {
         }
         if (state.is(IMMUNE)) {
             return new Problem(Refusal.IMMUNE, pos, state);
+        }
+        if (Markers.isProtected(level, pos)) {
+            return new Problem(Refusal.MARKED, pos, state);
         }
         if (rules.maxHardness() > 0 && hardness > rules.maxHardness()) {
             return new Problem(Refusal.TOO_HARD, pos, state);

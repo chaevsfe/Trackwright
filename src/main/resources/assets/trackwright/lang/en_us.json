@@ -4,6 +4,7 @@
   "create.track.trackwright.bore_unbreakable": "An unbreakable block is in the way",
   "create.track.trackwright.bore_block_entity": "A container or machine is in the way",
   "create.track.trackwright.bore_immune": "A block in the way may not be mined",
+  "create.track.trackwright.bore_marked": "A marked block is in the way",
   "create.track.trackwright.bore_too_hard": "A block in the way is too hard to mine on this server",
   "create.track.trackwright.bore_wrong_tool": "The off-hand tool cannot mine every block in the way",
   "create.track.trackwright.bore_tool_worn": "The off-hand tool would break before the end",
