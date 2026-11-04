@@ -19,7 +19,7 @@ public final class SettingMessages {
         MARKERS_OPERATORS_ONLY, "Only operators may mark blocks on this server",
         CLEAR_OFF, "Clearing the track bed is turned off on this server",
         CLEAR_CREATIVE_ONLY, "Clearing the track bed works only in creative mode on this server",
-        CLEAR_NEEDS_SERVER, "Clearing the track bed needs Trackwright on the server"
+        CLEAR_NEEDS_SERVER, "Clearing the track bed needs Trackwright 1.2 on the server"
     );
 
     private SettingMessages() {
