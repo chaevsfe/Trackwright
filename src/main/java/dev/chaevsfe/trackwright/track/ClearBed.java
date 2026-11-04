@@ -174,6 +174,20 @@ public final class ClearBed {
         click(player, level, track, connection, payload.plan(), payload.count(), settings);
     }
 
+    public static @Nullable ClearBedPlan plan(ServerPlayer player, BlockPos pos, BlockPos target) {
+        ServerLevel level = player.serverLevel();
+        if (!level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof TrackBlockEntity track)) {
+            return null;
+        }
+        BezierConnection connection = track.getConnections().get(target);
+        if (connection == null) {
+            return null;
+        }
+        TrackwrightSettings settings = ServerConfig.get();
+        BoreProfile profile = BoreProfiles.resolve(level, player, connection.getMaterial(), settings);
+        return ClearBedPlan.of(level, pos, connection, player.getMainHandItem(), player.isCreative(), profile, settings);
+    }
+
     private static void click(ServerPlayer player, ServerLevel level, TrackBlockEntity track, BezierConnection connection, @Nullable Long shown,
                               int shownCount, TrackwrightSettings settings) {
         UUID id = player.getUUID();
