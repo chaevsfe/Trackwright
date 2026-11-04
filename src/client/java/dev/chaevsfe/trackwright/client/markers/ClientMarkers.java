@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright.client.markers;
 
 import com.zurrtum.create.client.AllSpecialTextures;
 import com.zurrtum.create.client.catnip.outliner.Outliner;
+import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import dev.chaevsfe.trackwright.markers.MarkerMessages;
@@ -36,11 +37,17 @@ public final class ClientMarkers {
     private static long center = ChunkPos.INVALID_CHUNK_POS;
     private static boolean dirty;
     private static @Nullable BlockPos builtAt;
+    private static boolean warnedNewer;
 
     private ClientMarkers() {
     }
 
     public static void receive(MarkersPayload payload) {
+        if (payload.version() > MarkersPayload.VERSION && !warnedNewer) {
+            warnedNewer = true;
+            Trackwright.LOGGER.info("This server's Trackwright sends marker format {} and this client reads format {}; only the fields both know are used",
+                payload.version(), MarkersPayload.VERSION);
+        }
         MarkersPayload.Snapshot snapshot = payload.snapshot();
         CELLS.clear();
         for (long cell : snapshot.cells()) {
