@@ -145,7 +145,7 @@
   "trackwright.marker.operators_only": "Only operators may mark blocks on this server",
   "trackwright.clear_off": "Clearing the track bed is turned off on this server",
   "trackwright.clear_creative_only": "Clearing the track bed works only in creative mode on this server",
-  "trackwright.guide.clear_needs_server": "Clearing the track bed needs Trackwright on the server",
+  "trackwright.guide.clear_needs_server": "Clearing the track bed needs Trackwright 1.2 on the server",
   "trackwright.key.lock_radius": "Lock the turn radius",
   "trackwright.radius.on": "Turn radius locked at %s",
   "trackwright.radius.off": "Turn radius unlocked",
