@@ -42,6 +42,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 
@@ -53,9 +54,14 @@ public final class Markers {
     );
     public static final int BOX_CAP = 32768;
 
+    private static final int HOLD_REPEAT = 6;
     private static final Map<ResourceKey<Level>, Long> GENERATIONS = new ConcurrentHashMap<>();
+    private static final Map<UUID, Handled> HANDLED = new ConcurrentHashMap<>();
     private static volatile @Nullable BiPredicate<Level, BlockPos> clientSource;
     private static volatile @Nullable BiPredicate<Level, BlockPos> clientCoverage;
+
+    private record Handled(long tick, BlockPos pos) {
+    }
 
     private Markers() {
     }
@@ -64,9 +70,13 @@ public final class Markers {
         UseBlockCallback.EVENT.register(Markers::onUseBlock);
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> MarkerCommands.register(dispatcher));
         ServerTickEvents.END_SERVER_TICK.register(MarkerSync::tick);
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> MarkerSync.forget(handler.player.getUUID()));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            MarkerSync.forget(handler.player.getUUID());
+            HANDLED.remove(handler.player.getUUID());
+        });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             MarkerSync.clearAll();
+            HANDLED.clear();
             GENERATIONS.clear();
         });
     }
@@ -182,7 +192,18 @@ public final class Markers {
     }
 
     private static InteractionResult onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hit) {
-        if (hand != InteractionHand.MAIN_HAND || player.isSpectator() || !player.isSecondaryUseActive() || !isMarkerTool(player.getMainHandItem())) {
+        if (player.isSpectator()) {
+            return InteractionResult.PASS;
+        }
+        if (hand != InteractionHand.MAIN_HAND) {
+            if (level.isClientSide() || !(level instanceof ServerLevel serverLevel)) {
+                return InteractionResult.PASS;
+            }
+            Handled last = HANDLED.get(player.getUUID());
+            long now = serverLevel.getServer().getTickCount();
+            return last != null && now - last.tick() <= 1 && last.pos().equals(hit.getBlockPos()) ? InteractionResult.FAIL : InteractionResult.PASS;
+        }
+        if (!player.isSecondaryUseActive() || !isMarkerTool(player.getMainHandItem())) {
             return InteractionResult.PASS;
         }
         TrackwrightSettings settings = Sides.forLevel(level);
@@ -196,6 +217,11 @@ public final class Markers {
             return InteractionResult.PASS;
         }
         BlockPos pos = hit.getBlockPos().immutable();
+        long now = serverLevel.getServer().getTickCount();
+        Handled previous = HANDLED.put(serverPlayer.getUUID(), new Handled(now, pos));
+        if (previous != null && previous.pos().equals(pos) && now - previous.tick() <= HOLD_REPEAT) {
+            return InteractionResult.SUCCESS;
+        }
         Component refused = refusal(ServerConfig.get().unbreakableMarkers(), serverPlayer.permissions());
         if (refused == null && !mayChange(serverLevel, serverPlayer, pos)) {
             refused = MarkerMessages.refusal(MarkerMessages.PROTECTED);
