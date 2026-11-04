@@ -1,5 +1,6 @@
 package dev.chaevsfe.trackwright.network;
 
+import dev.chaevsfe.trackwright.actors.TrainControls;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
 import dev.chaevsfe.trackwright.track.ClearBed;
@@ -21,6 +22,7 @@ public final class TrackwrightNetwork {
         PayloadTypeRegistry.serverboundPlay().register(UndoPayload.TYPE, UndoPayload.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(PlacementPayload.TYPE, PlacementPayload.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(ClearBedPayload.TYPE, ClearBedPayload.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(TrainControlPayload.TYPE, TrainControlPayload.STREAM_CODEC);
         ServerPlayNetworking.registerGlobalReceiver(PlacementPayload.TYPE, (payload, context) -> {
             ServerPlayer player = context.player();
             BoreProfiles.Request request = payload.request();
@@ -38,6 +40,11 @@ public final class TrackwrightNetwork {
                 }
             });
         });
+        ServerPlayNetworking.registerGlobalReceiver(TrainControlPayload.TYPE, (payload, context) -> {
+            ServerPlayer player = context.player();
+            context.server().execute(() -> TrainControls.receive(player, payload));
+        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> TrainControls.forget(handler.player.getUUID()));
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sendTo(handler.player));
     }
 

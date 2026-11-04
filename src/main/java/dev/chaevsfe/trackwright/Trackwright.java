@@ -1,5 +1,6 @@
 package dev.chaevsfe.trackwright;
 
+import dev.chaevsfe.trackwright.actors.TrainControls;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
@@ -58,6 +59,7 @@ public final class Trackwright implements ModInitializer {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> UndoJournal.forget(handler.player.getUUID()));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> BoreProfiles.forget(handler.player.getUUID()));
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> BoreProfiles.clearAll());
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> TrainControls.clearAll());
         ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> UndoJournal.clear(player));
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> UndoCommand.register(dispatcher));
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
