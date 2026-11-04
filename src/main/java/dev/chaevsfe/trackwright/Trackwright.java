@@ -4,6 +4,7 @@ import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
+import dev.chaevsfe.trackwright.track.ClearBed;
 import dev.chaevsfe.trackwright.track.PassengerResync;
 import dev.chaevsfe.trackwright.undo.UndoCommand;
 import dev.chaevsfe.trackwright.undo.UndoJournal;
@@ -47,6 +48,7 @@ public final class Trackwright implements ModInitializer {
             "net.minecraft.world.entity.LivingEntity"
         );
         TrackwrightNetwork.register();
+        ClearBed.register();
         ActorSteps.register();
         ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerConfig.reload());
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> PassengerResync.clear());
