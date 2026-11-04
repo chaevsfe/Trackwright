@@ -32,8 +32,10 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jspecify.annotations.Nullable;
@@ -64,7 +66,12 @@ public final class Markers {
         ATTACHMENT_TYPES.register(modBus);
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, Markers::onRightClickBlock);
         game.addListener(RegisterCommandsEvent.class, event -> MarkerCommands.register(event.getDispatcher()));
-        game.addListener(ServerStoppedEvent.class, event -> GENERATIONS.clear());
+        game.addListener(ServerTickEvent.Post.class, event -> MarkerSync.tick(event.getServer()));
+        game.addListener(PlayerEvent.PlayerLoggedOutEvent.class, event -> MarkerSync.forget(event.getEntity().getUUID()));
+        game.addListener(ServerStoppedEvent.class, event -> {
+            MarkerSync.clearAll();
+            GENERATIONS.clear();
+        });
     }
 
     public static void setClientSource(BiPredicate<Level, BlockPos> source) {

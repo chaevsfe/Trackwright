@@ -23,6 +23,8 @@ public final class TrackwrightNetwork {
     };
     private static volatile Consumer<UndoStatePayload> undoStateReceiver = payload -> {
     };
+    private static volatile Consumer<MarkersPayload> markersReceiver = payload -> {
+    };
 
     private TrackwrightNetwork() {
     }
@@ -31,6 +33,7 @@ public final class TrackwrightNetwork {
         PayloadRegistrar registrar = event.registrar(PROTOCOL).optional();
         registrar.playToClient(SettingsPayload.TYPE, SettingsPayload.STREAM_CODEC, (payload, context) -> settingsReceiver.accept(payload));
         registrar.playToClient(UndoStatePayload.TYPE, UndoStatePayload.STREAM_CODEC, (payload, context) -> undoStateReceiver.accept(payload));
+        registrar.playToClient(MarkersPayload.TYPE, MarkersPayload.STREAM_CODEC, (payload, context) -> markersReceiver.accept(payload));
         registrar.playToServer(PlacementPayload.TYPE, PlacementPayload.STREAM_CODEC, (payload, context) -> {
             if (context.player() instanceof ServerPlayer player) {
                 BoreProfiles.receive(player, payload.request());
@@ -56,6 +59,10 @@ public final class TrackwrightNetwork {
     public static void receiveOnClient(Consumer<SettingsPayload> settings, Consumer<UndoStatePayload> undoState) {
         settingsReceiver = settings;
         undoStateReceiver = undoState;
+    }
+
+    public static void receiveMarkersOnClient(Consumer<MarkersPayload> markers) {
+        markersReceiver = markers;
     }
 
     public static boolean canSend(ServerPlayer player, CustomPacketPayload.Type<?> type) {

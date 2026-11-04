@@ -13,9 +13,11 @@ import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
 import dev.chaevsfe.trackwright.client.guide.UndoKey;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
+import dev.chaevsfe.trackwright.client.markers.ClientMarkers;
 import dev.chaevsfe.trackwright.client.input.UseItemHooks;
 import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
+import dev.chaevsfe.trackwright.markers.Markers;
 import dev.chaevsfe.trackwright.network.SettingsPayload;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
@@ -37,6 +39,7 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 @Mod(value = Trackwright.MOD_ID, dist = Dist.CLIENT)
@@ -49,6 +52,8 @@ public final class TrackwrightClient {
         RollerTerrainBehaviour.slots(RollerTerrainSlot::new);
         BoreProfiles.setClientSource(BoreShaping::request);
         TrackwrightNetwork.receiveOnClient(TrackwrightClient::receiveSettings, UndoKey::receive);
+        Markers.setClientSource(ClientMarkers::contains);
+        TrackwrightNetwork.receiveMarkersOnClient(ClientMarkers::receive);
         modBus.addListener(FMLClientSetupEvent.class, event -> event.enqueueWork(TrackwrightClient::loadHookedClasses));
         modBus.addListener(RegisterKeyMappingsEvent.class, event -> {
             event.register(WidestTurnLock.create());
@@ -75,7 +80,9 @@ public final class TrackwrightClient {
             BoreShaping.tick(mc);
             ClearBedPreview.tick(mc);
             TrainControlKeys.tick(mc);
+            ClientMarkers.tick(mc);
         });
+        game.addListener(ItemTooltipEvent.class, event -> ClientMarkers.tooltip(event.getItemStack(), event.getToolTip()));
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, WidestTurnLock::beforeBlockUse);
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, BoreShaping::beforeBlockUse);
         game.addListener(EventPriority.LOWEST, false, InputEvent.InteractionKeyMappingTriggered.class, UseItemHooks::onUseKey);
@@ -120,6 +127,7 @@ public final class TrackwrightClient {
         RadiusLock.reset();
         ClearBedPreview.reset();
         TrainControlKeys.reset();
+        ClientMarkers.reset();
     }
 
     private static void receiveSettings(SettingsPayload payload) {
