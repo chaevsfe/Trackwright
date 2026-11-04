@@ -6,6 +6,7 @@
   "client": [
     "AbstractVisualMixin",
     "ClientChunkCacheMixin",
+    "ContraptionHandlerClientMixin",
     "LevelChunkMixin",
     "LevelRendererMixin",
     "ScheduleScreenMixin",

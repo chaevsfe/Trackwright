@@ -1,5 +1,6 @@
 package dev.chaevsfe.trackwright.network;
 
+import dev.chaevsfe.trackwright.actors.TrainControls;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
 import dev.chaevsfe.trackwright.track.ClearBed;
@@ -43,6 +44,11 @@ public final class TrackwrightNetwork {
         registrar.playToServer(UndoPayload.TYPE, UndoPayload.STREAM_CODEC, (payload, context) -> {
             if (context.player() instanceof ServerPlayer player && UndoJournal.acceptRequest(player)) {
                 TrackUndo.undoAndTell(player);
+            }
+        });
+        registrar.playToServer(TrainControlPayload.TYPE, TrainControlPayload.STREAM_CODEC, (payload, context) -> {
+            if (context.player() instanceof ServerPlayer player) {
+                TrainControls.receive(player, payload);
             }
         });
     }

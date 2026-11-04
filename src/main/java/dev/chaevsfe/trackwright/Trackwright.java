@@ -1,5 +1,6 @@
 package dev.chaevsfe.trackwright;
 
+import dev.chaevsfe.trackwright.actors.TrainControls;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
@@ -41,6 +42,7 @@ public final class Trackwright {
             PassengerResync.clear();
             UndoJournal.clearAll();
             BoreProfiles.clearAll();
+            TrainControls.clearAll();
         });
         game.addListener(ServerTickEvent.Post.class, event -> {
             PassengerResync.tick(event.getServer());
@@ -55,6 +57,7 @@ public final class Trackwright {
         game.addListener(PlayerEvent.PlayerLoggedOutEvent.class, event -> {
             UndoJournal.forget(event.getEntity().getUUID());
             BoreProfiles.forget(event.getEntity().getUUID());
+            TrainControls.forget(event.getEntity().getUUID());
         });
         game.addListener(PlayerEvent.PlayerChangedDimensionEvent.class, event -> {
             if (event.getEntity() instanceof ServerPlayer player) {

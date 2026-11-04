@@ -4,6 +4,7 @@ import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.actors.RollerTerrainBehaviour;
 import dev.chaevsfe.trackwright.client.actors.RollerTerrainSlot;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
+import dev.chaevsfe.trackwright.client.controls.TrainControlKeys;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.BoreShaping;
 import dev.chaevsfe.trackwright.client.guide.ClearBedPreview;
@@ -54,6 +55,7 @@ public final class TrackwrightClient {
             event.register(RadiusLock.create());
             event.register(UndoKey.create());
             event.register(BoreShaping.create());
+            TrainControlKeys.create().forEach(event::register);
         });
         modBus.addListener(RegisterGuiLayersEvent.class, event -> event.registerBelow(VanillaGuiLayers.CHAT, GUIDE_LAYER, TrackGuideHud::render));
         IEventBus game = NeoForge.EVENT_BUS;
@@ -72,6 +74,7 @@ public final class TrackwrightClient {
             UndoKey.tick(mc);
             BoreShaping.tick(mc);
             ClearBedPreview.tick(mc);
+            TrainControlKeys.tick(mc);
         });
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, WidestTurnLock::beforeBlockUse);
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, BoreShaping::beforeBlockUse);
@@ -116,6 +119,7 @@ public final class TrackwrightClient {
         BoreShaping.reset();
         RadiusLock.reset();
         ClearBedPreview.reset();
+        TrainControlKeys.reset();
     }
 
     private static void receiveSettings(SettingsPayload payload) {
