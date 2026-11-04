@@ -18,7 +18,10 @@ public record TrackwrightSettings(
     boolean contraptionControlsSchedule,
     boolean trainDrillsFullFace,
     boolean rollersNeedGround,
-    boolean rollerReshape
+    boolean rollerReshape,
+    boolean contraptionControlsHotkeys,
+    MarkerMode unbreakableMarkers,
+    BoreMode clearTrackBed
 ) {
     public static final int MIN_CONNECTION_LENGTH = 16;
     public static final int MAX_CONNECTION_LENGTH = 128;
@@ -27,7 +30,7 @@ public record TrackwrightSettings(
     public static final int LEGACY_HEADROOM_DEFAULT = 1;
     public static final TrackwrightSettings DEFAULTS = new TrackwrightSettings(
         true, MAX_CONNECTION_LENGTH, true, BoreMode.SURVIVAL, 5, 3, BoreProfile.DEFAULT, true, 0, true,
-        true, true, false, false, true, true, false, true
+        true, true, false, false, true, true, false, true, true, MarkerMode.OFF, BoreMode.SURVIVAL
     );
 
     public TrackwrightSettings {
@@ -37,6 +40,8 @@ public record TrackwrightSettings(
         boreHeadroomMax = clampHeadroom(boreHeadroomMax);
         boreProfileDefault = (boreProfileDefault == null ? new BoreProfile(0, 0, 0) : boreProfileDefault).clamp(boreWidthMax, boreHeadroomMax);
         boreMaxHardness = clampHardness(boreMaxHardness);
+        unbreakableMarkers = unbreakableMarkers == null ? MarkerMode.OFF : unbreakableMarkers;
+        clearTrackBed = clearTrackBed == null ? BoreMode.OFF : clearTrackBed;
     }
 
     public int boreHeadroom() {
