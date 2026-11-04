@@ -41,9 +41,14 @@ public final class WidestTurnLock {
         }
         while (mapping.consumeClick()) {
             locked = !locked;
+            boolean radius = locked && RadiusLock.on();
+            if (radius) {
+                RadiusLock.unlock();
+            }
+            TrackGuide.forgetPlan();
             LocalPlayer player = mc.player;
             if (player != null) {
-                player.displayClientMessage(Component.translatable(locked ? "trackwright.lock.on" : "trackwright.lock.off"), true);
+                player.displayClientMessage(Component.translatable(locked ? radius ? "trackwright.lock.on_radius_off" : "trackwright.lock.on" : "trackwright.lock.off"), true);
                 ActionBarHold.start();
             }
         }
@@ -51,6 +56,10 @@ public final class WidestTurnLock {
 
     public static boolean locked() {
         return locked;
+    }
+
+    public static void unlock() {
+        locked = false;
     }
 
     public static boolean bound() {
@@ -73,7 +82,7 @@ public final class WidestTurnLock {
     }
 
     private static boolean wanted(Level level, InteractionHand hand, @Nullable Player player, ItemStack stack) {
-        return locked && level.isClientSide() && hand == InteractionHand.MAIN_HAND
+        return (locked || RadiusLock.needsCtrl()) && level.isClientSide() && hand == InteractionHand.MAIN_HAND
             && player instanceof LocalPlayer local && !local.isShiftKeyDown()
             && stack.has(AllDataComponents.TRACK_CONNECTING_FROM)
             && !Minecraft.getInstance().options.keySprint.isDown();

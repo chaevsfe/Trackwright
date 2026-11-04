@@ -50,6 +50,7 @@ public final class TrackwrightClient {
         modBus.addListener(FMLClientSetupEvent.class, event -> event.enqueueWork(TrackwrightClient::loadHookedClasses));
         modBus.addListener(RegisterKeyMappingsEvent.class, event -> {
             event.register(WidestTurnLock.create());
+            event.register(RadiusLock.create());
             event.register(UndoKey.create());
             event.register(BoreShaping.create());
         });
@@ -66,6 +67,7 @@ public final class TrackwrightClient {
             Minecraft mc = Minecraft.getInstance();
             FarEnd.refresh(mc);
             WidestTurnLock.tick(mc);
+            RadiusLock.tick(mc);
             UndoKey.tick(mc);
             BoreShaping.tick(mc);
         });
@@ -110,6 +112,7 @@ public final class TrackwrightClient {
         TrackGuide.reset();
         FarEnd.reset();
         BoreShaping.reset();
+        RadiusLock.reset();
     }
 
     private static void receiveSettings(SettingsPayload payload) {

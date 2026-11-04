@@ -4,6 +4,7 @@ import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.simibubi.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.client.mixin.TrackPlacementAccessor;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
+import dev.chaevsfe.trackwright.track.QuarterCircle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -13,7 +14,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
-public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementInfo other, @Nullable HeightColumn column) {
+public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementInfo other, @Nullable HeightColumn column,
+                         QuarterCircle.@Nullable Judged radius) {
     private static @Nullable Key lastKey;
     private static @Nullable PlanExtras last;
 
@@ -23,6 +25,7 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
         ItemStack stack,
         boolean maximise,
         boolean locked,
+        int radius,
         int angle,
         boolean deep,
         boolean valid,
@@ -38,6 +41,7 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
                 && stack == key.stack
                 && maximise == key.maximise
                 && locked == key.locked
+                && radius == key.radius
                 && angle == key.angle
                 && deep == key.deep
                 && valid == key.valid
@@ -48,7 +52,7 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
 
         @Override
         public int hashCode() {
-            return Objects.hash(target, System.identityHashCode(state), System.identityHashCode(stack), maximise, locked, angle, deep, valid, message);
+            return Objects.hash(target, System.identityHashCode(state), System.identityHashCode(stack), maximise, locked, radius, angle, deep, valid, message);
         }
     }
 
@@ -61,7 +65,9 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
         boolean locked = WidestTurnLock.locked();
         boolean deep = AimHelp.deepChecksAllowed();
         PlacementInfoExtension extension = (PlacementInfoExtension) info;
-        Key key = new Key(target.immutable(), state, stack, maximise, locked, TrackPlacementAccessor.trackwright$hoveringAngle(),
+        QuarterCircle.Judged radius = RadiusLock.judgedFor(info);
+        int corner = RadiusLock.on() ? RadiusLock.effectiveCorner(stack) : 0;
+        Key key = new Key(target.immutable(), state, stack, maximise, locked, corner, TrackPlacementAccessor.trackwright$hoveringAngle(),
             deep, extension.trackwright$valid(), extension.trackwright$message(), extension.trackwright$end1Extent(), extension.trackwright$end2Extent());
         PlanExtras previous = last;
         if (previous != null && key.equals(lastKey)) {
@@ -69,8 +75,8 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
         }
         PlanExtras extras = deep
             ? new PlanExtras(maximise, locked, otherShape(level, player, target, state, stack, maximise, info),
-                HeightColumn.compute(level, player, target, stack, maximise, info))
-            : new PlanExtras(maximise, locked, null, null);
+                HeightColumn.compute(level, player, target, stack, maximise, info), radius)
+            : new PlanExtras(maximise, locked, null, null, radius);
         lastKey = key;
         last = extras;
         return extras;

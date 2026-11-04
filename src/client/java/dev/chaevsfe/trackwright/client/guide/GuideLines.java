@@ -15,6 +15,7 @@ import dev.chaevsfe.trackwright.track.Gap;
 import dev.chaevsfe.trackwright.track.Messages;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
 import dev.chaevsfe.trackwright.track.PlanGeometry;
+import dev.chaevsfe.trackwright.track.QuarterCircle;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -114,7 +115,13 @@ public final class GuideLines {
                 if (climbs) {
                     addClimb(lines, climb);
                 }
-                lockNamed = addShape(lines, info, extras, climbs && inLine(info, dx, dz));
+                if (extras.radius() == null) {
+                    lockNamed = addShape(lines, info, extras, climbs && inLine(info, dx, dz));
+                }
+            }
+            QuarterCircle.Judged radius = extras.radius();
+            if (radius != null) {
+                addRadius(lines, info, radius);
             }
             if (valid || message != null && COST_KNOWN.contains(message)) {
                 lines.add(line("trackwright.guide.tracks", Integer.toString(info.requiredTracks)));
@@ -231,6 +238,65 @@ public final class GuideLines {
         lines.add(line("trackwright.guide.tightest_turn", Integer.toString(extension.trackwright$end1Extent()), Integer.toString(extension.trackwright$end2Extent())));
         lines.add(hold("trackwright.guide.hold_widest", "trackwright.guide.hold_widest_lock"));
         return false;
+    }
+
+    public static void addRadiusWaiting(List<Component> lines, ItemStack stack) {
+        if (!RadiusLock.on()) {
+            return;
+        }
+        int corner = RadiusLock.effectiveCorner(stack);
+        Component key = Component.keybind(RadiusLock.KEY_NAME).withStyle(ChatFormatting.WHITE);
+        lines.add(Component.translatable("trackwright.guide.radius_lock_on", white(radius(corner)), key, key).withStyle(ChatFormatting.GRAY));
+        if (RadiusLock.raised(stack)) {
+            lines.add(Component.translatable("trackwright.guide.radius_raised", white(radius(RadiusLock.corner())), white(radius(corner)))
+                .withStyle(ChatFormatting.YELLOW));
+        }
+    }
+
+    private static void addRadius(List<Component> lines, PlacementInfo info, QuarterCircle.Judged judged) {
+        int corner = judged.corner();
+        Component size = white(radius(corner));
+        QuarterCircle.Square square = judged.square();
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        switch (judged.verdict()) {
+            case NOT_SHAPED -> {
+                double change = PlanGeometry.headingChange(extension.trackwright$axis1(), extension.trackwright$axis2());
+                if (extension.trackwright$valid() && extension.trackwright$curve() != null && !Double.isNaN(change) && Math.abs(change) >= 0.5) {
+                    lines.add(Component.translatable("trackwright.guide.radius_not_square").withStyle(ChatFormatting.GRAY));
+                }
+            }
+            case EXACT_PLAIN, EXACT_WITH_CTRL -> {
+                int first = extension.trackwright$end1Extent();
+                int second = extension.trackwright$end2Extent();
+                Component line;
+                if (first > 0 && second > 0) {
+                    line = Component.translatable("trackwright.guide.radius_exact_plain", size, white(Integer.toString(first)), white(Integer.toString(second)));
+                } else if (first > 0) {
+                    line = Component.translatable(first == 1 ? "trackwright.guide.radius_then_exact_one" : "trackwright.guide.radius_then_exact",
+                        white(Integer.toString(first)), size);
+                } else if (second > 0) {
+                    line = Component.translatable(second == 1 ? "trackwright.guide.radius_exact_then_one" : "trackwright.guide.radius_exact_then",
+                        size, white(Integer.toString(second)));
+                } else {
+                    line = Component.translatable("trackwright.guide.radius_exact", size);
+                }
+                lines.add(line.copy().withStyle(ChatFormatting.AQUA));
+            }
+            case TOO_CLOSE, OFF_LINE -> {
+                if (square == null) {
+                    return;
+                }
+                boolean close = judged.verdict() == QuarterCircle.Verdict.TOO_CLOSE;
+                lines.add(Component.translatable(close ? "trackwright.guide.radius_too_close" : "trackwright.guide.radius_aim", size,
+                        white(Integer.toString(corner)), white(Integer.toString(corner)),
+                        white(Integer.toString(square.ahead())), white(Integer.toString(square.side())))
+                    .withStyle(close ? ChatFormatting.RED : ChatFormatting.YELLOW));
+            }
+        }
+    }
+
+    private static String radius(int corner) {
+        return number(QuarterCircle.radius(corner));
     }
 
     private static void addBoreAccess(List<Component> lines, PlacementInfoExtension extension) {
