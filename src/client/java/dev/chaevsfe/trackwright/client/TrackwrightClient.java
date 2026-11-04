@@ -68,6 +68,7 @@ public final class TrackwrightClient implements ClientModInitializer {
         TrainControlKeys.register(category);
         BoreProfiles.setClientSource(BoreShaping::request);
         Markers.setClientSource(ClientMarkers::contains);
+        Markers.setClientCoverage(ClientMarkers::covers);
         ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> receiveSettings(payload));
         ClientPlayNetworking.registerGlobalReceiver(UndoStatePayload.TYPE, (payload, context) -> UndoKey.receive(payload));
         ClientPlayNetworking.registerGlobalReceiver(MarkersPayload.TYPE, (payload, context) -> ClientMarkers.receive(payload));
