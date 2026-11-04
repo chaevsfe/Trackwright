@@ -222,8 +222,12 @@
   "trackwright.marker.box_too_big": "That box holds %1$s blocks; the most is %2$s",
   "trackwright.marker.count_too_big": "That box spans %1$s chunks; the most is %2$s",
   "trackwright.marker.done_mark": "Marked %1$s blocks (%2$s skipped: protected or not loaded)",
+  "trackwright.marker.done_mark_one": "Marked %1$s block (%2$s skipped: protected or not loaded)",
   "trackwright.marker.done_unmark": "Unmarked %1$s blocks (%2$s skipped: protected or not loaded)",
+  "trackwright.marker.done_unmark_one": "Unmarked %1$s block (%2$s skipped: protected or not loaded)",
   "trackwright.marker.count": "%1$s marked blocks in that box",
+  "trackwright.marker.count_one": "%1$s marked block in that box",
   "trackwright.marker.count_off": "%1$s marked blocks in that box; markers are off on this server, so contraptions ignore them",
+  "trackwright.marker.count_off_one": "%1$s marked block in that box; markers are off on this server, so contraptions ignore them",
   "trackwright.marker.tooltip": "Sneak + right-click: mark a block contraptions will not break"
 }
