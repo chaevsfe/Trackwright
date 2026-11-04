@@ -6,10 +6,12 @@ import dev.chaevsfe.trackwright.client.actors.RollerTerrainSlot;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.BoreShaping;
+import dev.chaevsfe.trackwright.client.guide.RadiusLock;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
 import dev.chaevsfe.trackwright.client.guide.UndoKey;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
+import dev.chaevsfe.trackwright.client.input.UseItemHooks;
 import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.network.SettingsPayload;
@@ -69,9 +71,11 @@ public final class TrackwrightClient {
         });
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, WidestTurnLock::beforeBlockUse);
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, BoreShaping::beforeBlockUse);
+        game.addListener(EventPriority.LOWEST, false, InputEvent.InteractionKeyMappingTriggered.class, UseItemHooks::onUseKey);
         game.addListener(InputEvent.MouseScrollingEvent.class, event -> {
             double wheel = event.getScrollDeltaY() != 0 ? event.getScrollDeltaY() : -event.getScrollDeltaX();
-            if (BoreShaping.onScroll((int) Math.signum(wheel))) {
+            int step = (int) Math.signum(wheel);
+            if (RadiusLock.onScroll(step) || BoreShaping.onScroll(step)) {
                 event.setCanceled(true);
             }
         });
