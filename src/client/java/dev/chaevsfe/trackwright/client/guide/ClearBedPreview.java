@@ -6,6 +6,7 @@ import com.simibubi.create.content.trains.track.ITrackBlock;
 import com.simibubi.create.content.trains.track.TrackBlockEntity;
 import com.simibubi.create.content.trains.track.TrackBlockOutline;
 import com.simibubi.create.content.trains.track.TrackBlockOutline.BezierPointSelection;
+import dev.chaevsfe.trackwright.client.input.CreateClickFirst;
 import dev.chaevsfe.trackwright.config.BoreMode;
 import dev.chaevsfe.trackwright.config.BoreProfile;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
@@ -107,7 +108,7 @@ public final class ClearBedPreview {
             return;
         }
         Target target = target(mc, player, TrackBlockOutline.result);
-        if (target == null) {
+        if (target == null || CreateClickFirst.contraptionHit(mc)) {
             plan = null;
             return;
         }
