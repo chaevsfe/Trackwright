@@ -184,7 +184,7 @@ public final class Markers {
         }
         return level.mayInteract(player, pos)
             && !player.blockActionRestricted(level, pos, player.gameMode.getGameModeForPlayer())
-            && BlockMiner.breakAllowed(level, player, pos, level.getBlockState(pos));
+            && BlockMiner.withEmptyHands(player, () -> BlockMiner.breakAllowed(level, player, pos, level.getBlockState(pos)));
     }
 
     private static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {

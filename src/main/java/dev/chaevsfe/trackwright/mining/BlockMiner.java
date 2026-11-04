@@ -262,7 +262,43 @@ public final class BlockMiner {
     }
 
     private static <T> T withTool(ServerPlayer player, InteractionHand toolHand, Supplier<T> action) {
-        return toolHand == InteractionHand.MAIN_HAND ? action.get() : withToolInMainHand(player, action);
+        return toolHand == InteractionHand.MAIN_HAND ? withHandsAside(player, false, action) : withToolInMainHand(player, action);
+    }
+
+    public static <T> T withEmptyHands(ServerPlayer player, Supplier<T> action) {
+        return withHandsAside(player, true, action);
+    }
+
+    private static <T> T withHandsAside(ServerPlayer player, boolean mainToo, Supplier<T> action) {
+        ItemStack main = mainToo ? player.getMainHandItem() : ItemStack.EMPTY;
+        ItemStack off = player.getOffhandItem();
+        if (main.isEmpty() && off.isEmpty()) {
+            return action.get();
+        }
+        if (!main.isEmpty()) {
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        }
+        if (!off.isEmpty()) {
+            player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+        }
+        try {
+            return action.get();
+        } finally {
+            if (!main.isEmpty()) {
+                putBack(player, InteractionHand.MAIN_HAND, main);
+            }
+            if (!off.isEmpty()) {
+                putBack(player, InteractionHand.OFF_HAND, off);
+            }
+        }
+    }
+
+    private static void putBack(ServerPlayer player, InteractionHand hand, ItemStack stack) {
+        ItemStack now = player.getItemInHand(hand);
+        player.setItemInHand(hand, stack);
+        if (!now.isEmpty()) {
+            player.getInventory().placeItemBackInInventory(now);
+        }
     }
 
     private static <T> T withToolInMainHand(ServerPlayer player, Supplier<T> action) {

@@ -186,14 +186,18 @@ public final class TrackUndo {
 
     private static boolean permitted(ServerLevel level, ServerPlayer player, List<BlockPos> restored) {
         for (BlockPos pos : restored) {
-            BlockState state = level.getBlockState(pos);
-            if (!level.mayInteract(player, pos)
-                || player.blockActionRestricted(level, pos, player.gameMode.getGameModeForPlayer())
-                || !BlockMiner.breakAllowed(level, player, pos, state)) {
+            if (!level.mayInteract(player, pos) || player.blockActionRestricted(level, pos, player.gameMode.getGameModeForPlayer())) {
                 return false;
             }
         }
-        return true;
+        return BlockMiner.withEmptyHands(player, () -> {
+            for (BlockPos pos : restored) {
+                if (!BlockMiner.breakAllowed(level, player, pos, level.getBlockState(pos))) {
+                    return false;
+                }
+            }
+            return true;
+        });
     }
 
     private static void apply(ServerLevel level, ServerPlayer player, PlacementRecord record) {
