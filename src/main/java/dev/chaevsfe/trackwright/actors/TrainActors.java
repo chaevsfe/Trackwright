@@ -3,6 +3,7 @@ package dev.chaevsfe.trackwright.actors;
 import com.simibubi.create.AllTags.AllBlockTags;
 import com.simibubi.create.content.contraptions.actors.roller.RollerMovementBehaviour;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
+import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.content.kinetics.base.BlockBreakingKineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.BlockBreakingMovementBehaviour;
 import com.simibubi.create.content.trains.entity.CarriageContraption;
@@ -25,6 +26,10 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public final class TrainActors {
     public static final TagKey<Block> ROLLER_CLEARS = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(Trackwright.MOD_ID, "roller_clears"));
+    public static final TagKey<Block> SEMAPHORE_POLES = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("railways", "semaphore_poles"));
+    public static final TagKey<Block> SEMAPHORES = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(Trackwright.MOD_ID, "semaphores"));
+    private static final Direction[] POLE_SIDES = {Direction.UP, Direction.DOWN};
+    private static final int POLE_REACH = 16;
     public static final String SCROLL_VALUE = "ScrollValue";
     public static final int TUNNEL_PAVE = 0;
 
@@ -61,10 +66,30 @@ public final class TrainActors {
     }
 
     public static boolean isTrackEquipment(Level level, BlockPos pos, BlockState state) {
-        if (state.getBlock() instanceof ITrackBlock) {
+        Block block = state.getBlock();
+        if (block instanceof ITrackBlock || block instanceof IWrenchable || carriesSemaphore(level, pos, state)) {
             return true;
         }
         return BlockEntityBehaviour.get(level, pos, TrackTargetingBehaviour.TYPE) != null;
+    }
+
+    private static boolean carriesSemaphore(Level level, BlockPos pos, BlockState state) {
+        if (!state.is(SEMAPHORE_POLES)) {
+            return false;
+        }
+        for (Direction side : POLE_SIDES) {
+            BlockPos.MutableBlockPos cursor = pos.mutable();
+            for (int step = 0; step < POLE_REACH; step++) {
+                BlockState next = level.getBlockState(cursor.move(side));
+                if (next.is(SEMAPHORES)) {
+                    return true;
+                }
+                if (!next.is(SEMAPHORE_POLES)) {
+                    break;
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean rollerMayClear(Level level, BlockPos pos, BlockState state) {

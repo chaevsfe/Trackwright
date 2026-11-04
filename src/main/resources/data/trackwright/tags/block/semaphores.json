@@ -1,0 +1,8 @@
+{
+  "values": [
+    {
+      "id": "railways:semaphore",
+      "required": false
+    }
+  ]
+}
