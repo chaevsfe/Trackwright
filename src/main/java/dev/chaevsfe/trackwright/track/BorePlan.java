@@ -30,17 +30,19 @@ public record BorePlan(
     int usesLeft,
     boolean creative,
     BlockMiner.@Nullable Problem problem,
-    boolean guessed
+    boolean guessed,
+    List<BlockPos> keptCells
 ) {
     public BorePlan {
         cells = List.copyOf(cells);
         trackCells = List.copyOf(trackCells);
         bodyCells = List.copyOf(bodyCells);
         bandCells = List.copyOf(bandCells);
+        keptCells = List.copyOf(keptCells);
     }
 
     public BorePlan withProblem(BlockMiner.Problem found) {
-        return new BorePlan(cells, trackCells, bodyCells, bandCells, profile, wear, usesLeft, creative, found, guessed);
+        return new BorePlan(cells, trackCells, bodyCells, bandCells, profile, wear, usesLeft, creative, found, guessed, keptCells);
     }
 
     public List<BlockPos> pathCells() {
@@ -61,6 +63,12 @@ public record BorePlan(
     public static BorePlan of(Level level, ItemStack tool, boolean creative, List<BlockPos> path, Set<BlockPos> blocked, Set<BlockPos> body,
                               BoreBand.Line line, BoreProfile profile, @Nullable BlockPos unloaded, boolean unseen,
                               TrackwrightSettings settings) {
+        return of(level, tool, creative, path, blocked, body, line, profile, unloaded, unseen, settings, false);
+    }
+
+    public static BorePlan of(Level level, ItemStack tool, boolean creative, List<BlockPos> path, Set<BlockPos> blocked, Set<BlockPos> body,
+                              BoreBand.Line line, BoreProfile profile, @Nullable BlockPos unloaded, boolean unseen,
+                              TrackwrightSettings settings, boolean clearing) {
         BlockMiner.Rules rules = new BlockMiner.Rules(settings.boreLavaCheck(), settings.boreMaxHardness());
         Set<BlockPos> onPath = new HashSet<>(path);
         onPath.addAll(line.cells());
@@ -115,7 +123,7 @@ public record BorePlan(
                         continue;
                     }
                     BlockState state = level.getBlockState(pos);
-                    if (BlockMiner.needsMining(state) && (column.equals(seed) || !standsBeside(level, pos, state))) {
+                    if (BlockMiner.needsMining(state) && (clearing || column.equals(seed) || !standsBeside(level, pos, state))) {
                         BlockPos cell = pos.immutable();
                         band.add(cell);
                         all.add(cell);
@@ -127,6 +135,20 @@ public record BorePlan(
             if (blockedPath.contains(cell) && all.add(cell)) {
                 (body.contains(cell) ? bodyMined : track).add(cell);
             }
+        }
+        List<BlockPos> kept = new ArrayList<>();
+        if (clearing) {
+            Set<BlockPos> skipped = new HashSet<>();
+            for (BlockPos pos : all) {
+                if (BlockMiner.kept(level, pos, level.getBlockState(pos))) {
+                    skipped.add(pos);
+                    kept.add(pos);
+                }
+            }
+            all.removeAll(skipped);
+            track.removeAll(skipped);
+            bodyMined.removeAll(skipped);
+            band.removeAll(skipped);
         }
         int left = creative ? -1 : BlockMiner.usesLeft(tool);
         int wear = 0;
@@ -147,7 +169,7 @@ public record BorePlan(
         if (problem == null) {
             problem = BlockMiner.checkSurroundings(level, all, rules);
         }
-        return new BorePlan(new ArrayList<>(all), track, bodyMined, band, profile, wear, left, creative, problem, guessed);
+        return new BorePlan(new ArrayList<>(all), track, bodyMined, band, profile, wear, left, creative, problem, guessed, kept);
     }
 
     private static boolean standsBeside(Level level, BlockPos pos, BlockState state) {

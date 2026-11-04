@@ -14,7 +14,6 @@ import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import dev.chaevsfe.trackwright.undo.UndoMessages;
 import dev.chaevsfe.trackwright.undo.UndoRecorder;
-import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
@@ -285,21 +284,6 @@ public final class PlacementRules {
                          boolean unseen, boolean bodyClear) {
     }
 
-    private static void curvePoints(BoreBand.Builder builder, BezierConnection curve, BlockPos pos1) {
-        Vec3 start = curve.starts.getFirst();
-        Vec3 end = curve.starts.getSecond();
-        double handle = curve.getHandleLength();
-        Vec3 control1 = start.add(curve.axes.getFirst().scale(handle));
-        Vec3 control2 = end.add(curve.axes.getSecond().scale(handle));
-        Vec3 centre = Vec3.atCenterOf(pos1);
-        boolean reversed = start.distanceToSqr(centre) > end.distanceToSqr(centre);
-        int samples = Math.max(8, (int) Math.ceil(curve.getLength() * 4));
-        for (int i = 0; i <= samples; i++) {
-            float t = i / (float) samples;
-            builder.point(VecHelper.bezier(start, end, control1, control2, reversed ? 1 - t : t));
-        }
-    }
-
     private static Route route(Level level, PlacementInfo info, PathCells.Ends ends, BlockPos pos1, BlockPos pos2, PathScan endScan) {
         PathCells.Body body = PathCells.Body.NONE;
         BezierConnection curve = ((PlacementInfoExtension) info).trackwright$curve();
@@ -332,7 +316,7 @@ public final class PlacementRules {
         BoreBand.Builder line = new BoreBand.Builder().cell(pos1).cells(ends.first()).cells(body.cells()).cells(ends.second().reversed()).cell(pos2);
         line.centre(pos1);
         if (curve != null) {
-            curvePoints(line, curve, pos1);
+            BoreBand.curvePoints(line, curve, pos1);
         }
         line.centre(pos2);
         BoreBand.Line seeds = line.build();

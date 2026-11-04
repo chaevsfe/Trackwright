@@ -1,6 +1,12 @@
 package dev.chaevsfe.trackwright.mining;
 
+import com.simibubi.create.AllDataComponents;
+import com.simibubi.create.AllItems;
+import com.simibubi.create.AllTags.AllBlockTags;
+import com.simibubi.create.content.trains.track.FakeTrackBlock;
+import com.simibubi.create.content.trains.track.ITrackBlock;
 import dev.chaevsfe.trackwright.Trackwright;
+import dev.chaevsfe.trackwright.actors.TrainActors;
 import dev.chaevsfe.trackwright.track.Messages;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,6 +19,8 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
@@ -49,7 +57,8 @@ public final class BlockMiner {
         TOOL_WORN(Messages.BORE_TOOL_WORN),
         PROTECTED(Messages.BORE_PROTECTED),
         LAVA(Messages.BORE_LAVA),
-        FALLING(Messages.BORE_FALLING);
+        FALLING(Messages.BORE_FALLING),
+        SYMMETRY(Messages.BORE_SYMMETRY);
 
         private final String message;
 
@@ -80,6 +89,24 @@ public final class BlockMiner {
 
     public static boolean needsMining(BlockState state) {
         return !state.canBeReplaced();
+    }
+
+    public static boolean kept(Level level, BlockPos pos, BlockState state) {
+        return state.getBlock() instanceof ITrackBlock || state.getBlock() instanceof FakeTrackBlock || state.hasBlockEntity()
+            || state.getDestroySpeed(level, pos) < 0 || state.is(IMMUNE) || AllBlockTags.NON_BREAKABLE.matches(state)
+            || TrainActors.isTrackEquipment(level, pos, state);
+    }
+
+    public static boolean symmetryWandInHotbar(Player player) {
+        Inventory inventory = player.getInventory();
+        for (int slot = 0, size = Inventory.getSelectionSize(); slot < size; slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            if (AllItems.WAND_OF_SYMMETRY.isIn(stack) && stack.getOrDefault(AllDataComponents.SYMMETRY_WAND_ENABLE, false)
+                && !stack.getOrDefault(AllDataComponents.SYMMETRY_WAND_SIMULATE, false)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static @Nullable Problem checkBlock(Level level, BlockPos pos, BlockState state, ItemStack tool, boolean creative, Rules rules) {
@@ -153,14 +180,21 @@ public final class BlockMiner {
     }
 
     public static @Nullable Problem checkPermission(ServerLevel level, ServerPlayer player, List<BlockPos> cells) {
+        return checkPermission(level, player, cells, InteractionHand.OFF_HAND);
+    }
+
+    public static @Nullable Problem checkPermission(ServerLevel level, ServerPlayer player, List<BlockPos> cells, InteractionHand toolHand) {
         if (cells.isEmpty()) {
             return null;
         }
+        BlockPos first = cells.getFirst();
         if (!player.mayBuild()) {
-            BlockPos first = cells.getFirst();
             return new Problem(Refusal.PROTECTED, first, level.getBlockState(first));
         }
-        return withToolInMainHand(player, () -> {
+        if (symmetryWandInHotbar(player)) {
+            return new Problem(Refusal.SYMMETRY, first, level.getBlockState(first));
+        }
+        return withTool(player, toolHand, () -> {
             for (BlockPos pos : cells) {
                 BlockState state = level.getBlockState(pos);
                 if (!level.mayInteract(player, pos)
@@ -178,8 +212,12 @@ public final class BlockMiner {
     }
 
     public static Outcome mine(ServerLevel level, ServerPlayer player, List<BlockPos> cells) {
+        return mine(level, player, cells, InteractionHand.OFF_HAND);
+    }
+
+    public static Outcome mine(ServerLevel level, ServerPlayer player, List<BlockPos> cells, InteractionHand toolHand) {
         Set<ItemEntity> drops = new LinkedHashSet<>();
-        Outcome outcome = withToolInMainHand(player, () -> {
+        Outcome outcome = withTool(player, toolHand, () -> {
             boolean hadTool = !player.getMainHandItem().isEmpty();
             int mined = 0;
             for (BlockPos pos : cells) {
@@ -216,6 +254,10 @@ public final class BlockMiner {
             player.getInventory().placeItemBackInInventory(stack);
         }
         return new Outcome(outcome.mined(), outcome.stoppedAt(), collected);
+    }
+
+    private static <T> T withTool(ServerPlayer player, InteractionHand toolHand, Supplier<T> action) {
+        return toolHand == InteractionHand.MAIN_HAND ? action.get() : withToolInMainHand(player, action);
     }
 
     private static <T> T withToolInMainHand(ServerPlayer player, Supplier<T> action) {
