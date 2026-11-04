@@ -165,5 +165,6 @@
   "trackwright.guide.radius_raised": "Radius %s is too tight for this track, so %s is used",
   "trackwright.guide.radius_not_square": "The radius lock only shapes right-angle turns along the block grid",
   "create.track.trackwright.radius_off_line": "Not a turn of the locked radius here",
-  "create.track.trackwright.radius_too_close": "Too close for the locked radius"
+  "create.track.trackwright.radius_too_close": "Too close for the locked radius",
+  "create.track.trackwright.bore_symmetry": "Put the Wand of Symmetry out of your hotbar first"
 }

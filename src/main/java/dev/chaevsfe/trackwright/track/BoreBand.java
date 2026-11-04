@@ -1,5 +1,7 @@
 package dev.chaevsfe.trackwright.track;
 
+import com.zurrtum.create.catnip.math.VecHelper;
+import com.zurrtum.create.content.trains.track.BezierConnection;
 import dev.chaevsfe.trackwright.config.BoreProfile;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -80,6 +82,21 @@ public final class BoreBand {
 
         public Line build() {
             return new Line(cells, points);
+        }
+    }
+
+    public static void curvePoints(Builder builder, BezierConnection curve, BlockPos pos1) {
+        Vec3 start = curve.starts.getFirst();
+        Vec3 end = curve.starts.getSecond();
+        double handle = curve.getHandleLength();
+        Vec3 control1 = start.add(curve.axes.getFirst().scale(handle));
+        Vec3 control2 = end.add(curve.axes.getSecond().scale(handle));
+        Vec3 centre = Vec3.atCenterOf(pos1);
+        boolean reversed = start.distanceToSqr(centre) > end.distanceToSqr(centre);
+        int samples = Math.max(8, (int) Math.ceil(curve.getLength() * 4));
+        for (int i = 0; i <= samples; i++) {
+            float t = i / (float) samples;
+            builder.point(VecHelper.bezier(start, end, control1, control2, reversed ? 1 - t : t));
         }
     }
 

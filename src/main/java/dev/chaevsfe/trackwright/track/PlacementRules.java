@@ -1,6 +1,5 @@
 package dev.chaevsfe.trackwright.track;
 
-import com.zurrtum.create.catnip.math.VecHelper;
 import com.zurrtum.create.content.kinetics.deployer.DeployerPlayer;
 import com.zurrtum.create.content.trains.track.BezierConnection;
 import com.zurrtum.create.content.trains.track.ITrackBlock;
@@ -259,21 +258,6 @@ public final class PlacementRules {
                          boolean unseen, boolean bodyClear) {
     }
 
-    private static void curvePoints(BoreBand.Builder builder, BezierConnection curve, BlockPos pos1) {
-        Vec3 start = curve.starts.getFirst();
-        Vec3 end = curve.starts.getSecond();
-        double handle = curve.getHandleLength();
-        Vec3 control1 = start.add(curve.axes.getFirst().scale(handle));
-        Vec3 control2 = end.add(curve.axes.getSecond().scale(handle));
-        Vec3 centre = Vec3.atCenterOf(pos1);
-        boolean reversed = start.distanceToSqr(centre) > end.distanceToSqr(centre);
-        int samples = Math.max(8, (int) Math.ceil(curve.getLength() * 4));
-        for (int i = 0; i <= samples; i++) {
-            float t = i / (float) samples;
-            builder.point(VecHelper.bezier(start, end, control1, control2, reversed ? 1 - t : t));
-        }
-    }
-
     private static Route route(Level level, PlacementInfo info, PathCells.Ends ends, BlockPos pos1, BlockPos pos2, PathScan endScan) {
         PathCells.Body body = PathCells.Body.NONE;
         if (info.curve != null) {
@@ -306,7 +290,7 @@ public final class PlacementRules {
         line.centre(pos1);
         BezierConnection curve = info.curve;
         if (curve != null) {
-            curvePoints(line, curve, pos1);
+            BoreBand.curvePoints(line, curve, pos1);
         }
         line.centre(pos2);
         BoreBand.Line seeds = line.build();

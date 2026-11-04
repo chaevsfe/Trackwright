@@ -30,6 +30,7 @@ public final class Messages {
     public static final String BORE_LAVA = "trackwright.bore_lava";
     public static final String BORE_FALLING = "trackwright.bore_falling";
     public static final String BORE_STOPPED = "trackwright.bore_stopped";
+    public static final String BORE_SYMMETRY = "trackwright.bore_symmetry";
     public static final String CONVERT_POINTS = "trackwright.convert_points";
     public static final String CONVERT_TRAIN = "trackwright.convert_train";
     public static final String GAP = "trackwright.gap";
@@ -56,6 +57,7 @@ public final class Messages {
         Map.entry(KEY_PREFIX + BORE_LAVA, "Mining this would let lava in"),
         Map.entry(KEY_PREFIX + BORE_FALLING, "Sand or gravel above the line would fall in"),
         Map.entry(KEY_PREFIX + BORE_STOPPED, "Mining stopped at a protected block, so no track was laid"),
+        Map.entry(KEY_PREFIX + BORE_SYMMETRY, "Put the Wand of Symmetry out of your hotbar first"),
         Map.entry(KEY_PREFIX + CONVERT_POINTS, "Remove the stations, signals and observers on this straight first"),
         Map.entry(KEY_PREFIX + CONVERT_TRAIN, "A train is on this straight"),
         Map.entry(KEY_PREFIX + GAP, "A block in the way would leave a gap in the track"),
