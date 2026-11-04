@@ -20,9 +20,11 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -31,6 +33,19 @@ import org.jspecify.annotations.Nullable;
 import java.util.Locale;
 
 public final class RadiusLock {
+    private static final ClassValue<Boolean> USES_WITHOUT_ITEM = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> type) {
+            for (Class<?> current = type; current != null && current != BlockBehaviour.class; current = current.getSuperclass()) {
+                try {
+                    current.getDeclaredMethod("useWithoutItem", BlockState.class, Level.class, BlockPos.class, Player.class, BlockHitResult.class);
+                    return true;
+                } catch (NoSuchMethodException ignored) {
+                }
+            }
+            return false;
+        }
+    };
     public static final String KEY_NAME = "trackwright.key.lock_radius";
     public static final String OFF_LINE = "trackwright.radius_off_line";
     public static final String TOO_CLOSE = "trackwright.radius_too_close";
@@ -190,6 +205,9 @@ public final class RadiusLock {
         BlockState state = level.getBlockState(pos);
         if (!(state.getBlock() instanceof ITrackBlock)) {
             if (!state.canBeReplaced()) {
+                if (takesClick(level, pos, state)) {
+                    return false;
+                }
                 pos = pos.relative(hit.getDirection());
             }
             state = item.getPlacementState(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
@@ -207,6 +225,10 @@ public final class RadiusLock {
         }
         ctrlForClick = judged.verdict() == QuarterCircle.Verdict.EXACT_WITH_CTRL && !ctrl;
         return false;
+    }
+
+    private static boolean takesClick(Level level, BlockPos pos, BlockState state) {
+        return state.getMenuProvider(level, pos) != null || USES_WITHOUT_ITEM.get(state.getBlock().getClass());
     }
 
     private static QuarterCircle.Judged judgeFresh(Level level, LocalPlayer player, ConnectingFrom from, BlockPos pos, BlockState state, ItemStack stack,
