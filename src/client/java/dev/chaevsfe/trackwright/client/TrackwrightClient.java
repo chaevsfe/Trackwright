@@ -7,6 +7,7 @@ import dev.chaevsfe.trackwright.client.actors.RollerTerrainScroll;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.BoreShaping;
+import dev.chaevsfe.trackwright.client.guide.ClearBedPreview;
 import dev.chaevsfe.trackwright.client.guide.RadiusLock;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
@@ -70,6 +71,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             FarEnd.reset();
             BoreShaping.reset();
             RadiusLock.reset();
+            ClearBedPreview.reset();
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             RemoteSettings.clear();
@@ -79,6 +81,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             FarEnd.reset();
             BoreShaping.reset();
             RadiusLock.reset();
+            ClearBedPreview.reset();
         });
         ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
             if (overlay && Messages.isOwnOverlay(message)) {
@@ -94,6 +97,7 @@ public final class TrackwrightClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(RadiusLock::tick);
         ClientTickEvents.END_CLIENT_TICK.register(UndoKey::tick);
         ClientTickEvents.END_CLIENT_TICK.register(BoreShaping::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(ClearBedPreview::tick);
         HudElementRegistry.attachElementBefore(
             VanillaHudElements.CHAT,
             Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "track_guide"),
