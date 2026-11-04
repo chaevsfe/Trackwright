@@ -11,6 +11,7 @@ public final class MarkerMessages {
     public static final String MARKED = "trackwright.marker.marked";
     public static final String UNMARKED = "trackwright.marker.unmarked";
     public static final String PROTECTED = "trackwright.marker.protected";
+    public static final String SYMMETRY = "trackwright.marker.symmetry";
     public static final String BOX_TOO_BIG = "trackwright.marker.box_too_big";
     public static final String COUNT_TOO_BIG = "trackwright.marker.count_too_big";
     public static final String DONE_MARK = "trackwright.marker.done_mark";
@@ -19,17 +20,18 @@ public final class MarkerMessages {
     public static final String COUNT_OFF = "trackwright.marker.count_off";
     public static final String TOOLTIP = "trackwright.marker.tooltip";
 
-    private static final Map<String, String> FALLBACKS = Map.of(
-        MARKED, "Marked: contraptions will not break this block",
-        UNMARKED, "Unmarked: contraptions may break this block again",
-        PROTECTED, "You may not mark blocks here",
-        BOX_TOO_BIG, "That box holds %1$s blocks; the most is %2$s",
-        COUNT_TOO_BIG, "That box spans %1$s chunks; the most is %2$s",
-        DONE_MARK, "Marked %1$s blocks (%2$s skipped: protected or not loaded)",
-        DONE_UNMARK, "Unmarked %1$s blocks (%2$s skipped: protected or not loaded)",
-        COUNT, "%1$s marked blocks in that box",
-        COUNT_OFF, "%1$s marked blocks in that box; markers are off on this server, so contraptions ignore them",
-        TOOLTIP, "Sneak + right-click: mark a block contraptions will not break"
+    private static final Map<String, String> FALLBACKS = Map.ofEntries(
+        Map.entry(MARKED, "Marked: contraptions will not break this block"),
+        Map.entry(UNMARKED, "Unmarked: contraptions may break this block again"),
+        Map.entry(PROTECTED, "You may not mark blocks here"),
+        Map.entry(SYMMETRY, "Put the Wand of Symmetry out of your hotbar first"),
+        Map.entry(BOX_TOO_BIG, "That box holds %1$s blocks; the most is %2$s"),
+        Map.entry(COUNT_TOO_BIG, "That box spans %1$s chunks; the most is %2$s"),
+        Map.entry(DONE_MARK, "Marked %1$s blocks (%2$s skipped: protected or not loaded)"),
+        Map.entry(DONE_UNMARK, "Unmarked %1$s blocks (%2$s skipped: protected or not loaded)"),
+        Map.entry(COUNT, "%1$s marked blocks in that box"),
+        Map.entry(COUNT_OFF, "%1$s marked blocks in that box; markers are off on this server, so contraptions ignore them"),
+        Map.entry(TOOLTIP, "Sneak + right-click: mark a block contraptions will not break")
     );
 
     private MarkerMessages() {

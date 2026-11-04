@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import dev.chaevsfe.trackwright.config.MarkerMode;
 import dev.chaevsfe.trackwright.config.ServerConfig;
+import dev.chaevsfe.trackwright.mining.BlockMiner;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
@@ -61,6 +62,10 @@ public final class MarkerCommands {
         }
         ServerLevel level = source.getLevel();
         ServerPlayer player = source.getPlayer();
+        if (player != null && BlockMiner.symmetryWandInHotbar(player)) {
+            source.sendFailure(MarkerMessages.refusal(MarkerMessages.SYMMETRY));
+            return 0;
+        }
         List<BlockPos> cells = new ArrayList<>();
         int skipped = 0;
         for (BlockPos pos : BlockPos.betweenClosed(min, max)) {

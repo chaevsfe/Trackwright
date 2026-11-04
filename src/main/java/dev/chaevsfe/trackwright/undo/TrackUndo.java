@@ -120,6 +120,9 @@ public final class TrackUndo {
         if (inTheWay(level, record, restored)) {
             return UndoMessages.IN_THE_WAY;
         }
+        if (!restored.isEmpty() && BlockMiner.symmetryWandInHotbar(player)) {
+            return UndoMessages.SYMMETRY;
+        }
         if (!permitted(level, player, restored)) {
             return UndoMessages.PROTECTED;
         }

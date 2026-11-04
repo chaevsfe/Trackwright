@@ -179,7 +179,7 @@ public final class Markers {
     }
 
     public static boolean mayChange(ServerLevel level, ServerPlayer player, BlockPos pos) {
-        if (!player.mayBuild()) {
+        if (!player.mayBuild() || BlockMiner.symmetryWandInHotbar(player)) {
             return false;
         }
         return level.mayInteract(player, pos)
@@ -228,6 +228,9 @@ public final class Markers {
         }
         MarkerMode mode = ServerConfig.get().unbreakableMarkers();
         Component refused = refusal(mode, mode.allows(serverPlayer));
+        if (refused == null && BlockMiner.symmetryWandInHotbar(serverPlayer)) {
+            refused = MarkerMessages.refusal(MarkerMessages.SYMMETRY);
+        }
         if (refused == null && !mayChange(serverLevel, serverPlayer, pos)) {
             refused = MarkerMessages.refusal(MarkerMessages.PROTECTED);
         }

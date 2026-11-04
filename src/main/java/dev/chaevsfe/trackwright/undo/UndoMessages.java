@@ -19,6 +19,7 @@ public final class UndoMessages {
     public static final String TOO_FAR = "trackwright.undo.too_far";
     public static final String NOT_ALLOWED = "trackwright.undo.not_allowed";
     public static final String PROTECTED = "trackwright.undo.protected";
+    public static final String SYMMETRY = "trackwright.undo.symmetry";
     public static final String CHANGED = "trackwright.undo.changed";
     public static final String JOINED = "trackwright.undo.joined";
     public static final String TRAIN = "trackwright.undo.train";
@@ -37,6 +38,7 @@ public final class UndoMessages {
         Map.entry(TOO_FAR, "Walk closer to your last track placement to undo it"),
         Map.entry(NOT_ALLOWED, "You cannot change blocks here"),
         Map.entry(PROTECTED, "Part of your last track placement is protected"),
+        Map.entry(SYMMETRY, "Put the Wand of Symmetry out of your hotbar first"),
         Map.entry(CHANGED, "Your last track placement has changed since you laid it"),
         Map.entry(JOINED, "Another track now joins your last track placement"),
         Map.entry(TRAIN, "A train is on your last track placement"),
