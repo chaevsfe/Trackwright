@@ -3,6 +3,7 @@ package dev.chaevsfe.trackwright.track;
 import com.zurrtum.create.content.trains.track.ITrackBlock;
 import dev.chaevsfe.trackwright.config.BoreProfile;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
+import dev.chaevsfe.trackwright.markers.Markers;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -140,6 +141,9 @@ public record BorePlan(
         if (clearing) {
             Set<BlockPos> skipped = new HashSet<>();
             for (BlockPos pos : all) {
+                if (!Markers.isKnown(level, pos)) {
+                    guessed = true;
+                }
                 if (BlockMiner.kept(level, pos, level.getBlockState(pos))) {
                     skipped.add(pos);
                     kept.add(pos);
@@ -174,6 +178,6 @@ public record BorePlan(
 
     private static boolean standsBeside(Level level, BlockPos pos, BlockState state) {
         return state.getBlock() instanceof ITrackBlock || state.hasBlockEntity() || state.is(BlockMiner.IMMUNE)
-            || state.getDestroySpeed(level, pos) < 0;
+            || state.getDestroySpeed(level, pos) < 0 || Markers.isProtected(level, pos);
     }
 }
