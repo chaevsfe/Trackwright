@@ -1,5 +1,7 @@
 package dev.chaevsfe.trackwright.config;
 
+import net.minecraft.server.permissions.PermissionSet;
+import net.minecraft.server.permissions.Permissions;
 import org.jspecify.annotations.Nullable;
 
 public enum MarkerMode {
@@ -19,6 +21,14 @@ public enum MarkerMode {
 
     public boolean enabled() {
         return this != OFF;
+    }
+
+    public boolean allows(PermissionSet permissions) {
+        return switch (this) {
+            case OFF -> false;
+            case OPERATORS -> permissions.hasPermission(Permissions.COMMANDS_GAMEMASTER);
+            case EVERYONE -> true;
+        };
     }
 
     public static @Nullable MarkerMode byId(@Nullable String id) {

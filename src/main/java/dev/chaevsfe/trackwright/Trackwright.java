@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright;
 
 import dev.chaevsfe.trackwright.actors.TrainControls;
 import dev.chaevsfe.trackwright.config.ServerConfig;
+import dev.chaevsfe.trackwright.markers.Markers;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
@@ -51,6 +52,7 @@ public final class Trackwright implements ModInitializer {
         TrackwrightNetwork.register();
         ClearBed.register();
         ActorSteps.register();
+        Markers.register();
         ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerConfig.reload());
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> PassengerResync.clear());
         ServerTickEvents.END_SERVER_TICK.register(PassengerResync::tick);
