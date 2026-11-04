@@ -51,9 +51,11 @@ public final class ClearBed {
     private static final int DUST_CAP = 512;
     private static final double AIM_SLACK = 1;
     private static final int HOLD_REPEAT = 6;
+    private static final int REQUEST_GAP = 4;
     private static final DustParticleOptions DUST = new DustParticleOptions(new Vector3f(0xF0 / 255f, 0xA0 / 255f, 0x30 / 255f), 1.0f);
     private static final Map<UUID, Offer> OFFERS = new HashMap<>();
     private static final Map<UUID, Handled> HANDLED = new HashMap<>();
+    private static final Map<UUID, Long> REQUESTED = new HashMap<>();
     private static boolean warnedNewer;
 
     private record Offer(ResourceKey<Level> dimension, BlockPos track, BlockPos target, long hash, long made, long expires, List<BlockPos> dust) {
@@ -87,11 +89,13 @@ public final class ClearBed {
     public static void forget(UUID player) {
         OFFERS.remove(player);
         HANDLED.remove(player);
+        REQUESTED.remove(player);
     }
 
     public static void clearAll() {
         OFFERS.clear();
         HANDLED.clear();
+        REQUESTED.clear();
     }
 
     public static InteractionResult onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hit) {
@@ -122,6 +126,9 @@ public final class ClearBed {
             refuse(serverPlayer, SettingMessages.component(SettingMessages.CLEAR_CREATIVE_ONLY));
             return InteractionResult.FAIL;
         }
+        if (throttled(player.getUUID(), now)) {
+            return InteractionResult.SUCCESS;
+        }
         BezierConnection connection = ClearBedPlan.pick(track, player.getLookAngle());
         if (connection == null) {
             refuse(serverPlayer, ClearMessages.component(ClearMessages.NO_CONNECTION));
@@ -129,6 +136,15 @@ public final class ClearBed {
         }
         click(serverPlayer, serverLevel, track, connection, null, -1, settings);
         return InteractionResult.SUCCESS;
+    }
+
+    private static boolean throttled(UUID player, long now) {
+        Long last = REQUESTED.get(player);
+        if (last != null && now >= last && now - last < REQUEST_GAP) {
+            return true;
+        }
+        REQUESTED.put(player, now);
+        return false;
     }
 
     public static boolean placesOffHand(Player player) {
@@ -173,6 +189,9 @@ public final class ClearBed {
         boolean onConnection = connection.getBounds().inflate(AIM_SLACK).contains(aim) || new AABB(pos).inflate(AIM_SLACK).contains(aim);
         if (!onConnection || !player.canInteractWithBlock(BlockPos.containing(aim), 1.0)) {
             refuse(player, ClearMessages.component(ClearMessages.TOO_FAR));
+            return;
+        }
+        if (throttled(player.getUUID(), level.getServer().getTickCount())) {
             return;
         }
         BoreProfiles.receive(player, payload.request());
