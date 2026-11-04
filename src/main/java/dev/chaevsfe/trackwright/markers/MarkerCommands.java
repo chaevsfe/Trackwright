@@ -85,7 +85,8 @@ public final class MarkerCommands {
         Markers.change(level, cells, mark);
         int done = cells.size();
         int skippedCount = skipped;
-        source.sendSuccess(() -> MarkerMessages.text(mark ? MarkerMessages.DONE_MARK : MarkerMessages.DONE_UNMARK, done, skippedCount), true);
+        source.sendSuccess(() -> mark ? MarkerMessages.counted(MarkerMessages.DONE_MARK, MarkerMessages.DONE_MARK_ONE, done, skippedCount)
+            : MarkerMessages.counted(MarkerMessages.DONE_UNMARK, MarkerMessages.DONE_UNMARK_ONE, done, skippedCount), true);
         return done;
     }
 
@@ -130,7 +131,8 @@ public final class MarkerCommands {
         }
         int total = found;
         boolean on = ServerConfig.get().unbreakableMarkers().enabled();
-        source.sendSuccess(() -> MarkerMessages.text(on ? MarkerMessages.COUNT : MarkerMessages.COUNT_OFF, total), false);
+        source.sendSuccess(() -> on ? MarkerMessages.counted(MarkerMessages.COUNT, MarkerMessages.COUNT_ONE, total)
+            : MarkerMessages.counted(MarkerMessages.COUNT_OFF, MarkerMessages.COUNT_OFF_ONE, total), false);
         return total;
     }
 }
