@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright.client.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.chaevsfe.trackwright.client.guide.BoreShaping;
+import dev.chaevsfe.trackwright.client.guide.RadiusLock;
 import net.minecraft.client.MouseHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,7 +17,7 @@ public abstract class MouseHandlerMixin {
         cancellable = true
     )
     private void trackwright$shapeBore(long handle, double xoffset, double yoffset, CallbackInfo ci, @Local(name = "wheel") int wheel) {
-        if (BoreShaping.onScroll(wheel)) {
+        if (RadiusLock.onScroll(wheel) || BoreShaping.onScroll(wheel)) {
             ci.cancel();
         }
     }
