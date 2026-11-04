@@ -5,10 +5,12 @@
   "minVersion": "0.8.3",
   "mixins": [
     "AllHandleMixin",
+    "BlockBreakingKineticBlockEntityMixin",
     "BlockBreakingMovementBehaviourMixin",
     "CarriageAccessor",
     "CarriageContraptionEntityMixin",
     "ConfigValueMixin",
+    "ContraptionColliderMixin",
     "ContraptionMixin",
     "LivingEntityMixin",
     "NavigationMixin",
