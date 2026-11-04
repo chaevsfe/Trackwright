@@ -7,6 +7,7 @@ import com.simibubi.create.content.contraptions.actors.roller.RollerMovementBeha
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import dev.chaevsfe.trackwright.actors.RollerRules;
 import dev.chaevsfe.trackwright.actors.TrainActors;
+import dev.chaevsfe.trackwright.markers.Markers;
 import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -90,7 +91,8 @@ public abstract class RollerMovementBehaviourMixin {
         @Local(argsOnly = true) MovementContext context,
         @Local(argsOnly = true) BlockState toPlace
     ) {
-        return !trackwright$skipColumn && original.call(level, pos) && !TrainActors.leavesFluid(context, level, pos, toPlace)
+        return !trackwright$skipColumn && original.call(level, pos) && !Markers.isProtected(level, pos)
+            && !TrainActors.leavesFluid(context, level, pos, toPlace)
             && !RollerRules.reshapeRefusesPaving(context, level, pos, toPlace);
     }
 }

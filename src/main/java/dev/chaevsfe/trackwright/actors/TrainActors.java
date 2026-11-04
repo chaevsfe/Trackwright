@@ -14,6 +14,7 @@ import dev.chaevsfe.trackwright.TagReads;
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
+import dev.chaevsfe.trackwright.markers.Markers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -41,6 +42,9 @@ public final class TrainActors {
     }
 
     public static boolean canBreak(BlockBreakingMovementBehaviour behaviour, MovementContext context, Level level, BlockPos pos, BlockState state, boolean original) {
+        if (Markers.isProtected(level, pos)) {
+            return false;
+        }
         if (!onTrain(context)) {
             return original;
         }

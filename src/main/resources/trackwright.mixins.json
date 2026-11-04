@@ -4,10 +4,12 @@
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8.3",
   "mixins": [
+    "BlockBreakingKineticBlockEntityMixin",
     "BlockBreakingMovementBehaviourMixin",
     "BlockEntityConfigurationPacketMixin",
     "CarriageAccessor",
     "CarriageContraptionEntityMixin",
+    "ContraptionColliderMixin",
     "ContraptionMixin",
     "CurvedTrackDestroyPacketMixin",
     "CurvedTrackSelectionPacketMixin",
