@@ -214,5 +214,15 @@
   "trackwright.train_controls.too_far": "Too far from that control: sit on its train or walk closer",
   "trackwright.train_controls.too_far_create": "Too far from that control: without Trackwright on the server the key reaches only as far as a click",
   "trackwright.train_controls.changed": "That control is not there any more: assign the key again",
-  "trackwright.train_controls.no_train": "Sit on a train or stand in one of its carriages to see its controls"
+  "trackwright.train_controls.no_train": "Sit on a train or stand in one of its carriages to see its controls",
+  "trackwright.marker.marked": "Marked: contraptions will not break this block",
+  "trackwright.marker.unmarked": "Unmarked: contraptions may break this block again",
+  "trackwright.marker.protected": "You may not mark blocks here",
+  "trackwright.marker.box_too_big": "That box holds %1$s blocks; the most is %2$s",
+  "trackwright.marker.count_too_big": "That box spans %1$s chunks; the most is %2$s",
+  "trackwright.marker.done_mark": "Marked %1$s blocks (%2$s skipped: protected or not loaded)",
+  "trackwright.marker.done_unmark": "Unmarked %1$s blocks (%2$s skipped: protected or not loaded)",
+  "trackwright.marker.count": "%1$s marked blocks in that box",
+  "trackwright.marker.count_off": "%1$s marked blocks in that box; markers are off on this server, so contraptions ignore them",
+  "trackwright.marker.tooltip": "Sneak + right-click: mark a block contraptions will not break"
 }

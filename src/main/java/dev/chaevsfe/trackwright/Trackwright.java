@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright;
 
 import dev.chaevsfe.trackwright.actors.TrainControls;
 import dev.chaevsfe.trackwright.config.ServerConfig;
+import dev.chaevsfe.trackwright.markers.Markers;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
@@ -37,6 +38,7 @@ public final class Trackwright {
         modBus.addListener(FMLCommonSetupEvent.class, event -> event.enqueueWork(Trackwright::setUp));
         modBus.addListener(RegisterPayloadHandlersEvent.class, TrackwrightNetwork::register);
         IEventBus game = NeoForge.EVENT_BUS;
+        Markers.register(modBus, game);
         game.addListener(ServerAboutToStartEvent.class, event -> ServerConfig.reload());
         game.addListener(ServerStoppedEvent.class, event -> {
             PassengerResync.clear();

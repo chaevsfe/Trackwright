@@ -1,5 +1,8 @@
 package dev.chaevsfe.trackwright.config;
 
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
 public enum MarkerMode {
@@ -19,6 +22,22 @@ public enum MarkerMode {
 
     public boolean enabled() {
         return this != OFF;
+    }
+
+    public boolean allows(CommandSourceStack source) {
+        return allows(source.hasPermission(Commands.LEVEL_GAMEMASTERS));
+    }
+
+    public boolean allows(Player player) {
+        return allows(player.hasPermissions(Commands.LEVEL_GAMEMASTERS));
+    }
+
+    private boolean allows(boolean operator) {
+        return switch (this) {
+            case OFF -> false;
+            case OPERATORS -> operator;
+            case EVERYONE -> true;
+        };
     }
 
     public static @Nullable MarkerMode byId(@Nullable String id) {
