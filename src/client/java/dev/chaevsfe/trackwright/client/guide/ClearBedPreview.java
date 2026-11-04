@@ -20,6 +20,7 @@ import dev.chaevsfe.trackwright.track.BoreProfiles;
 import dev.chaevsfe.trackwright.track.ClearBed;
 import dev.chaevsfe.trackwright.track.ClearBedPlan;
 import dev.chaevsfe.trackwright.track.ClearMessages;
+import dev.chaevsfe.trackwright.track.Messages;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -129,6 +130,11 @@ public final class ClearBedPreview {
             plan = null;
             String key = settings.clearTrackBed() == BoreMode.OFF ? SettingMessages.CLEAR_OFF : SettingMessages.CLEAR_CREATIVE_ONLY;
             lines = List.of(title(), SettingMessages.component(key).withStyle(ChatFormatting.GRAY));
+            return;
+        }
+        if (BlockMiner.symmetryWandInHotbar(player)) {
+            plan = null;
+            lines = List.of(title(), Messages.overlay(Messages.BORE_SYMMETRY).withStyle(ChatFormatting.RED));
             return;
         }
         ItemStack tool = player.getMainHandItem();
