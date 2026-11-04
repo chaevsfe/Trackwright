@@ -219,6 +219,7 @@ public final class ClearBed {
         List<BlockPos> cells = bore.cells();
         List<BlockPos> dust = List.copyOf(cells.size() > DUST_CAP ? cells.subList(0, DUST_CAP) : cells);
         OFFERS.put(id, new Offer(level.dimension(), plan.track(), plan.target(), plan.hash(), now, now + OFFER_TICKS, dust));
+        dust(player, level, dust);
         MutableComponent message = changed
             ? ClearMessages.counted(ClearMessages.CHANGED, ClearMessages.CHANGED_ONE, plan.count())
             : ClearMessages.counted(ClearMessages.CONFIRM, ClearMessages.CONFIRM_ONE, plan.count());
@@ -255,17 +256,20 @@ public final class ClearBed {
                 entries.remove();
                 continue;
             }
-            if ((now - offer.made()) % DUST_PERIOD != 0) {
+            long age = now - offer.made();
+            if (age <= 0 || age % DUST_PERIOD != 0) {
                 continue;
             }
             ServerPlayer player = server.getPlayerList().getPlayer(entry.getKey());
-            if (player == null || !player.level().dimension().equals(offer.dimension())) {
-                continue;
+            if (player != null && player.level().dimension().equals(offer.dimension())) {
+                dust(player, player.level(), offer.dust());
             }
-            ServerLevel level = player.level();
-            for (BlockPos cell : offer.dust()) {
-                level.sendParticles(player, DUST, true, false, cell.getX() + 0.5, cell.getY() + 0.5, cell.getZ() + 0.5, 1, 0.2, 0.2, 0.2, 0);
-            }
+        }
+    }
+
+    private static void dust(ServerPlayer player, ServerLevel level, List<BlockPos> cells) {
+        for (BlockPos cell : cells) {
+            level.sendParticles(player, DUST, true, false, cell.getX() + 0.5, cell.getY() + 0.5, cell.getZ() + 0.5, 1, 0.2, 0.2, 0.2, 0);
         }
     }
 
