@@ -15,7 +15,7 @@ public final class MarkerSet {
     public static final int VERSION = 1;
     public static final MarkerSet EMPTY = new MarkerSet(new int[0]);
     public static final Codec<MarkerSet> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-        Codec.INT.optionalFieldOf("version", VERSION).forGetter(set -> VERSION),
+        Codec.INT.lenientOptionalFieldOf("version").forGetter(set -> Optional.of(VERSION)),
         Codec.INT_STREAM.optionalFieldOf("cells").forGetter(set -> Optional.of(IntStream.of(set.cells)))
     ).apply(instance, (version, cells) -> of(cells.map(IntStream::toArray).orElseGet(() -> new int[0]))));
 
