@@ -14,9 +14,12 @@ import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
 import dev.chaevsfe.trackwright.client.guide.UndoKey;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
+import dev.chaevsfe.trackwright.client.markers.ClientMarkers;
 import dev.chaevsfe.trackwright.client.schedule.ActorStepsClient;
 import dev.chaevsfe.trackwright.client.track.FarEnd;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
+import dev.chaevsfe.trackwright.markers.Markers;
+import dev.chaevsfe.trackwright.network.MarkersPayload;
 import dev.chaevsfe.trackwright.network.SettingsPayload;
 import dev.chaevsfe.trackwright.network.UndoStatePayload;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
@@ -24,6 +27,7 @@ import dev.chaevsfe.trackwright.track.Messages;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -63,8 +67,10 @@ public final class TrackwrightClient implements ClientModInitializer {
         BoreShaping.register(category);
         TrainControlKeys.register(category);
         BoreProfiles.setClientSource(BoreShaping::request);
+        Markers.setClientSource(ClientMarkers::contains);
         ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> receiveSettings(payload));
         ClientPlayNetworking.registerGlobalReceiver(UndoStatePayload.TYPE, (payload, context) -> UndoKey.receive(payload));
+        ClientPlayNetworking.registerGlobalReceiver(MarkersPayload.TYPE, (payload, context) -> ClientMarkers.receive(payload));
         ClientPlayConnectionEvents.INIT.register((handler, client) -> {
             RemoteSettings.clear();
             UndoKey.reset();
@@ -75,6 +81,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             RadiusLock.reset();
             ClearBedPreview.reset();
             TrainControlKeys.reset();
+            ClientMarkers.reset();
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             RemoteSettings.clear();
@@ -86,6 +93,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             RadiusLock.reset();
             ClearBedPreview.reset();
             TrainControlKeys.reset();
+            ClientMarkers.reset();
         });
         ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
             if (overlay && Messages.isOwnOverlay(message)) {
@@ -103,6 +111,8 @@ public final class TrackwrightClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(BoreShaping::tick);
         ClientTickEvents.END_CLIENT_TICK.register(ClearBedPreview::tick);
         ClientTickEvents.END_CLIENT_TICK.register(TrainControlKeys::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(ClientMarkers::tick);
+        ItemTooltipCallback.EVENT.register(ClientMarkers::tooltip);
         HudElementRegistry.attachElementBefore(
             VanillaHudElements.CHAT,
             Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "track_guide"),

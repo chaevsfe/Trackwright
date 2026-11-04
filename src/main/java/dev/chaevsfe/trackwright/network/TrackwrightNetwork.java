@@ -19,6 +19,7 @@ public final class TrackwrightNetwork {
     public static void register() {
         PayloadTypeRegistry.clientboundPlay().register(SettingsPayload.TYPE, SettingsPayload.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(UndoStatePayload.TYPE, UndoStatePayload.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(MarkersPayload.TYPE, MarkersPayload.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(UndoPayload.TYPE, UndoPayload.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(PlacementPayload.TYPE, PlacementPayload.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(ClearBedPayload.TYPE, ClearBedPayload.STREAM_CODEC);

@@ -14,8 +14,10 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -60,7 +62,12 @@ public final class Markers {
     public static void register() {
         UseBlockCallback.EVENT.register(Markers::onUseBlock);
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> MarkerCommands.register(dispatcher));
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> GENERATIONS.clear());
+        ServerTickEvents.END_SERVER_TICK.register(MarkerSync::tick);
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> MarkerSync.forget(handler.player.getUUID()));
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            MarkerSync.clearAll();
+            GENERATIONS.clear();
+        });
     }
 
     public static void setClientSource(BiPredicate<Level, BlockPos> source) {
