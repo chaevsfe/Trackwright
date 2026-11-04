@@ -13,9 +13,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -26,8 +28,10 @@ public final class MarkerSync {
     public static final int RADIUS_CHUNKS = 2;
     public static final int MAX_CELLS = 4096;
 
-    private record Sent(ResourceKey<Level> dimension, long chunk, long generation) {
+    private record Sent(ResourceKey<Level> dimension, long chunk, List<Object> window) {
     }
+
+    private static final Object LOADED = new Object();
 
     private static final Map<UUID, Sent> SENT = new HashMap<>();
 
@@ -46,13 +50,26 @@ public final class MarkerSync {
             }
             ServerLevel level = player.serverLevel();
             ChunkPos center = new ChunkPos(player.blockPosition());
-            Sent now = new Sent(level.dimension(), center.toLong(), Markers.generation(level.dimension()));
+            Sent now = new Sent(level.dimension(), center.toLong(), window(level, center));
             if (now.equals(SENT.get(player.getUUID()))) {
                 continue;
             }
             SENT.put(player.getUUID(), now);
             PacketDistributor.sendToPlayer(player, snapshot(level, player.blockPosition(), center));
         }
+    }
+
+    private static List<Object> window(ServerLevel level, ChunkPos center) {
+        Object[] window = new Object[(2 * RADIUS_CHUNKS + 1) * (2 * RADIUS_CHUNKS + 1)];
+        int i = 0;
+        for (int dx = -RADIUS_CHUNKS; dx <= RADIUS_CHUNKS; dx++) {
+            for (int dz = -RADIUS_CHUNKS; dz <= RADIUS_CHUNKS; dz++) {
+                LevelChunk chunk = level.getChunkSource().getChunkNow(center.x + dx, center.z + dz);
+                MarkerSet set = chunk == null ? null : chunk.getExistingDataOrNull(Markers.ATTACHMENT.get());
+                window[i++] = chunk == null ? null : set == null ? LOADED : set;
+            }
+        }
+        return Arrays.asList(window);
     }
 
     public static boolean wantsMarkers(Player player) {
