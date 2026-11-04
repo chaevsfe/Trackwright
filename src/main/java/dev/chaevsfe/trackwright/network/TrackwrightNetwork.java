@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright.network;
 
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
+import dev.chaevsfe.trackwright.track.ClearBed;
 import dev.chaevsfe.trackwright.undo.TrackUndo;
 import dev.chaevsfe.trackwright.undo.UndoJournal;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -19,10 +20,15 @@ public final class TrackwrightNetwork {
         PayloadTypeRegistry.clientboundPlay().register(UndoStatePayload.TYPE, UndoStatePayload.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(UndoPayload.TYPE, UndoPayload.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(PlacementPayload.TYPE, PlacementPayload.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ClearBedPayload.TYPE, ClearBedPayload.STREAM_CODEC);
         ServerPlayNetworking.registerGlobalReceiver(PlacementPayload.TYPE, (payload, context) -> {
             ServerPlayer player = context.player();
             BoreProfiles.Request request = payload.request();
             context.server().execute(() -> BoreProfiles.receive(player, request));
+        });
+        ServerPlayNetworking.registerGlobalReceiver(ClearBedPayload.TYPE, (payload, context) -> {
+            ServerPlayer player = context.player();
+            context.server().execute(() -> ClearBed.request(player, payload));
         });
         ServerPlayNetworking.registerGlobalReceiver(UndoPayload.TYPE, (payload, context) -> {
             ServerPlayer player = context.player();

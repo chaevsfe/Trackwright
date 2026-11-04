@@ -166,5 +166,18 @@
   "trackwright.guide.radius_not_square": "The radius lock only shapes right-angle turns along the block grid",
   "create.track.trackwright.radius_off_line": "Not a turn of the locked radius here",
   "create.track.trackwright.radius_too_close": "Too close for the locked radius",
-  "create.track.trackwright.bore_symmetry": "Put the Wand of Symmetry out of your hotbar first"
+  "create.track.trackwright.bore_symmetry": "Put the Wand of Symmetry out of your hotbar first",
+  "trackwright.clear_confirm": "Clear %s blocks from this track bed? Sneak and right-click it again within 10 seconds",
+  "trackwright.clear_confirm_one": "Clear %s block from this track bed? Sneak and right-click it again within 10 seconds",
+  "trackwright.clear_changed": "The track bed changed. Right-click again to clear %s blocks",
+  "trackwright.clear_changed_one": "The track bed changed. Right-click again to clear %s block",
+  "trackwright.clear_done": "Cleared %s blocks",
+  "trackwright.clear_done_one": "Cleared %s block",
+  "trackwright.clear_stopped": "Clearing stopped at a protected block after %s blocks",
+  "trackwright.clear_stopped_one": "Clearing stopped at a protected block after %s block",
+  "trackwright.clear_wrong_tool": "Your tool cannot mine every block in the way",
+  "trackwright.clear_tool_worn": "Your tool would break before the end",
+  "trackwright.clear_too_far": "That track is too far away",
+  "trackwright.clear_no_connection": "This track has no curve or long straight to clear",
+  "trackwright.clear_nothing": "Nothing to clear on this track"
 }
