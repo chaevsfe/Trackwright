@@ -5,6 +5,7 @@ import com.zurrtum.create.AllBlockEntityTypes;
 import com.zurrtum.create.client.AllBlockEntityBehaviours;
 import dev.chaevsfe.trackwright.client.actors.RollerTerrainScroll;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
+import dev.chaevsfe.trackwright.client.controls.TrainControlKeys;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.BoreShaping;
 import dev.chaevsfe.trackwright.client.guide.ClearBedPreview;
@@ -60,6 +61,7 @@ public final class TrackwrightClient implements ClientModInitializer {
         RadiusLock.register(category);
         UndoKey.register(category);
         BoreShaping.register(category);
+        TrainControlKeys.register(category);
         BoreProfiles.setClientSource(BoreShaping::request);
         ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) -> receiveSettings(payload));
         ClientPlayNetworking.registerGlobalReceiver(UndoStatePayload.TYPE, (payload, context) -> UndoKey.receive(payload));
@@ -72,6 +74,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             BoreShaping.reset();
             RadiusLock.reset();
             ClearBedPreview.reset();
+            TrainControlKeys.reset();
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             RemoteSettings.clear();
@@ -82,6 +85,7 @@ public final class TrackwrightClient implements ClientModInitializer {
             BoreShaping.reset();
             RadiusLock.reset();
             ClearBedPreview.reset();
+            TrainControlKeys.reset();
         });
         ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
             if (overlay && Messages.isOwnOverlay(message)) {
@@ -98,6 +102,7 @@ public final class TrackwrightClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(UndoKey::tick);
         ClientTickEvents.END_CLIENT_TICK.register(BoreShaping::tick);
         ClientTickEvents.END_CLIENT_TICK.register(ClearBedPreview::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(TrainControlKeys::tick);
         HudElementRegistry.attachElementBefore(
             VanillaHudElements.CHAT,
             Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "track_guide"),
