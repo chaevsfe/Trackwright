@@ -14,6 +14,8 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 public final class ConnectionLength {
+    public static final int CURVE_REACH_MARGIN = 16;
+
     private ConnectionLength() {
     }
 

@@ -4,6 +4,7 @@ import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.network.TrackwrightNetwork;
 import dev.chaevsfe.trackwright.schedule.ActorSteps;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
+import dev.chaevsfe.trackwright.track.ClearBed;
 import dev.chaevsfe.trackwright.track.PassengerResync;
 import dev.chaevsfe.trackwright.undo.UndoCommand;
 import dev.chaevsfe.trackwright.undo.UndoJournal;
@@ -67,6 +68,7 @@ public final class Trackwright {
         });
         game.addListener(RegisterCommandsEvent.class, event -> UndoCommand.register(event.getDispatcher()));
         game.addListener(AddReloadListenerEvent.class, event -> reloadSettings());
+        ClearBed.register(game);
     }
 
     private static void setUp() {
