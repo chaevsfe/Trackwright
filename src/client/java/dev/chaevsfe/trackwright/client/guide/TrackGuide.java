@@ -149,6 +149,11 @@ public final class TrackGuide {
         return current != null && current.from.equals(from) ? current.info : null;
     }
 
+    public static @Nullable BlockPos plannedTarget(ConnectingFrom from) {
+        Planned current = lastPlanned;
+        return current != null && current.from.equals(from) ? current.target : null;
+    }
+
     private static void showFrames(Player player, ConnectingFrom from, BlockPos target, PlacementInfo info) {
         if (!BoreShaping.boring(player)) {
             return;
@@ -231,6 +236,9 @@ public final class TrackGuide {
             return lines;
         }
         List<Component> lines = new ArrayList<>(GuideLines.waiting(from, walkCloser));
+        if (stack == player.getMainHandItem()) {
+            GuideLines.addRadiusWaiting(lines, stack);
+        }
         lines.addAll(shaping);
         return lines;
     }

@@ -11,6 +11,7 @@ import com.zurrtum.create.content.trains.track.TrackPlacement;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.AimHelp;
+import dev.chaevsfe.trackwright.client.guide.RadiusLock;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.WidestTurnLock;
 import dev.chaevsfe.trackwright.track.TrackItems;
@@ -98,8 +99,11 @@ public abstract class TrackPlacementClientMixin {
         Operation<TrackPlacement.PlacementInfo> original
     ) {
         TrackPlacement.PlacementInfo info = original.call(level, player, target, state, stack, girder, maximiseTurn);
-        TrackGuide.capture(level, player, target, state, stack, maximiseTurn, info);
-        return info;
+        TrackPlacement.PlacementInfo shown = player instanceof LocalPlayer local
+            ? RadiusLock.forGuide(level, local, target, state, stack, maximiseTurn, info)
+            : info;
+        TrackGuide.capture(level, player, target, state, stack, maximiseTurn || shown != info, shown);
+        return shown;
     }
 
     @WrapOperation(method = "clientTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/tags/TagKey;)Z"))
