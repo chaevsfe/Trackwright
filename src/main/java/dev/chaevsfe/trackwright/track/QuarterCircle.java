@@ -1,16 +1,9 @@
 package dev.chaevsfe.trackwright.track;
 
-import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.TrackMaterial;
-import com.simibubi.create.content.trains.track.TrackPlacement;
-import com.simibubi.create.content.trains.track.TrackPlacement.ConnectingFrom;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -98,14 +91,6 @@ public final class QuarterCircle {
         int first = square.ahead() - extension.trackwright$end1Extent();
         int second = square.side() - extension.trackwright$end2Extent();
         return first == second ? first : -1;
-    }
-
-    public static Judged judge(Level level, Player player, BlockPos target, BlockState state, ItemStack stack, int corner, boolean maximise) {
-        ConnectingFrom from = stack.get(AllDataComponents.TRACK_CONNECTING_FROM);
-        if (from == null) {
-            return Judged.NONE;
-        }
-        return judge(wide -> TrackPlacement.tryConnect(level, player, target, state, stack, false, wide), from.pos(), target, corner, maximise);
     }
 
     public static Judged judge(Planner planner, BlockPos from, BlockPos to, int corner, boolean maximise) {
