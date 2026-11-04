@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
@@ -66,7 +67,7 @@ public final class RadiusLock {
     }
 
     public static KeyMapping create() {
-        KeyMapping mapping = new KeyMapping(KEY_NAME, InputConstants.KEY_R, TrackwrightClient.KEY_CATEGORY);
+        KeyMapping mapping = new KeyMapping(KEY_NAME, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, InputConstants.KEY_R, TrackwrightClient.KEY_CATEGORY);
         key = mapping;
         return mapping;
     }
