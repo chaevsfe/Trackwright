@@ -7,6 +7,7 @@ import com.zurrtum.create.client.content.trains.track.TrackBlockOutline.BezierPo
 import com.zurrtum.create.content.trains.track.BezierConnection;
 import com.zurrtum.create.content.trains.track.ITrackBlock;
 import com.zurrtum.create.content.trains.track.TrackBlockEntity;
+import dev.chaevsfe.trackwright.client.input.CreateClickFirst;
 import dev.chaevsfe.trackwright.config.BoreMode;
 import dev.chaevsfe.trackwright.config.BoreProfile;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
@@ -107,7 +108,7 @@ public final class ClearBedPreview {
             return;
         }
         Target target = target(mc, player, TrackBlockOutline.result);
-        if (target == null) {
+        if (target == null || CreateClickFirst.contraptionHit(mc)) {
             plan = null;
             return;
         }
