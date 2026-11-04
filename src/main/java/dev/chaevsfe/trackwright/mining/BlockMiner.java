@@ -103,7 +103,7 @@ public final class BlockMiner {
         Inventory inventory = player.getInventory();
         for (int slot = 0, size = Inventory.getSelectionSize(); slot < size; slot++) {
             ItemStack stack = inventory.getItem(slot);
-            if (AllItems.WAND_OF_SYMMETRY.isIn(stack) && stack.getOrDefault(AllDataComponents.SYMMETRY_WAND_ENABLE, false)
+            if (AllItems.WAND_OF_SYMMETRY.isIn(stack) && stack.has(AllDataComponents.SYMMETRY_WAND) && stack.getOrDefault(AllDataComponents.SYMMETRY_WAND_ENABLE, false)
                 && !stack.getOrDefault(AllDataComponents.SYMMETRY_WAND_SIMULATE, false)) {
                 return true;
             }
