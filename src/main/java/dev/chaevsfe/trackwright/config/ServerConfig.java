@@ -30,6 +30,9 @@ public final class ServerConfig {
     public static final String TRAIN_DRILLS_FULL_FACE = "trainDrillsFullFace";
     public static final String ROLLERS_NEED_GROUND = "rollersNeedGround";
     public static final String ROLLER_RESHAPE = "rollerReshape";
+    public static final String CONTRAPTION_CONTROLS_HOTKEYS = "contraptionControlsHotkeys";
+    public static final String UNBREAKABLE_MARKERS = "unbreakableMarkers";
+    public static final String CLEAR_TRACK_BED = "clearTrackBed";
 
     private static volatile TrackwrightSettings current;
 
@@ -55,11 +58,12 @@ public final class ServerConfig {
         synchronized (ServerConfig.class) {
             current = settings;
         }
-        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreWidthMax={}, boreHeadroomMax={}, boreProfileDefault={}, boreLavaCheck={}, boreMaxHardness={}, refuseBlockedTrackEnds={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}, rollersNeedGround={}, rollerReshape={}",
+        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreWidthMax={}, boreHeadroomMax={}, boreProfileDefault={}, boreLavaCheck={}, boreMaxHardness={}, refuseBlockedTrackEnds={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}, rollersNeedGround={}, rollerReshape={}, contraptionControlsHotkeys={}, unbreakableMarkers={}, clearTrackBed={}",
             settings.straightThroughBlocks(), settings.maxConnectionLength(), settings.protectTrainPassengers(), settings.boreThroughBlocks(),
             settings.boreWidthMax(), settings.boreHeadroomMax(), settings.boreProfileDefault(), settings.boreLavaCheck(), settings.boreMaxHardness(), settings.refuseBlockedTrackEnds(), settings.protectTrackEquipment(),
             settings.rollersSkipAirPaving(), settings.rollersClearPowderSnow(), settings.rollersIgnoreFluids(), settings.contraptionControlsSchedule(),
-            settings.trainDrillsFullFace(), settings.rollersNeedGround(), settings.rollerReshape());
+            settings.trainDrillsFullFace(), settings.rollersNeedGround(), settings.rollerReshape(), settings.contraptionControlsHotkeys(),
+            settings.unbreakableMarkers(), settings.clearTrackBed());
         return settings;
     }
 
@@ -91,6 +95,9 @@ public final class ServerConfig {
         Boolean drillFace = JsonConfigFile.readBoolean(json, TRAIN_DRILLS_FULL_FACE);
         Boolean needGround = JsonConfigFile.readBoolean(json, ROLLERS_NEED_GROUND);
         Boolean reshape = JsonConfigFile.readBoolean(json, ROLLER_RESHAPE);
+        Boolean hotkeys = JsonConfigFile.readBoolean(json, CONTRAPTION_CONTROLS_HOTKEYS);
+        String markersText = JsonConfigFile.readString(json, UNBREAKABLE_MARKERS);
+        String clearText = JsonConfigFile.readString(json, CLEAR_TRACK_BED);
         if (straight == null) {
             straight = defaults.straightThroughBlocks();
             complete = false;
@@ -198,8 +205,34 @@ public final class ServerConfig {
             reshape = defaults.rollerReshape();
             complete = false;
         }
+        if (hotkeys == null) {
+            hotkeys = defaults.contraptionControlsHotkeys();
+            complete = false;
+        }
+        MarkerMode markers;
+        if (markersText == null) {
+            markers = defaults.unbreakableMarkers();
+            complete = false;
+        } else {
+            markers = MarkerMode.byId(markersText);
+            if (markers == null) {
+                Trackwright.LOGGER.warn("{} \"{}\" is not one of off, operators, everyone, using off", UNBREAKABLE_MARKERS, markersText);
+                markers = MarkerMode.OFF;
+            }
+        }
+        BoreMode clear;
+        if (clearText == null) {
+            clear = defaults.clearTrackBed();
+            complete = false;
+        } else {
+            clear = BoreMode.byId(clearText);
+            if (clear == null) {
+                Trackwright.LOGGER.warn("{} \"{}\" is not one of off, survival, creative-only, using off", CLEAR_TRACK_BED, clearText);
+                clear = BoreMode.OFF;
+            }
+        }
         TrackwrightSettings settings = new TrackwrightSettings(straight, length, protect, bore, widthMax, headroomMax, profile, lava, hardness, refuseEnds,
-            equipment, airPaving, powderSnow, fluids, controls, drillFace, needGround, reshape);
+            equipment, airPaving, powderSnow, fluids, controls, drillFace, needGround, reshape, hotkeys, markers, clear);
         if (contents.writable() && !complete) {
             JsonObject known = new JsonObject();
             known.addProperty(STRAIGHT_THROUGH_BLOCKS, settings.straightThroughBlocks());
@@ -224,6 +257,9 @@ public final class ServerConfig {
             known.addProperty(TRAIN_DRILLS_FULL_FACE, settings.trainDrillsFullFace());
             known.addProperty(ROLLERS_NEED_GROUND, settings.rollersNeedGround());
             known.addProperty(ROLLER_RESHAPE, settings.rollerReshape());
+            known.addProperty(CONTRAPTION_CONTROLS_HOTKEYS, settings.contraptionControlsHotkeys());
+            known.addProperty(UNBREAKABLE_MARKERS, markersText != null ? markersText : settings.unbreakableMarkers().id());
+            known.addProperty(CLEAR_TRACK_BED, clearText != null ? clearText : settings.clearTrackBed().id());
             JsonObject existing = json;
             if (migrated) {
                 existing = json.deepCopy();

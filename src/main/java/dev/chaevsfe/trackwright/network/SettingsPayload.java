@@ -3,6 +3,7 @@ package dev.chaevsfe.trackwright.network;
 import dev.chaevsfe.trackwright.Trackwright;
 import dev.chaevsfe.trackwright.config.BoreMode;
 import dev.chaevsfe.trackwright.config.BoreProfile;
+import dev.chaevsfe.trackwright.config.MarkerMode;
 import dev.chaevsfe.trackwright.config.ServerConfig;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import io.netty.buffer.ByteBuf;
@@ -13,7 +14,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
 public record SettingsPayload(int version, CompoundTag fields) implements CustomPacketPayload {
-    public static final int VERSION = 2;
+    public static final int VERSION = 3;
     public static final Type<SettingsPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(Trackwright.MOD_ID, "settings"));
     public static final StreamCodec<ByteBuf, SettingsPayload> STREAM_CODEC = StreamCodec.composite(
         ByteBufCodecs.VAR_INT, SettingsPayload::version,
@@ -42,6 +43,9 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
         fields.putBoolean(ServerConfig.TRAIN_DRILLS_FULL_FACE, settings.trainDrillsFullFace());
         fields.putBoolean(ServerConfig.ROLLERS_NEED_GROUND, settings.rollersNeedGround());
         fields.putBoolean(ServerConfig.ROLLER_RESHAPE, settings.rollerReshape());
+        fields.putBoolean(ServerConfig.CONTRAPTION_CONTROLS_HOTKEYS, settings.contraptionControlsHotkeys());
+        fields.putString(ServerConfig.UNBREAKABLE_MARKERS, settings.unbreakableMarkers().id());
+        fields.putString(ServerConfig.CLEAR_TRACK_BED, settings.clearTrackBed().id());
         return new SettingsPayload(VERSION, fields);
     }
 
@@ -81,7 +85,10 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
             fields.getBooleanOr(ServerConfig.CONTRAPTION_CONTROLS_SCHEDULE, false),
             fields.getBooleanOr(ServerConfig.TRAIN_DRILLS_FULL_FACE, false),
             fields.getBooleanOr(ServerConfig.ROLLERS_NEED_GROUND, false),
-            fields.getBooleanOr(ServerConfig.ROLLER_RESHAPE, false)
+            fields.getBooleanOr(ServerConfig.ROLLER_RESHAPE, false),
+            fields.getBooleanOr(ServerConfig.CONTRAPTION_CONTROLS_HOTKEYS, false),
+            MarkerMode.byId(fields.getStringOr(ServerConfig.UNBREAKABLE_MARKERS, MarkerMode.OFF.id())),
+            BoreMode.byId(fields.getStringOr(ServerConfig.CLEAR_TRACK_BED, BoreMode.OFF.id()))
         );
     }
 

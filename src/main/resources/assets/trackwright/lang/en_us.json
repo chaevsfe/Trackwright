@@ -138,5 +138,11 @@
   "trackwright.shape.no_down": "The tunnel cannot go below the track",
   "trackwright.shape.largest": "%s is the largest this server allows",
   "trackwright.shape.smallest": "%s is the smallest",
-  "trackwright.shape.unsupported": "This server's Trackwright cannot shape the tunnel"
+  "trackwright.shape.unsupported": "This server's Trackwright cannot shape the tunnel",
+  "trackwright.train_controls.off_here": "Train control keys are turned off on this server",
+  "trackwright.marker.off": "Markers are off on this server",
+  "trackwright.marker.operators_only": "Only operators may mark blocks on this server",
+  "trackwright.clear_off": "Clearing the track bed is turned off on this server",
+  "trackwright.clear_creative_only": "Clearing the track bed works only in creative mode on this server",
+  "trackwright.guide.clear_needs_server": "Clearing the track bed needs Trackwright on the server"
 }
