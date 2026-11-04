@@ -58,11 +58,13 @@ public final class ClientMarkers {
     }
 
     public static boolean contains(Level level, BlockPos pos) {
-        return dimension != null && dimension.equals(level.dimension().location().toString()) && CELLS.contains(pos.asLong());
+        return dimension != null && level == Minecraft.getInstance().level && dimension.equals(level.dimension().location().toString())
+            && CELLS.contains(pos.asLong());
     }
 
     public static boolean covers(Level level, BlockPos pos) {
-        if (dimension == null || truncated || center == ChunkPos.INVALID_CHUNK_POS || !dimension.equals(level.dimension().location().toString())) {
+        if (dimension == null || truncated || center == ChunkPos.INVALID_CHUNK_POS || level != Minecraft.getInstance().level
+            || !dimension.equals(level.dimension().location().toString())) {
             return false;
         }
         return Math.abs((pos.getX() >> 4) - ChunkPos.getX(center)) <= MarkerSync.RADIUS_CHUNKS
