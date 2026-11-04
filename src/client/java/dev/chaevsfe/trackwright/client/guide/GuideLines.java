@@ -320,7 +320,7 @@ public final class GuideLines {
             white(position(gap.pos()))).withStyle(ChatFormatting.RED));
     }
 
-    private static void addBore(List<Component> lines, BorePlan bore, ItemStack tool, boolean refused) {
+    public static void addBore(List<Component> lines, BorePlan bore, ItemStack tool, boolean refused) {
         int blocks = bore.cells().size();
         boolean one = blocks == 1;
         Component count = white(Integer.toString(blocks));

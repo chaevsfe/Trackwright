@@ -12,6 +12,7 @@ import dev.chaevsfe.trackwright.config.BoreProfile;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
 import dev.chaevsfe.trackwright.mining.BlockMiner;
+import dev.chaevsfe.trackwright.network.ClearBedPayload;
 import dev.chaevsfe.trackwright.network.PlacementPayload;
 import dev.chaevsfe.trackwright.track.BoreProfiles;
 import dev.chaevsfe.trackwright.track.PlacementInfoExtension;
@@ -22,6 +23,7 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -80,6 +82,10 @@ public final class BoreShaping {
         wasDown = false;
     }
 
+    public static @Nullable BoreProfile shaped() {
+        return shaped;
+    }
+
     public static boolean held() {
         KeyMapping mapping = key;
         return mapping != null && mapping.isDown();
@@ -113,8 +119,12 @@ public final class BoreShaping {
     }
 
     private static boolean canSend() {
+        return canSend(PlacementPayload.TYPE);
+    }
+
+    public static boolean canSend(CustomPacketPayload.Type<?> type) {
         ClientPacketListener connection = Minecraft.getInstance().getConnection();
-        return connection != null && connection.hasChannel(PlacementPayload.TYPE);
+        return connection != null && connection.hasChannel(type);
     }
 
     private static boolean onTrackBlock(Level level, BlockPos pos) {
@@ -145,13 +155,18 @@ public final class BoreShaping {
     public static boolean onScroll(int wheel) {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
-        if (wheel == 0 || player == null || mc.screen != null || !held() || heldTrack(player) == null
-            || !BlockMiner.isTool(player.getOffhandItem())) {
+        if (wheel == 0 || player == null || mc.screen != null || !held()) {
+            return false;
+        }
+        boolean boring = heldTrack(player) != null && BlockMiner.isTool(player.getOffhandItem());
+        boolean clearing = !boring && ClearBedPreview.shaping(player);
+        if (!boring && !clearing) {
             return false;
         }
         TrackwrightSettings settings = RemoteSettings.get();
-        BoreProfile current = current(player);
-        if (settings == null || current == null || !canSend()) {
+        BoreProfile current = clearing ? ClearBedPreview.profile(player) : current(player);
+        boolean channel = canSend(clearing ? ClearBedPayload.TYPE : PlacementPayload.TYPE);
+        if (settings == null || current == null || !channel) {
             say(player, Component.translatable("trackwright.shape.unsupported").withStyle(ChatFormatting.RED));
             return true;
         }
@@ -238,8 +253,11 @@ public final class BoreShaping {
     private static @Nullable Vec3 tangent(Minecraft mc, Player player) {
         ItemStack stack = heldTrack(player);
         ConnectingFrom from = stack == null ? null : stack.get(AllDataComponents.TRACK_CONNECTING_FROM);
+        ClearBedPreview.Target clearing = stack == null ? ClearBedPreview.aimed() : null;
         Vec3 direction;
-        if (from != null) {
+        if (clearing != null) {
+            direction = clearing.tangent();
+        } else if (from != null) {
             PlacementInfo info = TrackGuide.plannedFrom(from);
             Vec3 planned = info == null ? null : ((PlacementInfoExtension) info).trackwright$axis1();
             if (planned != null) {

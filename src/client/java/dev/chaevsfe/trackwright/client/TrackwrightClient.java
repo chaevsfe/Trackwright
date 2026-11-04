@@ -6,6 +6,7 @@ import dev.chaevsfe.trackwright.client.actors.RollerTerrainSlot;
 import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.guide.ActionBarHold;
 import dev.chaevsfe.trackwright.client.guide.BoreShaping;
+import dev.chaevsfe.trackwright.client.guide.ClearBedPreview;
 import dev.chaevsfe.trackwright.client.guide.RadiusLock;
 import dev.chaevsfe.trackwright.client.guide.TrackGuide;
 import dev.chaevsfe.trackwright.client.guide.TrackGuideHud;
@@ -70,6 +71,7 @@ public final class TrackwrightClient {
             RadiusLock.tick(mc);
             UndoKey.tick(mc);
             BoreShaping.tick(mc);
+            ClearBedPreview.tick(mc);
         });
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, WidestTurnLock::beforeBlockUse);
         game.addListener(EventPriority.LOWEST, false, PlayerInteractEvent.RightClickBlock.class, BoreShaping::beforeBlockUse);
@@ -113,6 +115,7 @@ public final class TrackwrightClient {
         FarEnd.reset();
         BoreShaping.reset();
         RadiusLock.reset();
+        ClearBedPreview.reset();
     }
 
     private static void receiveSettings(SettingsPayload payload) {

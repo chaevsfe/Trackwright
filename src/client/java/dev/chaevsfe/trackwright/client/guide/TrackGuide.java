@@ -217,7 +217,7 @@ public final class TrackGuide {
     public static List<Component> linesFor(Player player) {
         ItemStack stack = heldTrack(player);
         if (stack == null) {
-            return List.of();
+            return ClearBedPreview.lines();
         }
         ConnectingFrom from = stack.get(AllDataComponents.TRACK_CONNECTING_FROM);
         if (from == null) {
