@@ -3,9 +3,11 @@ package dev.chaevsfe.trackwright.client.controls;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
 import com.simibubi.create.content.trains.entity.Train;
 import dev.chaevsfe.trackwright.actors.TrainControlMessages;
+import dev.chaevsfe.trackwright.client.guide.BoreShaping;
 import dev.chaevsfe.trackwright.config.RemoteSettings;
 import dev.chaevsfe.trackwright.config.SettingMessages;
 import dev.chaevsfe.trackwright.config.TrackwrightSettings;
+import dev.chaevsfe.trackwright.network.TrainControlPayload;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -262,7 +264,7 @@ public final class TrainControlsScreen extends Screen {
 
     private Component hint() {
         TrackwrightSettings settings = RemoteSettings.get();
-        if (settings != null && !settings.contraptionControlsHotkeys()) {
+        if (settings != null && !settings.contraptionControlsHotkeys() && BoreShaping.canSend(TrainControlPayload.TYPE)) {
             return SettingMessages.component(SettingMessages.HOTKEYS_OFF);
         }
         return Component.translatable(HINT);
