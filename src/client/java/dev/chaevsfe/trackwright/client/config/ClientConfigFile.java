@@ -51,7 +51,27 @@ final class ClientConfigFile {
         }
     }
 
+    private static boolean readable(Path path) {
+        if (!Files.isRegularFile(path)) {
+            return true;
+        }
+        for (int attempt = 1; ; attempt++) {
+            try {
+                Files.readAllBytes(path);
+                return true;
+            } catch (IOException e) {
+                if (attempt == WRITE_ATTEMPTS || !pauseBeforeRetry()) {
+                    Trackwright.LOGGER.error("The settings menu's change was not saved, {} could not be read. It lasts until the game closes, then the file's old values come back: {}", path, e.toString());
+                    return false;
+                }
+            }
+        }
+    }
+
     static void store(Path path, ClientSettings settings) {
+        if (!readable(path)) {
+            return;
+        }
         JsonConfigFile.Contents contents = JsonConfigFile.read(path);
         if (!contents.writable() && !setAside(path)) {
             return;
