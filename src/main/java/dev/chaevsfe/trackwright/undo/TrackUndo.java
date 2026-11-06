@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Prediction;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -279,7 +280,7 @@ public final class TrackUndo {
             Trackwright.LOGGER.warn("Undoing a track placement for {} left {} blocks different from before", player.getScoreboardName(), off);
         }
         for (ItemStack stack : record.charged) {
-            player.getInventory().placeItemBackInInventory(stack.copy());
+            player.getInventory().placeItemBackInInventory(stack.copy(), Prediction.SERVER_ONLY);
         }
         returnSelection(level, player, record);
     }

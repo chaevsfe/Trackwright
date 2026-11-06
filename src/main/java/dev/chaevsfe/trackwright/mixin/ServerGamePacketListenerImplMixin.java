@@ -17,6 +17,6 @@ public abstract class ServerGamePacketListenerImplMixin {
 
     @Inject(method = "handleUseItemOn", at = @At("RETURN"))
     private void trackwright$dropUnusedWidestTurn(ServerboundUseItemOnPacket packet, CallbackInfo ci) {
-        WidestTurnFlag.afterUseOnBlock(((ServerGamePacketListenerImpl) (Object) this).player, packet.getHand());
+        WidestTurnFlag.afterUseOnBlock(((ServerGamePacketListenerImpl) (Object) this).player, packet.hand());
     }
 }

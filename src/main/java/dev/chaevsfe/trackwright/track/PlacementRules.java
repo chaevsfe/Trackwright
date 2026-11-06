@@ -18,6 +18,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -370,7 +371,7 @@ public final class PlacementRules {
         int tracks = info.requiredTracks;
         while (tracks > 0) {
             int count = Math.min(STACK, tracks);
-            player.getInventory().placeItemBackInInventory(new ItemStack(info.trackMaterial.getBlock(), count));
+            player.getInventory().placeItemBackInInventory(new ItemStack(info.trackMaterial.getBlock(), count), Prediction.SERVER_ONLY);
             tracks -= count;
         }
     }

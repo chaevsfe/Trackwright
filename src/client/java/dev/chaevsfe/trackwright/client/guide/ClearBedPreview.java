@@ -92,7 +92,7 @@ public final class ClearBedPreview {
             settings);
         Long hash = current.guessed() ? null : current.hash();
         ClientPlayNetworking.send(ClearBedPayload.of(target.track(), target.target(), target.aim(), BoreShaping.shaped(), hash, current.count()));
-        player.swing(InteractionHand.MAIN_HAND);
+        player.swing(InteractionHand.MAIN_HAND, player.getMainHandItem().getInteractAnimation(), false);
         sentWhileHeld = true;
         plan = null;
         return true;
