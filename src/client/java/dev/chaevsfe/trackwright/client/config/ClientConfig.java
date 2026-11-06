@@ -1,10 +1,13 @@
 package dev.chaevsfe.trackwright.client.config;
 
+import com.google.gson.JsonObject;
 import com.zurrtum.create.catnip.config.Builder;
 import dev.chaevsfe.trackwright.Trackwright;
+import dev.chaevsfe.trackwright.config.JsonConfigFile;
 import net.fabricmc.loader.api.FabricLoader;
 import org.jspecify.annotations.Nullable;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public final class ClientConfig {
@@ -14,32 +17,76 @@ public final class ClientConfig {
     public static final String PLANTS_COUNT_AS_GROUND = "plantsCountAsGround";
     public static final String SHOW_HEIGHT_HINTS = "showHeightHints";
 
-    private static final String TYPE = "client";
+    private static final String MENU_TYPE = "client";
 
-    private static volatile @Nullable ClientConfigValues values;
-    private static volatile ClientSettings fromFile = ClientSettings.DEFAULTS;
+    private static volatile ClientSettings current = ClientSettings.DEFAULTS;
+    private static volatile @Nullable ClientConfigValues menuValues;
 
     private ClientConfig() {
     }
 
     public static ClientSettings get() {
-        ClientConfigValues live = values;
-        return live == null ? fromFile : live.settings();
+        ClientConfigValues live = menuValues;
+        return live == null ? current : live.settings();
     }
 
     public static void load() {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
-        try {
-            ClientConfigFile.Prepared prepared = ClientConfigFile.prepare(path);
-            fromFile = prepared.settings();
-            if (prepared.ready()) {
-                values = Builder.create(ClientConfigValues::new, Trackwright.MOD_ID, TYPE, true);
-            }
-        } catch (RuntimeException e) {
-            Trackwright.LOGGER.warn("Could not load {}, the settings menu cannot change it this session: {}", path, e.toString());
+        Path configDir = FabricLoader.getInstance().getConfigDir();
+        Path path = configDir.resolve(FILE_NAME);
+        JsonConfigFile.Contents contents = JsonConfigFile.read(path);
+        JsonObject json = contents.json();
+        ClientSettings defaults = ClientSettings.DEFAULTS;
+        boolean complete = true;
+        Boolean squares = JsonConfigFile.readBoolean(json, ALWAYS_SHOW_PLACEMENT_SQUARES);
+        Integer range = JsonConfigFile.readInt(json, PREVIEW_RANGE);
+        Boolean plants = JsonConfigFile.readBoolean(json, PLANTS_COUNT_AS_GROUND);
+        Boolean heights = JsonConfigFile.readBoolean(json, SHOW_HEIGHT_HINTS);
+        if (squares == null) {
+            squares = defaults.alwaysShowPlacementSquares();
+            complete = false;
         }
-        ClientSettings settings = get();
+        if (range == null) {
+            range = defaults.previewRange();
+            complete = false;
+        } else if (range != ClientSettings.clampRange(range)) {
+            Trackwright.LOGGER.warn("{} {} is outside 0..{}, using {}", PREVIEW_RANGE, range, ClientSettings.MAX_PREVIEW_RANGE, ClientSettings.clampRange(range));
+        }
+        if (plants == null) {
+            plants = defaults.plantsCountAsGround();
+            complete = false;
+        }
+        if (heights == null) {
+            heights = defaults.showHeightHints();
+            complete = false;
+        }
+        ClientSettings settings = new ClientSettings(squares, range, plants, heights);
+        if (contents.writable() && !complete) {
+            JsonObject known = new JsonObject();
+            known.addProperty(ALWAYS_SHOW_PLACEMENT_SQUARES, settings.alwaysShowPlacementSquares());
+            known.addProperty(PREVIEW_RANGE, range);
+            known.addProperty(PLANTS_COUNT_AS_GROUND, settings.plantsCountAsGround());
+            known.addProperty(SHOW_HEIGHT_HINTS, settings.showHeightHints());
+            JsonConfigFile.write(path, known, json);
+        }
+        current = settings;
+        offerToMenu(path, configDir.resolve(Trackwright.MOD_ID).resolve(MENU_TYPE + ".json"), settings);
         Trackwright.LOGGER.info("Trackwright client settings: alwaysShowPlacementSquares={}, previewRange={}, plantsCountAsGround={}, showHeightHints={}",
             settings.alwaysShowPlacementSquares(), settings.previewRange(), settings.plantsCountAsGround(), settings.showHeightHints());
+    }
+
+    static void saveFromMenu(ClientSettings settings) {
+        ClientConfigFile.store(FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME), settings);
+    }
+
+    private static void offerToMenu(Path path, Path menuCopy, ClientSettings settings) {
+        try {
+            if (!Files.isWritable(path)) {
+                Trackwright.LOGGER.warn("{} cannot be written, the settings menu cannot change it this session", path);
+            } else if (ClientConfigFile.writeMenuCopy(menuCopy, settings)) {
+                menuValues = Builder.create(ClientConfigValues::new, Trackwright.MOD_ID, MENU_TYPE);
+            }
+        } catch (RuntimeException e) {
+            Trackwright.LOGGER.warn("The settings menu cannot change {} this session: {}", path, e.toString());
+        }
     }
 }
