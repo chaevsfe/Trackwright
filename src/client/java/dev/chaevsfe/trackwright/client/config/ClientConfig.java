@@ -7,7 +7,6 @@ import dev.chaevsfe.trackwright.config.JsonConfigFile;
 import net.fabricmc.loader.api.FabricLoader;
 import org.jspecify.annotations.Nullable;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 public final class ClientConfig {
@@ -80,8 +79,8 @@ public final class ClientConfig {
 
     private static void offerToMenu(Path path, Path menuCopy, ClientSettings settings) {
         try {
-            if (!Files.isWritable(path)) {
-                Trackwright.LOGGER.warn("{} cannot be written, the settings menu cannot change it this session", path);
+            if (!ClientConfigFile.canReplace(path)) {
+                Trackwright.LOGGER.warn("{} or its folder cannot be written, the settings menu cannot change it this session", path);
             } else if (ClientConfigFile.writeMenuCopy(menuCopy, settings)) {
                 menuValues = Builder.create(ClientConfigValues::new, Trackwright.MOD_ID, MENU_TYPE);
             }

@@ -19,8 +19,19 @@ final class ClientConfigFile {
     private static final String NOTE_TEXT = "The config menu's copy of " + ClientConfig.FILE_NAME + ", replaced from it at every start. Edit that file instead.";
     private static final String TEMP_SUFFIX = ".tmp";
     private static final String BROKEN_SUFFIX = ".broken";
+    private static final int WRITE_ATTEMPTS = 10;
+    private static final long RETRY_PAUSE_MILLIS = 10;
 
     private ClientConfigFile() {
+    }
+
+    static boolean canReplace(Path path) {
+        try {
+            Path target = path.toRealPath();
+            return Files.isWritable(target) && Files.isWritable(target.getParent());
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     static boolean writeMenuCopy(Path menuCopy, ClientSettings settings) {
@@ -31,7 +42,13 @@ final class ClientConfigFile {
             holder.add(VALUE, setting.getValue());
             json.add(setting.getKey(), holder);
         }
-        return write(menuCopy, json);
+        try {
+            write(menuCopy, json);
+            return true;
+        } catch (IOException e) {
+            Trackwright.LOGGER.warn("Could not write {}: {}", menuCopy, e.toString());
+            return false;
+        }
     }
 
     static void store(Path path, ClientSettings settings) {
@@ -43,7 +60,11 @@ final class ClientConfigFile {
         for (Map.Entry<String, JsonElement> setting : known(settings).entrySet()) {
             json.add(setting.getKey(), setting.getValue());
         }
-        write(path, json);
+        try {
+            write(path, json);
+        } catch (IOException e) {
+            Trackwright.LOGGER.error("The settings menu's change was not saved to {}. It lasts until the game closes, then the file's old values come back: {}", path, e.toString());
+        }
     }
 
     private static JsonObject known(ClientSettings settings) {
@@ -75,21 +96,39 @@ final class ClientConfigFile {
         return aside;
     }
 
-    private static boolean write(Path path, JsonObject json) {
-        try {
-            Path target = Files.exists(path) ? path.toRealPath() : path;
-            Path temp = target.resolveSibling(target.getFileName() + TEMP_SUFFIX);
-            Files.createDirectories(target.getParent());
+    private static void write(Path path, JsonObject json) throws IOException {
+        String text = Builder.GSON.toJson(json) + System.lineSeparator();
+        for (int attempt = 1; ; attempt++) {
             try {
-                Files.writeString(temp, Builder.GSON.toJson(json) + System.lineSeparator(), StandardCharsets.UTF_8);
-                Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE);
+                replace(path, text);
+                return;
             } catch (IOException e) {
-                deleteQuietly(temp);
-                throw e;
+                if (attempt == WRITE_ATTEMPTS || !pauseBeforeRetry()) {
+                    throw e;
+                }
             }
-            return true;
+        }
+    }
+
+    private static void replace(Path path, String text) throws IOException {
+        Path target = Files.exists(path) ? path.toRealPath() : path;
+        Path temp = target.resolveSibling(target.getFileName() + TEMP_SUFFIX);
+        Files.createDirectories(target.getParent());
+        try {
+            Files.writeString(temp, text, StandardCharsets.UTF_8);
+            Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
-            Trackwright.LOGGER.warn("Could not write {}: {}", path, e.toString());
+            deleteQuietly(temp);
+            throw e;
+        }
+    }
+
+    private static boolean pauseBeforeRetry() {
+        try {
+            Thread.sleep(RETRY_PAUSE_MILLIS);
+            return true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             return false;
         }
     }
