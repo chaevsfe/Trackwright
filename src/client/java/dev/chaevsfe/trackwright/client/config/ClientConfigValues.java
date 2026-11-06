@@ -50,7 +50,7 @@ final class ClientConfigValues extends ConfigBase {
             try {
                 super.set(value);
             } finally {
-                ClientConfig.saveFromMenu(settings());
+                ClientConfig.saveFromMenu(ClientConfigValues.this);
             }
         }
     }
@@ -65,7 +65,7 @@ final class ClientConfigValues extends ConfigBase {
             try {
                 super.set(value);
             } finally {
-                ClientConfig.saveFromMenu(settings());
+                ClientConfig.saveFromMenu(ClientConfigValues.this);
             }
         }
     }

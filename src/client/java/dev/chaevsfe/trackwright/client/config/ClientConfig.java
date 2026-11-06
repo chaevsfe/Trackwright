@@ -73,8 +73,13 @@ public final class ClientConfig {
             settings.alwaysShowPlacementSquares(), settings.previewRange(), settings.plantsCountAsGround(), settings.showHeightHints());
     }
 
-    static void saveFromMenu(ClientSettings settings) {
-        ClientConfigFile.store(FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME), settings);
+    static void saveFromMenu(ClientConfigValues values) {
+        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        if (values == menuValues) {
+            ClientConfigFile.store(path, values.settings());
+        } else {
+            Trackwright.LOGGER.warn("The settings menu is off this session, so this change does nothing. Edit {} instead", path);
+        }
     }
 
     private static void offerToMenu(Path path, Path menuCopy, ClientSettings settings) {
@@ -82,7 +87,13 @@ public final class ClientConfig {
             if (!ClientConfigFile.canReplace(path)) {
                 Trackwright.LOGGER.warn("{} or its folder cannot be written, the settings menu cannot change it this session", path);
             } else if (ClientConfigFile.writeMenuCopy(menuCopy, settings)) {
-                menuValues = Builder.create(ClientConfigValues::new, Trackwright.MOD_ID, MENU_TYPE);
+                ClientConfigValues values = Builder.create(ClientConfigValues::new, Trackwright.MOD_ID, MENU_TYPE);
+                ClientSettings read = values.settings();
+                if (read.equals(settings)) {
+                    menuValues = values;
+                } else {
+                    Trackwright.LOGGER.warn("The settings menu read {} from {} but {} says {}. Using the file, and the menu is off this session", read, menuCopy, path, settings);
+                }
             }
         } catch (RuntimeException e) {
             Trackwright.LOGGER.warn("The settings menu cannot change {} this session: {}", path, e.toString());
