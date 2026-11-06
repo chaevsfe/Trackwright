@@ -186,6 +186,7 @@ public final class ClearBed {
             return;
         }
         BoreProfiles.receive(player, payload.request());
+        player.swing(InteractionHand.MAIN_HAND, player.getMainHandItem().getInteractAnimation(), false);
         click(player, level, track, connection, payload.plan(), payload.count(), settings);
     }
 
