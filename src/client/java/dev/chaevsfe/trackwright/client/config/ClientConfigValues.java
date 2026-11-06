@@ -3,9 +3,11 @@ package dev.chaevsfe.trackwright.client.config;
 import com.zurrtum.create.catnip.config.ConfigBase;
 
 final class ClientConfigValues extends ConfigBase {
+    static final String ALWAYS_SHOW_SQUARES = "alwaysShowSquares";
+
     private final ConfigBool alwaysShowPlacementSquares = new SavedBool(
         ClientSettings.DEFAULTS.alwaysShowPlacementSquares(),
-        ClientConfig.ALWAYS_SHOW_PLACEMENT_SQUARES,
+        ALWAYS_SHOW_SQUARES,
         "Show Create's placement squares even when they are all one colour"
     );
     private final ConfigInt previewRange = new SavedInt(

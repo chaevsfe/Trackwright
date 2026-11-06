@@ -37,7 +37,7 @@ final class ClientConfigFile {
     static boolean writeMenuCopy(Path menuCopy, ClientSettings settings) {
         JsonObject json = new JsonObject();
         json.addProperty(NOTE, NOTE_TEXT);
-        for (Map.Entry<String, JsonElement> setting : known(settings).entrySet()) {
+        for (Map.Entry<String, JsonElement> setting : known(ClientConfigValues.ALWAYS_SHOW_SQUARES, settings).entrySet()) {
             JsonObject holder = new JsonObject();
             holder.add(VALUE, setting.getValue());
             json.add(setting.getKey(), holder);
@@ -57,7 +57,7 @@ final class ClientConfigFile {
             return;
         }
         JsonObject json = contents.json();
-        for (Map.Entry<String, JsonElement> setting : known(settings).entrySet()) {
+        for (Map.Entry<String, JsonElement> setting : known(ClientConfig.ALWAYS_SHOW_PLACEMENT_SQUARES, settings).entrySet()) {
             json.add(setting.getKey(), setting.getValue());
         }
         try {
@@ -67,9 +67,9 @@ final class ClientConfigFile {
         }
     }
 
-    private static JsonObject known(ClientSettings settings) {
+    private static JsonObject known(String squaresKey, ClientSettings settings) {
         JsonObject json = new JsonObject();
-        json.addProperty(ClientConfig.ALWAYS_SHOW_PLACEMENT_SQUARES, settings.alwaysShowPlacementSquares());
+        json.addProperty(squaresKey, settings.alwaysShowPlacementSquares());
         json.addProperty(ClientConfig.PREVIEW_RANGE, settings.previewRange());
         json.addProperty(ClientConfig.PLANTS_COUNT_AS_GROUND, settings.plantsCountAsGround());
         json.addProperty(ClientConfig.SHOW_HEIGHT_HINTS, settings.showHeightHints());
