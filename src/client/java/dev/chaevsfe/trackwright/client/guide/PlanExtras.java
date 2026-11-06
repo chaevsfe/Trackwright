@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright.client.guide;
 
 import com.zurrtum.create.content.trains.track.TrackPlacement;
 import com.zurrtum.create.content.trains.track.TrackPlacement.PlacementInfo;
+import dev.chaevsfe.trackwright.client.config.ClientConfig;
 import dev.chaevsfe.trackwright.client.mixin.TrackPlacementAccessor;
 import dev.chaevsfe.trackwright.track.QuarterCircle;
 import net.minecraft.core.BlockPos;
@@ -27,6 +28,7 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
         int radius,
         int angle,
         boolean deep,
+        boolean heightHints,
         boolean valid,
         @Nullable String message,
         int end1Extent,
@@ -43,6 +45,7 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
                 && radius == key.radius
                 && angle == key.angle
                 && deep == key.deep
+                && heightHints == key.heightHints
                 && valid == key.valid
                 && Objects.equals(message, key.message)
                 && end1Extent == key.end1Extent
@@ -66,7 +69,7 @@ public record PlanExtras(boolean maximised, boolean locked, @Nullable PlacementI
         QuarterCircle.Judged radius = RadiusLock.judgedFor(info);
         int corner = RadiusLock.on() ? RadiusLock.effectiveCorner(stack) : 0;
         Key key = new Key(target.immutable(), state, stack, maximise, locked, corner, TrackPlacementAccessor.trackwright$hoveringAngle(),
-            deep, info.valid, info.message, info.end1Extent, info.end2Extent);
+            deep, ClientConfig.get().showHeightHints(), info.valid, info.message, info.end1Extent, info.end2Extent);
         PlanExtras previous = last;
         if (previous != null && key.equals(lastKey)) {
             return previous;
