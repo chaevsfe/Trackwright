@@ -17,6 +17,7 @@
     "PlacementInfoMixin",
     "RollerBlockEntityMixin",
     "RollerMovementBehaviourMixin",
+    "SavedDataStorageMixin",
     "SeatMovementBehaviourMixin",
     "ServerGamePacketListenerImplMixin",
     "StationBlockEntityMixin",

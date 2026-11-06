@@ -47,7 +47,8 @@ public final class Trackwright implements ModInitializer {
             "com.zurrtum.create.content.trains.track.TrackPlacement$PlacementInfo",
             "com.zurrtum.create.content.trains.track.TrackTargetingBlockItem",
             "net.minecraft.server.network.ServerGamePacketListenerImpl",
-            "net.minecraft.world.entity.LivingEntity"
+            "net.minecraft.world.entity.LivingEntity",
+            "net.minecraft.world.level.storage.SavedDataStorage"
         );
         TrackwrightNetwork.register();
         ClearBed.register();
