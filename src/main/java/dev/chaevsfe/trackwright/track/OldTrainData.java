@@ -34,6 +34,9 @@ public final class OldTrainData {
             return;
         }
         try {
+            if (!hasOldPalette(root)) {
+                return;
+            }
             OldTrainData pass = new OldTrainData(Math.min(NbtUtils.getDataVersion(root, NEWEST_OLD_ITEM_VERSION), NEWEST_OLD_ITEM_VERSION), version);
             pass.fixTrains(root);
             if (pass.renamed > 0 || pass.upgraded > 0) {
@@ -42,6 +45,33 @@ public final class OldTrainData {
         } catch (RuntimeException e) {
             Trackwright.LOGGER.error("Could not check saved trains in {}", path, e);
         }
+    }
+
+    private static boolean hasOldPalette(CompoundTag root) {
+        if (root.get("data") instanceof CompoundTag data && data.get("Trains") instanceof ListTag trains) {
+            for (Tag train : trains) {
+                if (train instanceof CompoundTag t && t.get("Carriages") instanceof ListTag carriages) {
+                    for (Tag carriage : carriages) {
+                        if (carriage instanceof CompoundTag c && carriageHasOldPalette(c)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean carriageHasOldPalette(CompoundTag carriage) {
+        if (carriage.get("Entity") instanceof CompoundTag entity && entity.get("Contraption") instanceof CompoundTag contraption
+            && contraption.get("Blocks") instanceof CompoundTag blocks && blocks.get("Palette") instanceof ListTag palette) {
+            for (Tag state : palette) {
+                if (state instanceof CompoundTag s && isOldState(s)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void fixTrains(CompoundTag root) {
