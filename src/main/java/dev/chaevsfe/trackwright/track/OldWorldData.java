@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 
 public final class OldWorldData {
     private static final String[] CARRIED_STATES = {"Material", "Bracket"};
+    private static final int BED_BLOCK_ENTITY_VERSION = 4885;
     private static final int NAME_TAG_ATTRIBUTE_VERSION = 4888;
 
     private final DataFixTypes type;
@@ -359,15 +360,16 @@ public final class OldWorldData {
             || components.contains("minecraft:map_color")
             || components.contains("minecraft:swing_animation")
             || components.contains("minecraft:block_transformer")
-            || hasOldCarriedState(components.get("minecraft:block_entity_data"))
-            || isItem(stack, "minecraft:filled_map") && components.contains("minecraft:map_decorations")
-            || isItem(stack, "minecraft:map") && components.get("minecraft:item_name") instanceof CompoundTag name
+            || hasOldBlockEntityData(components.get("minecraft:block_entity_data"))
+            || holdsOldState(components.get("minecraft:entity_data"))
+            || hasId(stack, "minecraft:filled_map") && components.contains("minecraft:map_decorations")
+            || hasId(stack, "minecraft:map") && components.get("minecraft:item_name") instanceof CompoundTag name
                 && name.get("translate") instanceof StringTag(String key) && key.equals("filled_map.buried_treasure")
             || from < NAME_TAG_ATTRIBUTE_VERSION && holds(components.get("minecraft:attribute_modifiers"), "minecraft:nameplate_distance");
     }
 
-    private static boolean isItem(CompoundTag stack, String item) {
-        return stack.get("id") instanceof StringTag(String id) && id.equals(item);
+    private static boolean hasId(CompoundTag tag, String expected) {
+        return tag.get("id") instanceof StringTag(String id) && id.equals(expected);
     }
 
     private static boolean holds(Tag tag, String value) {
@@ -390,10 +392,25 @@ public final class OldWorldData {
         return false;
     }
 
-    private static boolean hasOldCarriedState(Tag blockEntity) {
-        if (blockEntity instanceof CompoundTag be) {
-            for (String key : CARRIED_STATES) {
-                if (be.get(key) instanceof CompoundTag s && isOldState(s)) {
+    private boolean hasOldBlockEntityData(Tag tag) {
+        return tag instanceof CompoundTag blockEntity && (holdsOldState(blockEntity)
+            || hasId(blockEntity, "minecraft:decorated_pot") && blockEntity.get("sherds") instanceof ListTag
+            || from < BED_BLOCK_ENTITY_VERSION && hasId(blockEntity, "minecraft:bed"));
+    }
+
+    private static boolean holdsOldState(Tag tag) {
+        if (tag instanceof ListTag list) {
+            for (Tag element : list) {
+                if (holdsOldState(element)) {
+                    return true;
+                }
+            }
+        } else if (tag instanceof CompoundTag compound) {
+            if (isOldState(compound)) {
+                return true;
+            }
+            for (String key : compound.keySet()) {
+                if (!key.equals("minecraft:custom_data") && holdsOldState(compound.get(key))) {
                     return true;
                 }
             }
