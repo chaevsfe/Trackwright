@@ -1,6 +1,8 @@
 package dev.chaevsfe.trackwright.config;
 
 import com.google.gson.JsonObject;
+import com.simibubi.create.infrastructure.config.AllConfigs;
+import com.simibubi.create.infrastructure.config.CServer;
 import dev.chaevsfe.trackwright.Trackwright;
 import net.neoforged.fml.loading.FMLPaths;
 
@@ -9,6 +11,7 @@ import java.nio.file.Path;
 public final class ServerConfig {
     public static final String FILE_NAME = "trackwright-server.json";
     public static final String STRAIGHT_THROUGH_BLOCKS = "straightThroughBlocks";
+    public static final String EXTEND_CONNECTION_LENGTH = "extendConnectionLength";
     public static final String MAX_CONNECTION_LENGTH = "maxConnectionLength";
     public static final String PROTECT_TRAIN_PASSENGERS = "protectTrainPassengers";
     public static final String BORE_THROUGH_BLOCKS = "boreThroughBlocks";
@@ -33,6 +36,7 @@ public final class ServerConfig {
     public static final String CONTRAPTION_CONTROLS_HOTKEYS = "contraptionControlsHotkeys";
     public static final String UNBREAKABLE_MARKERS = "unbreakableMarkers";
     public static final String CLEAR_TRACK_BED = "clearTrackBed";
+    private static final int CREATE_DEFAULT_LENGTH = 32;
 
     private static volatile TrackwrightSettings current;
 
@@ -58,13 +62,33 @@ public final class ServerConfig {
         synchronized (ServerConfig.class) {
             current = settings;
         }
-        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, maxConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreWidthMax={}, boreHeadroomMax={}, boreProfileDefault={}, boreLavaCheck={}, boreMaxHardness={}, refuseBlockedTrackEnds={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}, rollersNeedGround={}, rollerReshape={}, contraptionControlsHotkeys={}, unbreakableMarkers={}, clearTrackBed={}",
-            settings.straightThroughBlocks(), settings.maxConnectionLength(), settings.protectTrainPassengers(), settings.boreThroughBlocks(),
+        Trackwright.LOGGER.info("Trackwright server settings: straightThroughBlocks={}, extendConnectionLength={}, protectTrainPassengers={}, boreThroughBlocks={}, boreWidthMax={}, boreHeadroomMax={}, boreProfileDefault={}, boreLavaCheck={}, boreMaxHardness={}, refuseBlockedTrackEnds={}, protectTrackEquipment={}, rollersSkipAirPaving={}, rollersClearPowderSnow={}, rollersIgnoreFluids={}, contraptionControlsSchedule={}, trainDrillsFullFace={}, rollersNeedGround={}, rollerReshape={}, contraptionControlsHotkeys={}, unbreakableMarkers={}, clearTrackBed={}",
+            settings.straightThroughBlocks(), settings.extendConnectionLength(), settings.protectTrainPassengers(), settings.boreThroughBlocks(),
             settings.boreWidthMax(), settings.boreHeadroomMax(), settings.boreProfileDefault(), settings.boreLavaCheck(), settings.boreMaxHardness(), settings.refuseBlockedTrackEnds(), settings.protectTrackEquipment(),
             settings.rollersSkipAirPaving(), settings.rollersClearPowderSnow(), settings.rollersIgnoreFluids(), settings.contraptionControlsSchedule(),
             settings.trainDrillsFullFace(), settings.rollersNeedGround(), settings.rollerReshape(), settings.contraptionControlsHotkeys(),
             settings.unbreakableMarkers(), settings.clearTrackBed());
+        int createLength = createLength();
+        if (settings.extendConnectionLength()) {
+            Trackwright.LOGGER.info("Trackwright {}=true: track connections reach {} blocks; Create's maxTrackPlacementLength ({}) applies only with {} false in config/{}",
+                EXTEND_CONNECTION_LENGTH, TrackwrightSettings.MAX_CONNECTION_LENGTH, createLength, EXTEND_CONNECTION_LENGTH, FILE_NAME);
+        } else {
+            Trackwright.LOGGER.info("Trackwright {}=false: Create's maxTrackPlacementLength ({}) limits track connections", EXTEND_CONNECTION_LENGTH, createLength);
+        }
         return settings;
+    }
+
+    private static int createLength() {
+        try {
+            CServer server = AllConfigs.server();
+            if (server != null) {
+                return server.trains.maxTrackPlacementLength.get();
+            }
+            Trackwright.LOGGER.warn("Create's server config is not loaded yet, using its default maxTrackPlacementLength {}", CREATE_DEFAULT_LENGTH);
+        } catch (RuntimeException e) {
+            Trackwright.LOGGER.warn("Could not read Create's maxTrackPlacementLength, using its default {}: {}", CREATE_DEFAULT_LENGTH, e.toString());
+        }
+        return CREATE_DEFAULT_LENGTH;
     }
 
     private static Path path() {
@@ -77,7 +101,9 @@ public final class ServerConfig {
         TrackwrightSettings defaults = TrackwrightSettings.DEFAULTS;
         boolean complete = true;
         Boolean straight = JsonConfigFile.readBoolean(json, STRAIGHT_THROUGH_BLOCKS);
-        Integer length = JsonConfigFile.readInt(json, MAX_CONNECTION_LENGTH);
+        Boolean extend = JsonConfigFile.readBoolean(json, EXTEND_CONNECTION_LENGTH);
+        Integer legacyLength = JsonConfigFile.readInt(json, MAX_CONNECTION_LENGTH);
+        boolean legacyKey = json.has(MAX_CONNECTION_LENGTH);
         Boolean protect = JsonConfigFile.readBoolean(json, PROTECT_TRAIN_PASSENGERS);
         String boreText = JsonConfigFile.readString(json, BORE_THROUGH_BLOCKS);
         Integer headroom = JsonConfigFile.readInt(json, BORE_HEADROOM);
@@ -102,12 +128,26 @@ public final class ServerConfig {
             straight = defaults.straightThroughBlocks();
             complete = false;
         }
-        if (length == null) {
-            length = defaults.maxConnectionLength();
+        if (legacyKey) {
             complete = false;
-        } else if (length != TrackwrightSettings.clampLength(length)) {
-            Trackwright.LOGGER.warn("{} {} is outside {}..{}, using {}", MAX_CONNECTION_LENGTH, length,
-                TrackwrightSettings.MIN_CONNECTION_LENGTH, TrackwrightSettings.MAX_CONNECTION_LENGTH, TrackwrightSettings.clampLength(length));
+        }
+        if (extend == null) {
+            complete = false;
+            if (legacyLength != null) {
+                int legacy = TrackwrightSettings.clampLength(legacyLength);
+                int createLength = createLength();
+                extend = legacy > createLength;
+                Trackwright.LOGGER.info("{} {} from an older config becomes {} {} (Create's maxTrackPlacementLength is {})", MAX_CONNECTION_LENGTH, legacyLength,
+                    EXTEND_CONNECTION_LENGTH, extend, createLength);
+                if (createLength < legacy && legacy < TrackwrightSettings.MAX_CONNECTION_LENGTH) {
+                    Trackwright.LOGGER.warn("Track connections now reach {} instead of {}; to keep {}, set Create's maxTrackPlacementLength to {} and {} to false",
+                        TrackwrightSettings.MAX_CONNECTION_LENGTH, legacy, legacy, legacy, EXTEND_CONNECTION_LENGTH);
+                }
+            } else {
+                extend = defaults.extendConnectionLength();
+            }
+        } else if (legacyKey) {
+            Trackwright.LOGGER.info("{} is replaced by {} ({}), so it is removed", MAX_CONNECTION_LENGTH, EXTEND_CONNECTION_LENGTH, extend);
         }
         if (protect == null) {
             protect = defaults.protectTrainPassengers();
@@ -231,12 +271,12 @@ public final class ServerConfig {
                 clear = BoreMode.OFF;
             }
         }
-        TrackwrightSettings settings = new TrackwrightSettings(straight, length, protect, bore, widthMax, headroomMax, profile, lava, hardness, refuseEnds,
+        TrackwrightSettings settings = new TrackwrightSettings(straight, extend, TrackwrightSettings.reachFloor(extend), protect, bore, widthMax, headroomMax, profile, lava, hardness, refuseEnds,
             equipment, airPaving, powderSnow, fluids, controls, drillFace, needGround, reshape, hotkeys, markers, clear);
         if (contents.writable() && !complete) {
             JsonObject known = new JsonObject();
             known.addProperty(STRAIGHT_THROUGH_BLOCKS, settings.straightThroughBlocks());
-            known.addProperty(MAX_CONNECTION_LENGTH, length);
+            known.addProperty(EXTEND_CONNECTION_LENGTH, settings.extendConnectionLength());
             known.addProperty(PROTECT_TRAIN_PASSENGERS, settings.protectTrainPassengers());
             known.addProperty(BORE_THROUGH_BLOCKS, boreText != null ? boreText : settings.boreThroughBlocks().id());
             known.addProperty(BORE_WIDTH_MAX, widthMax);
@@ -261,9 +301,12 @@ public final class ServerConfig {
             known.addProperty(UNBREAKABLE_MARKERS, markersText != null ? markersText : settings.unbreakableMarkers().id());
             known.addProperty(CLEAR_TRACK_BED, clearText != null ? clearText : settings.clearTrackBed().id());
             JsonObject existing = json;
-            if (migrated) {
+            if (migrated || legacyKey) {
                 existing = json.deepCopy();
-                existing.remove(BORE_HEADROOM);
+                if (migrated) {
+                    existing.remove(BORE_HEADROOM);
+                }
+                existing.remove(MAX_CONNECTION_LENGTH);
             }
             JsonConfigFile.write(path, known, existing);
         }

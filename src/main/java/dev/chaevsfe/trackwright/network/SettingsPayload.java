@@ -65,13 +65,15 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
 
     public TrackwrightSettings settings() {
         int headroom = TagReads.intOr(fields, ServerConfig.BORE_HEADROOM, 0);
+        int length = TagReads.intOr(fields, ServerConfig.MAX_CONNECTION_LENGTH, TrackwrightSettings.MIN_CONNECTION_LENGTH);
         CompoundTag profile = fields.contains(ServerConfig.BORE_PROFILE_DEFAULT, Tag.TAG_COMPOUND) ? fields.getCompound(ServerConfig.BORE_PROFILE_DEFAULT) : null;
         BoreProfile defaultProfile = profile == null
             ? new BoreProfile(0, 0, headroom)
             : new BoreProfile(TagReads.intOr(profile, ServerConfig.LEFT, 0), TagReads.intOr(profile, ServerConfig.RIGHT, 0), TagReads.intOr(profile, ServerConfig.UP, headroom));
         return new TrackwrightSettings(
             TagReads.booleanOr(fields, ServerConfig.STRAIGHT_THROUGH_BLOCKS, false),
-            TagReads.intOr(fields, ServerConfig.MAX_CONNECTION_LENGTH, TrackwrightSettings.MIN_CONNECTION_LENGTH),
+            length >= TrackwrightSettings.MAX_CONNECTION_LENGTH,
+            length,
             TagReads.booleanOr(fields, ServerConfig.PROTECT_TRAIN_PASSENGERS, false),
             BoreMode.byId(TagReads.stringOr(fields, ServerConfig.BORE_THROUGH_BLOCKS, BoreMode.OFF.id())),
             TagReads.intOr(fields, ServerConfig.BORE_WIDTH_MAX, defaultProfile.width()),
