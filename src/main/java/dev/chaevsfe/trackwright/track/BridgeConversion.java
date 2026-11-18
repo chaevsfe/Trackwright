@@ -1,5 +1,6 @@
 package dev.chaevsfe.trackwright.track;
 
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.trains.GlobalRailwayManager;
 import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
@@ -11,15 +12,20 @@ import com.simibubi.create.content.trains.track.BezierConnection;
 import com.simibubi.create.content.trains.track.TrackBlockEntity;
 import com.simibubi.create.content.trains.track.TrackPropagator;
 import dev.chaevsfe.trackwright.mixin.TrackGraphAccessor;
+import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +41,23 @@ public final class BridgeConversion {
         }
         BezierConnection connection = track.getConnections().get(pos2);
         return StraightConnections.isFlatStraight(connection) ? connection : null;
+    }
+
+    public static List<BlockPos> fakeTracks(Level level, BlockPos pos1, BlockPos pos2) {
+        BezierConnection connection = existing(level, pos1, pos2);
+        if (connection == null) {
+            return List.of();
+        }
+        BlockPos origin = connection.bePositions.getFirst();
+        List<BlockPos> cells = new ArrayList<>();
+        for (Map.Entry<Pair<Integer, Integer>, Double> column : LoadedColumns.filter(level, origin, connection.rasterise()).entrySet()) {
+            BlockPos pos = new BlockPos(column.getKey().getFirst(), Mth.floor(column.getValue()), column.getKey().getSecond()).offset(origin).above();
+            if (AllBlocks.FAKE_TRACK.has(level.getBlockState(pos))) {
+                cells.add(pos);
+            }
+        }
+        cells.sort(Comparator.comparingDouble(pos -> pos.distSqr(pos1)));
+        return cells;
     }
 
     public static @Nullable String refusal(Level level, BlockPos pos1, BlockPos pos2) {
