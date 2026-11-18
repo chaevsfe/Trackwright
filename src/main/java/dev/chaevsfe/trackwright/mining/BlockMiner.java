@@ -274,7 +274,11 @@ public final class BlockMiner {
         return withHandsAside(player, true, action);
     }
 
-    private static <T> T withHandsAside(ServerPlayer player, boolean mainToo, Supplier<T> action) {
+    public static <T> T withOffhandAside(Player player, Supplier<T> action) {
+        return withHandsAside(player, false, action);
+    }
+
+    private static <T> T withHandsAside(Player player, boolean mainToo, Supplier<T> action) {
         ItemStack main = mainToo ? player.getMainHandItem() : ItemStack.EMPTY;
         ItemStack off = player.getOffhandItem();
         if (main.isEmpty() && off.isEmpty()) {
@@ -323,7 +327,7 @@ public final class BlockMiner {
         }
     }
 
-    private static void putBack(ServerPlayer player, InteractionHand hand, ItemStack stack) {
+    private static void putBack(Player player, InteractionHand hand, ItemStack stack) {
         ItemStack now = player.getItemInHand(hand);
         player.setItemInHand(hand, stack);
         if (!now.isEmpty()) {

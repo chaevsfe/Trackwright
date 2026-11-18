@@ -40,11 +40,13 @@ public final class BridgePermission {
 
     public static @Nullable BlockPos refusedAt(ServerLevel level, Player player, PlacementInfo info, BezierConnection curve, BlockPos pos1, BlockPos pos2,
                                                Vec3 axis1, Vec3 axis2) {
-        return BlockMiner.withWandsAside(player, () -> firstRefused(level, player, info, curve, pos1, pos2, axis1, axis2));
+        Block paving = paving(level, player, pos1);
+        return BlockMiner.withWandsAside(player, () -> BlockMiner.withOffhandAside(player,
+            () -> firstRefused(level, player, info, curve, pos1, pos2, axis1, axis2, paving)));
     }
 
     private static @Nullable BlockPos firstRefused(ServerLevel level, Player player, PlacementInfo info, BezierConnection curve, BlockPos pos1,
-                                                   BlockPos pos2, Vec3 axis1, Vec3 axis2) {
+                                                   BlockPos pos2, Vec3 axis1, Vec3 axis2, @Nullable Block paving) {
         BlockPos origin = curve.bePositions.getFirst();
         Comparator<BlockPos> nearestFirst = Comparator.comparingDouble(pos -> pos.distSqr(origin));
         List<BlockPos> line = new ArrayList<>();
@@ -64,7 +66,6 @@ public final class BridgePermission {
                 return pos;
             }
         }
-        Block paving = paving(level, player, pos1);
         if (paving == null) {
             return null;
         }
