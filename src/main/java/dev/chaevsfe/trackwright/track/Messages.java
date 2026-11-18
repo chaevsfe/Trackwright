@@ -28,6 +28,7 @@ public final class Messages {
     public static final String BORE_TOOL_WORN = "trackwright.bore_tool_worn";
     public static final String BORE_PROTECTED = "trackwright.bore_protected";
     public static final String BORE_PROTECTED_AT = "trackwright.bore_protected_at";
+    public static final String LINE_PROTECTED_AT = "trackwright.line_protected_at";
     public static final String BORE_LAVA = "trackwright.bore_lava";
     public static final String BORE_FALLING = "trackwright.bore_falling";
     public static final String BORE_STOPPED = "trackwright.bore_stopped";
@@ -56,6 +57,7 @@ public final class Messages {
         Map.entry(KEY_PREFIX + BORE_TOOL_WORN, "The off-hand tool would break before the end"),
         Map.entry(KEY_PREFIX + BORE_PROTECTED, "Part of the line is protected"),
         Map.entry(KEY_PREFIX + BORE_PROTECTED_AT, "%s at %s is protected"),
+        Map.entry(KEY_PREFIX + LINE_PROTECTED_AT, "Part of the line at %s is protected"),
         Map.entry(KEY_PREFIX + BORE_LAVA, "Mining this would let lava in"),
         Map.entry(KEY_PREFIX + BORE_FALLING, "Sand or gravel above the line would fall in"),
         Map.entry(KEY_PREFIX + BORE_STOPPED, "Mining stopped at a protected block, so no track was laid"),
@@ -123,15 +125,21 @@ public final class Messages {
         if (!(KEY_PREFIX + BORE_PROTECTED).equals(key)) {
             return null;
         }
-        BorePlan bore = ((PlacementInfoExtension) info).trackwright$bore();
+        PlacementInfoExtension extension = (PlacementInfoExtension) info;
+        BorePlan bore = extension.trackwright$bore();
         BlockMiner.Problem problem = bore == null ? null : bore.problem();
-        if (problem == null || problem.refusal() != BlockMiner.Refusal.PROTECTED) {
+        if (problem != null && problem.refusal() == BlockMiner.Refusal.PROTECTED) {
+            String named = KEY_PREFIX + BORE_PROTECTED_AT;
+            BlockPos pos = problem.pos();
+            return Component.translatableWithFallback(named, FALLBACKS.get(named), problem.state().getBlock().getName(),
+                pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+        }
+        BlockPos at = extension.trackwright$protectedAt();
+        if (at == null) {
             return null;
         }
-        String named = KEY_PREFIX + BORE_PROTECTED_AT;
-        BlockPos pos = problem.pos();
-        return Component.translatableWithFallback(named, FALLBACKS.get(named), problem.state().getBlock().getName(),
-            pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+        String named = KEY_PREFIX + LINE_PROTECTED_AT;
+        return Component.translatableWithFallback(named, FALLBACKS.get(named), at.getX() + ", " + at.getY() + ", " + at.getZ());
     }
 
     private static MutableComponent positioned(Gap gap, boolean hint) {
