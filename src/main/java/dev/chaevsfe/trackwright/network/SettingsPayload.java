@@ -63,13 +63,15 @@ public record SettingsPayload(int version, CompoundTag fields) implements Custom
 
     public TrackwrightSettings settings() {
         int headroom = fields.getIntOr(ServerConfig.BORE_HEADROOM, 0);
+        int length = fields.getIntOr(ServerConfig.MAX_CONNECTION_LENGTH, TrackwrightSettings.MIN_CONNECTION_LENGTH);
         CompoundTag profile = fields.getCompound(ServerConfig.BORE_PROFILE_DEFAULT).orElse(null);
         BoreProfile defaultProfile = profile == null
             ? new BoreProfile(0, 0, headroom)
             : new BoreProfile(profile.getIntOr(ServerConfig.LEFT, 0), profile.getIntOr(ServerConfig.RIGHT, 0), profile.getIntOr(ServerConfig.UP, headroom));
         return new TrackwrightSettings(
             fields.getBooleanOr(ServerConfig.STRAIGHT_THROUGH_BLOCKS, false),
-            fields.getIntOr(ServerConfig.MAX_CONNECTION_LENGTH, TrackwrightSettings.MIN_CONNECTION_LENGTH),
+            length >= TrackwrightSettings.MAX_CONNECTION_LENGTH,
+            length,
             fields.getBooleanOr(ServerConfig.PROTECT_TRAIN_PASSENGERS, false),
             BoreMode.byId(fields.getStringOr(ServerConfig.BORE_THROUGH_BLOCKS, BoreMode.OFF.id())),
             fields.getIntOr(ServerConfig.BORE_WIDTH_MAX, defaultProfile.width()),

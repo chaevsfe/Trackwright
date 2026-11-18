@@ -2,6 +2,7 @@ package dev.chaevsfe.trackwright.config;
 
 public record TrackwrightSettings(
     boolean straightThroughBlocks,
+    boolean extendConnectionLength,
     int maxConnectionLength,
     boolean protectTrainPassengers,
     BoreMode boreThroughBlocks,
@@ -29,7 +30,7 @@ public record TrackwrightSettings(
     public static final int MAX_BORE_HEADROOM = 6;
     public static final int LEGACY_HEADROOM_DEFAULT = 1;
     public static final TrackwrightSettings DEFAULTS = new TrackwrightSettings(
-        true, MAX_CONNECTION_LENGTH, true, BoreMode.SURVIVAL, 5, 3, BoreProfile.DEFAULT, true, 0, true,
+        true, true, MAX_CONNECTION_LENGTH, true, BoreMode.SURVIVAL, 5, 3, BoreProfile.DEFAULT, true, 0, true,
         true, true, false, false, true, true, false, true, true, MarkerMode.OFF, BoreMode.SURVIVAL
     );
 
@@ -46,6 +47,10 @@ public record TrackwrightSettings(
 
     public int boreHeadroom() {
         return boreProfileDefault.up();
+    }
+
+    public static int reachFloor(boolean extend) {
+        return extend ? MAX_CONNECTION_LENGTH : MIN_CONNECTION_LENGTH;
     }
 
     public static int clampLength(int length) {
