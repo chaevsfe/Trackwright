@@ -55,4 +55,8 @@ public interface PlacementInfoExtension {
     @Nullable Gap trackwright$gap();
 
     void trackwright$setGap(@Nullable Gap gap);
+
+    @Nullable BlockPos trackwright$protectedAt();
+
+    void trackwright$setProtectedAt(@Nullable BlockPos pos);
 }

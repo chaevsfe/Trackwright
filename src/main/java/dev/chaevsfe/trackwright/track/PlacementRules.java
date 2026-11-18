@@ -199,9 +199,12 @@ public final class PlacementRules {
             }
         }
         BezierConnection bridge = extension.trackwright$bridged() ? extension.trackwright$curve() : null;
-        if (bridge != null && level instanceof ServerLevel serverLevel
-            && !BridgePermission.allowed(serverLevel, player, info, bridge, pos1, pos2, axis1, axis2)) {
-            return Messages.BORE_PROTECTED;
+        if (bridge != null && level instanceof ServerLevel serverLevel) {
+            BlockPos refused = BridgePermission.refusedAt(serverLevel, player, info, bridge, pos1, pos2, axis1, axis2);
+            if (refused != null) {
+                extension.trackwright$setProtectedAt(refused);
+                return Messages.BORE_PROTECTED;
+            }
         }
         BorePlan bore = extension.trackwright$bore();
         if (bore == null && !extension.trackwright$bridged() && (curve || axis1.y != 0)) {

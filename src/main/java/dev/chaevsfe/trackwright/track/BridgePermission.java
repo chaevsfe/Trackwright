@@ -36,8 +36,8 @@ public final class BridgePermission {
     private BridgePermission() {
     }
 
-    public static boolean allowed(ServerLevel level, Player player, PlacementInfo info, BezierConnection curve, BlockPos pos1, BlockPos pos2,
-                                  Vec3 axis1, Vec3 axis2) {
+    public static @Nullable BlockPos refusedAt(ServerLevel level, Player player, PlacementInfo info, BezierConnection curve, BlockPos pos1, BlockPos pos2,
+                                               Vec3 axis1, Vec3 axis2) {
         BlockPos origin = curve.bePositions.getFirst();
         Comparator<BlockPos> nearestFirst = Comparator.comparingDouble(pos -> pos.distSqr(origin));
         List<BlockPos> line = new ArrayList<>();
@@ -47,12 +47,12 @@ public final class BridgePermission {
         line.sort(nearestFirst);
         for (BlockPos pos : line) {
             if (refused(level, player, pos, fakeTrack(level, pos))) {
-                return false;
+                return pos;
             }
         }
         Block paving = paving(level, player, pos1);
         if (paving == null) {
-            return true;
+            return null;
         }
         PlacementInfoExtension extension = (PlacementInfoExtension) info;
         Set<BlockPos> visited = new HashSet<>();
@@ -65,10 +65,10 @@ public final class BridgePermission {
             BlockState state = level.getBlockState(pos);
             if (state.getBlock() != paving && state.canBeReplaced()
                 && refused(level, player, pos, ProperWaterloggedBlock.withWater(level, paving.defaultBlockState(), pos))) {
-                return false;
+                return pos;
             }
         }
-        return true;
+        return null;
     }
 
     public static boolean planned(Event event) {

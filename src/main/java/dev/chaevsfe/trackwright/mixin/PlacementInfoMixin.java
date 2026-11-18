@@ -45,6 +45,8 @@ public abstract class PlacementInfoMixin implements PlacementInfoExtension {
     private boolean trackwright$converts;
     @Unique
     private @Nullable Gap trackwright$gap;
+    @Unique
+    private @Nullable BlockPos trackwright$protectedAt;
 
     @Override
     public @Nullable BezierConnection trackwright$curve() {
@@ -164,5 +166,15 @@ public abstract class PlacementInfoMixin implements PlacementInfoExtension {
     @Override
     public void trackwright$setGap(@Nullable Gap gap) {
         trackwright$gap = gap;
+    }
+
+    @Override
+    public @Nullable BlockPos trackwright$protectedAt() {
+        return trackwright$protectedAt;
+    }
+
+    @Override
+    public void trackwright$setProtectedAt(@Nullable BlockPos pos) {
+        trackwright$protectedAt = pos == null ? null : pos.immutable();
     }
 }
