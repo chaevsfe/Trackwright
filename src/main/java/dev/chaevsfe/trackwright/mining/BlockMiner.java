@@ -298,7 +298,7 @@ public final class BlockMiner {
         }
     }
 
-    private static <T> T withWandsAside(ServerPlayer player, Supplier<T> action) {
+    public static <T> T withWandsAside(Player player, Supplier<T> action) {
         Inventory inventory = player.getInventory();
         ItemStack[] wands = new ItemStack[Inventory.getSelectionSize()];
         for (int slot = 0; slot < wands.length; slot++) {

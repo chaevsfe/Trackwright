@@ -7,6 +7,7 @@ import com.simibubi.create.content.trains.track.ITrackBlock;
 import com.simibubi.create.content.trains.track.TrackPaver;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
+import dev.chaevsfe.trackwright.mining.BlockMiner;
 import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -39,6 +40,11 @@ public final class BridgePermission {
 
     public static @Nullable BlockPos refusedAt(ServerLevel level, Player player, PlacementInfo info, BezierConnection curve, BlockPos pos1, BlockPos pos2,
                                                Vec3 axis1, Vec3 axis2) {
+        return BlockMiner.withWandsAside(player, () -> firstRefused(level, player, info, curve, pos1, pos2, axis1, axis2));
+    }
+
+    private static @Nullable BlockPos firstRefused(ServerLevel level, Player player, PlacementInfo info, BezierConnection curve, BlockPos pos1,
+                                                   BlockPos pos2, Vec3 axis1, Vec3 axis2) {
         BlockPos origin = curve.bePositions.getFirst();
         Comparator<BlockPos> nearestFirst = Comparator.comparingDouble(pos -> pos.distSqr(origin));
         List<BlockPos> line = new ArrayList<>();
