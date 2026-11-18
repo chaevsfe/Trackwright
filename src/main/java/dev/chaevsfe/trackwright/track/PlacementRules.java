@@ -161,7 +161,7 @@ public final class PlacementRules {
             return null;
         }
         List<BlockPos> fakeTracks = BridgeConversion.fakeTracks(level, pos1, pos2);
-        BlockMiner.Problem problem = BlockMiner.checkPermission(serverLevel, serverPlayer, fakeTracks, InteractionHand.MAIN_HAND);
+        BlockMiner.Problem problem = BlockMiner.checkPermission(serverLevel, serverPlayer, fakeTracks, InteractionHand.MAIN_HAND, false);
         if (problem == null) {
             return null;
         }

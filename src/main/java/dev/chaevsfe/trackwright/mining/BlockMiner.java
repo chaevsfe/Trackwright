@@ -189,6 +189,10 @@ public final class BlockMiner {
     }
 
     public static @Nullable Problem checkPermission(ServerLevel level, ServerPlayer player, List<BlockPos> cells, InteractionHand toolHand) {
+        return checkPermission(level, player, cells, toolHand, true);
+    }
+
+    public static @Nullable Problem checkPermission(ServerLevel level, ServerPlayer player, List<BlockPos> cells, InteractionHand toolHand, boolean playerBreaks) {
         if (cells.isEmpty()) {
             return null;
         }
@@ -196,10 +200,10 @@ public final class BlockMiner {
         if (!player.mayBuild()) {
             return new Problem(Refusal.PROTECTED, first, level.getBlockState(first));
         }
-        if (symmetryWandInHotbar(player)) {
+        if (playerBreaks && symmetryWandInHotbar(player)) {
             return new Problem(Refusal.SYMMETRY, first, level.getBlockState(first));
         }
-        return withTool(player, toolHand, () -> {
+        Supplier<Problem> check = () -> withTool(player, toolHand, () -> {
             for (BlockPos pos : cells) {
                 BlockState state = level.getBlockState(pos);
                 if (!level.mayInteract(player, pos)
@@ -210,6 +214,7 @@ public final class BlockMiner {
             }
             return null;
         });
+        return playerBreaks ? check.get() : withWandsAside(player, check);
     }
 
     public static boolean breakAllowed(ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
@@ -289,6 +294,31 @@ public final class BlockMiner {
             }
             if (!off.isEmpty()) {
                 putBack(player, InteractionHand.OFF_HAND, off);
+            }
+        }
+    }
+
+    private static <T> T withWandsAside(ServerPlayer player, Supplier<T> action) {
+        Inventory inventory = player.getInventory();
+        ItemStack[] wands = new ItemStack[Inventory.getSelectionSize()];
+        for (int slot = 0; slot < wands.length; slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            if (AllItems.WAND_OF_SYMMETRY.isIn(stack)) {
+                wands[slot] = stack;
+                inventory.setItem(slot, ItemStack.EMPTY);
+            }
+        }
+        try {
+            return action.get();
+        } finally {
+            for (int slot = 0; slot < wands.length; slot++) {
+                if (wands[slot] != null) {
+                    ItemStack now = inventory.getItem(slot);
+                    inventory.setItem(slot, wands[slot]);
+                    if (!now.isEmpty()) {
+                        inventory.placeItemBackInInventory(now);
+                    }
+                }
             }
         }
     }
