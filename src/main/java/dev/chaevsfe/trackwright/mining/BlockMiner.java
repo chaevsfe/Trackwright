@@ -188,6 +188,10 @@ public final class BlockMiner {
     }
 
     public static @Nullable Problem checkPermission(ServerLevel level, ServerPlayer player, List<BlockPos> cells, InteractionHand toolHand) {
+        return checkPermission(level, player, cells, toolHand, true);
+    }
+
+    public static @Nullable Problem checkPermission(ServerLevel level, ServerPlayer player, List<BlockPos> cells, InteractionHand toolHand, boolean playerBreaks) {
         if (cells.isEmpty()) {
             return null;
         }
@@ -195,7 +199,7 @@ public final class BlockMiner {
         if (!player.mayBuild()) {
             return new Problem(Refusal.PROTECTED, first, level.getBlockState(first));
         }
-        if (symmetryWandInHotbar(player)) {
+        if (playerBreaks && symmetryWandInHotbar(player)) {
             return new Problem(Refusal.SYMMETRY, first, level.getBlockState(first));
         }
         return withTool(player, toolHand, () -> {
