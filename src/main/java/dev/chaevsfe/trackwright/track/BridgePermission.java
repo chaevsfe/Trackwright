@@ -3,6 +3,7 @@ package dev.chaevsfe.trackwright.track;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllTags.AllItemTags;
 import com.simibubi.create.content.trains.track.BezierConnection;
+import com.simibubi.create.content.trains.track.ITrackBlock;
 import com.simibubi.create.content.trains.track.TrackPaver;
 import com.simibubi.create.content.trains.track.TrackPlacement.PlacementInfo;
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
@@ -44,9 +45,16 @@ public final class BridgePermission {
         for (Map.Entry<Pair<Integer, Integer>, Double> column : LoadedColumns.filter(level, origin, curve.rasterise()).entrySet()) {
             line.add(new BlockPos(column.getKey().getFirst(), Mth.floor(column.getValue()), column.getKey().getSecond()).offset(origin).above());
         }
+        BlockPos newEnd = level.getBlockState(pos2).getBlock() instanceof ITrackBlock ? null : pos2.immutable();
+        if (newEnd != null) {
+            line.add(newEnd);
+        }
         line.sort(nearestFirst);
         for (BlockPos pos : line) {
-            if (refused(level, player, pos, fakeTrack(level, pos))) {
+            BlockState planned = pos.equals(newEnd)
+                ? ProperWaterloggedBlock.withWater(level, info.trackMaterial.getBlock().defaultBlockState(), pos)
+                : fakeTrack(level, pos);
+            if (refused(level, player, pos, planned)) {
                 return pos;
             }
         }
