@@ -18,6 +18,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -186,7 +187,7 @@ public final class PlacementRules {
             bore = extension.trackwright$bore();
         }
         if (bore == null) {
-            return null;
+            return convertRefusal(level, player, extension, pos1, pos2);
         }
         if (bore.problem() != null) {
             return bore.problem().refusal().message();
@@ -198,7 +199,22 @@ public final class PlacementRules {
                 return problem.refusal().message();
             }
         }
-        return null;
+        return convertRefusal(level, player, extension, pos1, pos2);
+    }
+
+    private static @Nullable String convertRefusal(Level level, Player player, PlacementInfoExtension extension, BlockPos pos1, BlockPos pos2) {
+        if (!extension.trackwright$converts() || !(level instanceof ServerLevel serverLevel) || !(player instanceof ServerPlayer serverPlayer)) {
+            return null;
+        }
+        List<BlockPos> fakeTracks = BridgeConversion.fakeTracks(level, pos1, pos2);
+        BlockMiner.Problem problem = BlockMiner.checkPermission(serverLevel, serverPlayer, fakeTracks, InteractionHand.MAIN_HAND);
+        if (problem == null) {
+            return null;
+        }
+        if (problem.refusal() == BlockMiner.Refusal.PROTECTED) {
+            extension.trackwright$setProtectedAt(problem.pos());
+        }
+        return problem.refusal().message();
     }
 
     private static @Nullable String decidePath(Level level, Player player, PlacementInfo info, BlockPos pos1, BlockPos pos2, Vec3 axis1, Vec3 axis2) {
